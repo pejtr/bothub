@@ -69,6 +69,10 @@ vi.mock("./dailyReport", () => ({
   generateStrategicRecommendations: vi.fn().mockResolvedValue("1. Zvy\u0161te investice do affiliate programu."),
 }));
 
+vi.mock("./stripe", () => ({
+  createCheckoutSession: vi.fn().mockResolvedValue({ url: "https://checkout.stripe.com/test", sessionId: "cs_test_123" }),
+}));
+
 vi.mock("./_core/llm", () => ({
   invokeLLM: vi.fn().mockResolvedValue({
     choices: [{ message: { content: "Ahoj! Jsem Alex Hormozi iBot." } }],
@@ -85,6 +89,7 @@ import {
 import { sendConfirmationEmail } from "./email";
 import { sendDailyReport, generateDailyReport, formatReportContent, sendWeeklyReport, generateWeeklyReport, formatWeeklyReportContent, generateStrategicRecommendations } from "./dailyReport";
 import { invokeLLM } from "./_core/llm";
+import { createCheckoutSession } from "./stripe";
 
 function createPublicContext(): TrpcContext {
   return {
@@ -629,5 +634,63 @@ describe("promo.remainingSpots", () => {
     expect(typeof result.total).toBe("number");
     expect(typeof result.taken).toBe("number");
     expect(typeof result.isActive).toBe("boolean");
+  });
+});
+
+describe("stripe.createCheckout", () => {
+  const caller = appRouter.createCaller(createPublicContext());
+
+  it("creates a Stripe checkout session for GOLD plan", async () => {
+    const result = await caller.stripe.createCheckout({
+      plan: "gold",
+      email: "test@example.com",
+      registrationId: 1,
+      name: "Test User",
+      origin: "https://bothub.cz",
+    });
+    expect(result).toEqual({ url: "https://checkout.stripe.com/test", sessionId: "cs_test_123" });
+    expect(createCheckoutSession).toHaveBeenCalledWith({
+      plan: "gold",
+      email: "test@example.com",
+      registrationId: 1,
+      name: "Test User",
+      origin: "https://bothub.cz",
+      affiliateCode: undefined,
+    });
+  });
+
+  it("creates a Stripe checkout session for DIAMOND plan", async () => {
+    const result = await caller.stripe.createCheckout({
+      plan: "diamond",
+      email: "diamond@example.com",
+      registrationId: 2,
+      origin: "https://bothub.cz",
+    });
+    expect(result.url).toBe("https://checkout.stripe.com/test");
+    expect(result.sessionId).toBe("cs_test_123");
+  });
+
+  it("passes affiliate code when provided", async () => {
+    await caller.stripe.createCheckout({
+      plan: "gold",
+      email: "affiliate@example.com",
+      registrationId: 3,
+      origin: "https://bothub.cz",
+      affiliateCode: "BH-ABC123",
+    });
+    expect(createCheckoutSession).toHaveBeenCalledWith(
+      expect.objectContaining({ affiliateCode: "BH-ABC123" })
+    );
+  });
+
+  it("rejects invalid plan", async () => {
+    await expect(
+      caller.stripe.createCheckout({
+        plan: "free" as any,
+        email: "test@example.com",
+        registrationId: 1,
+        origin: "https://bothub.cz",
+      })
+    ).rejects.toThrow();
   });
 });

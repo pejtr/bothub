@@ -16,6 +16,7 @@ import { notifyOwner } from "./_core/notification";
 import { sendConfirmationEmail } from "./email";
 import { sendDailyReport, generateDailyReport, formatReportContent, sendWeeklyReport, generateWeeklyReport, formatWeeklyReportContent, generateStrategicRecommendations } from "./dailyReport";
 import { invokeLLM } from "./_core/llm";
+import { createCheckoutSession } from "./stripe";
 
 export const appRouter = router({
   system: systemRouter,
@@ -284,6 +285,30 @@ export const appRouter = router({
         recommendations,
       };
     }),
+  }),
+
+  // ===== STRIPE CHECKOUT =====
+  stripe: router({
+    createCheckout: publicProcedure
+      .input(z.object({
+        plan: z.enum(["gold", "diamond"]),
+        email: z.string().email(),
+        registrationId: z.number(),
+        name: z.string().optional(),
+        origin: z.string(),
+        affiliateCode: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { url, sessionId } = await createCheckoutSession({
+          plan: input.plan,
+          email: input.email,
+          registrationId: input.registrationId,
+          name: input.name,
+          origin: input.origin,
+          affiliateCode: input.affiliateCode,
+        });
+        return { url, sessionId };
+      }),
   }),
 
   // ===== COUNTDOWN / PROMO =====

@@ -30,6 +30,54 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 async function startServer() {
   const app = express();
   const server = createServer(app);
+
+  // Stripe webhook needs raw body BEFORE express.json()
+  app.post("/api/stripe/webhook", express.raw({ type: "application/json" }), async (req, res) => {
+    const sig = req.headers["stripe-signature"] as string;
+    if (!sig) {
+      return res.status(400).json({ error: "Missing stripe-signature header" });
+    }
+    try {
+      const { constructWebhookEvent } = await import("../stripe");
+      const event = constructWebhookEvent(req.body as Buffer, sig);
+
+      // Test event verification
+      if (event.id.startsWith("evt_test_")) {
+        console.log("[Webhook] Test event detected, returning verification response");
+        return res.json({ verified: true });
+      }
+
+      console.log(`[Webhook] Received event: ${event.type} (${event.id})`);
+
+      // Handle payment events
+      if (event.type === "checkout.session.completed") {
+        const session = event.data.object as any;
+        const registrationId = parseInt(session.metadata?.registration_id || "0");
+        const plan = session.metadata?.plan;
+        const stripeCustomerId = session.customer as string;
+        const stripeSubscriptionId = session.subscription as string;
+
+        if (registrationId && plan) {
+          const { activateRegistration, updateRegistrationStripe } = await import("../db");
+          await activateRegistration(registrationId);
+          await updateRegistrationStripe(registrationId, stripeCustomerId, stripeSubscriptionId);
+          console.log(`[Webhook] Activated registration ${registrationId} for plan ${plan}`);
+
+          const { notifyOwner } = await import("./notification");
+          await notifyOwner({
+            title: `Platba dokončena: ${plan.toUpperCase()}`,
+            content: `Registrace #${registrationId}\nPlán: ${plan.toUpperCase()}\nStripe Customer: ${stripeCustomerId}\nSubscription: ${stripeSubscriptionId}`,
+          }).catch(() => {});
+        }
+      }
+
+      res.json({ received: true });
+    } catch (err: any) {
+      console.error("[Webhook] Error:", err.message);
+      res.status(400).json({ error: err.message });
+    }
+  });
+
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));

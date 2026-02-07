@@ -126,6 +126,13 @@ export async function activateRegistration(id: number) {
   await db.update(registrations).set({ status: "activated" }).where(eq(registrations.id, id));
 }
 
+/** Update registration with Stripe IDs after successful payment */
+export async function updateRegistrationStripe(id: number, stripeCustomerId: string, stripeSubscriptionId: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(registrations).set({ stripeCustomerId, stripeSubscriptionId }).where(eq(registrations.id, id));
+}
+
 // ===== Affiliate Registrations =====
 function generateAffiliateCode(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";

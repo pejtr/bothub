@@ -67,3 +67,15 @@
 - [x] i18n: kompletní překlad landing page do angličtiny (všechny sekce + modaly)
 - [x] i18n: překlad blog stránek do angličtiny
 - [x] Testy pro nové features (43/43 passed)
+
+- [x] Stripe: webdev_add_feature pro Stripe integraci
+- [x] Stripe: checkout session pro GOLD (990 Kč) a DIAMOND (2490 Kč) v stripe.ts
+- [x] Stripe: propojit RegistrationModal s Stripe checkout (nový tab)
+- [x] Stripe: webhook /api/stripe/webhook pro potvrzení platby
+- [x] Stripe: /payment-success a /payment-cancel stránky
+- [x] GDPR cookie lišta: banner s volbou accept/reject (CookieConsent.tsx)
+- [x] GDPR cookie lišta: persistentní uložení preference (localStorage)
+- [x] GDPR cookie lišta: podmíněné načítání analytiky dle souhlasu
+- [x] Scroll animace: fade-in/slide-up/left/right efekty (AnimatedSection.tsx)
+- [x] Scroll animace: Intersection Observer pro lazy triggering (useScrollAnimation hook)
+- [x] Testy pro nové features (47/47 passed)

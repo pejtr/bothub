@@ -82,6 +82,10 @@ export const registrations = mysqlTable("registrations", {
   ctaVariant: varchar("ctaVariant", { length: 50 }),
   /** Affiliate partner code if referred */
   affiliateCode: varchar("affiliateCode", { length: 100 }),
+  /** Stripe customer ID after successful payment */
+  stripeCustomerId: varchar("stripeCustomerId", { length: 255 }),
+  /** Stripe subscription ID for recurring billing */
+  stripeSubscriptionId: varchar("stripeSubscriptionId", { length: 255 }),
   gdprConsent: int("gdprConsent").default(0).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

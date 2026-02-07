@@ -10,6 +10,7 @@ import { LiveChatDemo } from "@/components/LiveChatDemo";
 import { SocialProofWidget } from "@/components/SocialProofWidget";
 import { CountdownBanner } from "@/components/CountdownBanner";
 import { VideoShowcase } from "@/components/VideoShowcase";
+import { AnimatedSection } from "@/components/AnimatedSection";
 import { categories, getIBotsByCategory } from "@/data/ibots";
 import { getCTAText, trackCTAClick, getUserCTAVariant } from "@/lib/ctaAbTest";
 import { useI18n, LanguageSwitcher } from "@/lib/i18n";
@@ -192,6 +193,7 @@ export default function Home() {
       <CountdownBanner onClaim={handleCountdownCTA} />
 
       {/* ===== PROBLEM / SOLUTION ===== */}
+      <AnimatedSection>
       <section className="relative py-20 md:py-28">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-purple-500/[0.02] to-transparent" />
         <div className="container relative z-10">
@@ -230,8 +232,10 @@ export default function Home() {
           </div>
         </div>
       </section>
+      </AnimatedSection>
 
       {/* ===== CATALOG ===== */}
+      <AnimatedSection delay={0.1}>
       <section id="catalog" className="relative py-20 md:py-28">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-amber-500/[0.02] to-transparent" />
         <div className="container relative z-10">
@@ -323,7 +327,10 @@ export default function Home() {
         </div>
       </section>
 
+      </AnimatedSection>
+
       {/* ===== VALUE PROPOSITION (Hormozi Equation) ===== */}
+      <AnimatedSection>
       <section className="relative py-20 md:py-28">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-amber-500/[0.03] to-transparent" />
         <div className="container relative z-10">
@@ -411,6 +418,8 @@ export default function Home() {
         </div>
       </section>
 
+      </AnimatedSection>
+
       {/* ===== VIDEO SHOWCASE ===== */}
       <VideoShowcase />
 
@@ -418,6 +427,7 @@ export default function Home() {
       <Testimonials />
 
       {/* ===== PRICING ===== */}
+      <AnimatedSection>
       <section id="pricing" className="relative py-20 md:py-28">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-purple-500/[0.02] to-transparent" />
         <div className="container relative z-10">
@@ -502,7 +512,10 @@ export default function Home() {
         </div>
       </section>
 
+      </AnimatedSection>
+
       {/* ===== AFFILIATE ===== */}
+      <AnimatedSection direction="left">
       <section id="affiliate" className="relative py-20 md:py-28">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-amber-500/[0.02] to-transparent" />
         <div className="container relative z-10">
@@ -571,7 +584,10 @@ export default function Home() {
         </div>
       </section>
 
+      </AnimatedSection>
+
       {/* ===== PLATFORMS ===== */}
+      <AnimatedSection direction="right">
       <section id="platforms" className="relative py-20 md:py-28">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-purple-500/[0.02] to-transparent" />
         <div className="container relative z-10">
@@ -608,8 +624,10 @@ export default function Home() {
           </div>
         </div>
       </section>
+      </AnimatedSection>
 
       {/* ===== FINAL CTA ===== */}
+      <AnimatedSection direction="fade">
       <section className="relative py-20 md:py-28">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-amber-500/[0.03] to-transparent" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-amber-500/5 rounded-full blur-[120px]" />
@@ -628,6 +646,7 @@ export default function Home() {
           <p className="text-sm text-gray-500 mt-4">{t("final.note")}</p>
         </div>
       </section>
+      </AnimatedSection>
 
       {/* ===== FOOTER ===== */}
       <footer className="border-t border-white/5 py-12">

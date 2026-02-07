@@ -6,9 +6,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { trpc } from "@/lib/trpc";
 import { getUserCTAVariant } from "@/lib/ctaAbTest";
 import { useI18n } from "@/lib/i18n";
+import { toast } from "sonner";
 import {
   CheckCircle2, Sparkles, Zap, Crown, ArrowRight, Loader2,
-  Bot, Shield, Clock
+  Bot, Shield, Clock, CreditCard
 } from "lucide-react";
 
 type Plan = "free" | "gold" | "diamond";
@@ -36,7 +37,7 @@ export function RegistrationModal({ open, onOpenChange, initialPlan = "free", so
   const { locale } = useI18n();
   const planDetails = locale === "en" ? planDetailsEn : planDetailsCs;
 
-  const [step, setStep] = useState<"plan" | "form" | "success">("plan");
+  const [step, setStep] = useState<"plan" | "form" | "success" | "redirecting">("plan");
   const [selectedPlan, setSelectedPlan] = useState<Plan>(initialPlan);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
@@ -47,6 +48,7 @@ export function RegistrationModal({ open, onOpenChange, initialPlan = "free", so
   const [resultPlan, setResultPlan] = useState<string>("");
 
   const registerMutation = trpc.registration.register.useMutation();
+  const checkoutMutation = trpc.stripe.createCheckout.useMutation();
 
   useEffect(() => {
     if (open) {
@@ -60,23 +62,52 @@ export function RegistrationModal({ open, onOpenChange, initialPlan = "free", so
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    const en = locale === "en";
     if (!email || !email.includes("@")) {
-      setError(locale === "en" ? "Please enter a valid email address." : "Zadejte platnou e-mailovou adresu.");
+      setError(en ? "Please enter a valid email address." : "Zadejte platnou e-mailovou adresu.");
       return;
     }
     if (!gdprConsent) {
-      setError(locale === "en" ? "You must agree to the data processing to continue." : "Pro pokračování musíte souhlasit se zpracováním údajů.");
+      setError(en ? "You must agree to the data processing to continue." : "Pro pokračování musíte souhlasit se zpracováním údajů.");
       return;
     }
     try {
+      // Step 1: Create registration
       const result = await registerMutation.mutateAsync({
         email, name: name || undefined, company: company || undefined,
         plan: selectedPlan, source, ctaVariant: getUserCTAVariant(),
         affiliateCode: getAffiliateCodeFromUrl() || undefined, gdprConsent: true,
       });
-      setResultMessage(result.message);
-      setResultPlan(result.plan);
-      setStep("success");
+
+      // Step 2: For paid plans, redirect to Stripe Checkout
+      if (selectedPlan === "gold" || selectedPlan === "diamond") {
+        setStep("redirecting");
+        try {
+          const checkout = await checkoutMutation.mutateAsync({
+            plan: selectedPlan,
+            email,
+            registrationId: result.registrationId,
+            name: name || undefined,
+            origin: window.location.origin,
+            affiliateCode: getAffiliateCodeFromUrl() || undefined,
+          });
+          toast.info(en ? "Redirecting to payment..." : "Přesměrování na platbu...");
+          window.open(checkout.url, "_blank");
+          setResultMessage(en
+            ? "A payment window has been opened. Complete the payment there to activate your plan."
+            : "Otevřelo se okno s platbou. Dokončete platbu tam pro aktivaci plánu.");
+          setResultPlan(result.plan);
+          setStep("success");
+        } catch {
+          setError(en ? "Failed to create payment session. Please try again." : "Nepodařilo se vytvořit platební relaci. Zkuste to znovu.");
+          setStep("form");
+        }
+      } else {
+        // FREE plan — instant activation
+        setResultMessage(result.message);
+        setResultPlan(result.plan);
+        setStep("success");
+      }
     } catch {
       setError(locale === "en" ? "Something went wrong. Please try again." : "Něco se pokazilo. Zkuste to prosím znovu.");
     }
@@ -94,6 +125,11 @@ export function RegistrationModal({ open, onOpenChange, initialPlan = "free", so
                 <CheckCircle2 className="w-6 h-6" />
                 {en ? "Registration complete!" : "Registrace dokončena!"}
               </span>
+            ) : step === "redirecting" ? (
+              <span className="text-amber-400 flex items-center justify-center gap-2">
+                <CreditCard className="w-6 h-6" />
+                {en ? "Redirecting to payment..." : "Přesměrování na platbu..."}
+              </span>
             ) : step === "form" ? (
               <span className="text-gradient-gold">
                 {en ? `Registration — ${planDetails[selectedPlan].name}` : `Registrace — ${planDetails[selectedPlan].name}`}
@@ -106,6 +142,7 @@ export function RegistrationModal({ open, onOpenChange, initialPlan = "free", so
           </DialogTitle>
           <DialogDescription className="text-center text-gray-400">
             {step === "success" ? resultMessage
+              : step === "redirecting" ? (en ? "Please wait, we're preparing your payment..." : "Prosím čekejte, připravujeme vaši platbu...")
               : step === "form" ? (en ? `Fill in your details to activate the ${planDetails[selectedPlan].name} plan.` : `Vyplňte údaje pro aktivaci plánu ${planDetails[selectedPlan].name}.`)
               : (en ? "Start free or choose a plan that fits your needs." : "Začněte zdarma nebo vyberte plán, který odpovídá vašim potřebám.")}
           </DialogDescription>
@@ -153,7 +190,15 @@ export function RegistrationModal({ open, onOpenChange, initialPlan = "free", so
                 {planDetails[selectedPlan].icon}
                 <span className={`font-bold text-sm ${planDetails[selectedPlan].color}`}>{planDetails[selectedPlan].name}</span>
               </div>
-              <span className="text-sm text-white font-semibold">{planDetails[selectedPlan].price}</span>
+              <div className="text-right">
+                <span className="text-sm text-white font-semibold">{planDetails[selectedPlan].price}</span>
+                {(selectedPlan === "gold" || selectedPlan === "diamond") && (
+                  <div className="flex items-center gap-1 text-[10px] text-gray-500">
+                    <CreditCard className="w-3 h-3" />
+                    {en ? "Stripe secure payment" : "Bezpečná platba Stripe"}
+                  </div>
+                )}
+              </div>
             </div>
             <Input type="email" placeholder={en ? "your@email.com *" : "vas@email.cz *"} value={email} onChange={(e) => setEmail(e.target.value)} required className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-amber-500/50" />
             <Input type="text" placeholder={en ? "Full name" : "Jméno a příjmení"} value={name} onChange={(e) => setName(e.target.value)} className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-amber-500/50" />
@@ -170,11 +215,20 @@ export function RegistrationModal({ open, onOpenChange, initialPlan = "free", so
               <Button type="button" variant="outline" onClick={() => setStep("plan")} className="border-white/10 text-gray-400 hover:bg-white/5">
                 {en ? "Back" : "Zpět"}
               </Button>
-              <Button type="submit" disabled={registerMutation.isPending} className="flex-1 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-bold py-6">
-                {registerMutation.isPending ? (
-                  <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> {en ? "Registering..." : "Registruji..."}</span>
+              <Button type="submit" disabled={registerMutation.isPending || checkoutMutation.isPending} className={`flex-1 font-bold py-6 ${
+                selectedPlan === "diamond"
+                  ? "bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white"
+                  : "bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black"
+              }`}>
+                {registerMutation.isPending || checkoutMutation.isPending ? (
+                  <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> {en ? "Processing..." : "Zpracovávám..."}</span>
+                ) : selectedPlan === "free" ? (
+                  en ? "Activate FREE" : "Aktivovat ZDARMA"
                 ) : (
-                  selectedPlan === "free" ? (en ? "Activate FREE" : "Aktivovat ZDARMA") : `${en ? "Register" : "Registrovat"} ${planDetails[selectedPlan].name}`
+                  <span className="flex items-center gap-2">
+                    <CreditCard className="w-4 h-4" />
+                    {en ? `Pay & Activate ${planDetails[selectedPlan].name}` : `Zaplatit a aktivovat ${planDetails[selectedPlan].name}`}
+                  </span>
                 )}
               </Button>
             </div>
@@ -186,6 +240,13 @@ export function RegistrationModal({ open, onOpenChange, initialPlan = "free", so
           </form>
         )}
 
+        {step === "redirecting" && (
+          <div className="text-center space-y-6 mt-4 py-8">
+            <Loader2 className="w-12 h-12 animate-spin text-amber-400 mx-auto" />
+            <p className="text-gray-400">{en ? "Preparing secure payment..." : "Připravuji bezpečnou platbu..."}</p>
+          </div>
+        )}
+
         {step === "success" && (
           <div className="text-center space-y-6 mt-4">
             <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${
@@ -194,7 +255,9 @@ export function RegistrationModal({ open, onOpenChange, initialPlan = "free", so
               : "bg-green-500/10 text-green-400 border border-green-500/20"
             }`}>
               <CheckCircle2 className="w-4 h-4" />
-              {en ? `${resultPlan?.toUpperCase()} plan ${resultPlan === "free" ? "activated" : "registered"}` : `Plán ${resultPlan?.toUpperCase()} ${resultPlan === "free" ? "aktivován" : "registrován"}`}
+              {resultPlan === "free"
+                ? (en ? "FREE plan activated" : "FREE plán aktivován")
+                : (en ? `${resultPlan?.toUpperCase()} — payment window opened` : `${resultPlan?.toUpperCase()} — platební okno otevřeno`)}
             </div>
             <div className="space-y-3 text-sm text-gray-400">
               {resultPlan === "free" ? (
@@ -204,8 +267,9 @@ export function RegistrationModal({ open, onOpenChange, initialPlan = "free", so
                 </>
               ) : (
                 <>
-                  <p>{en ? "Thank you for registering! We've sent a confirmation to your email." : "Děkujeme za registraci! Na váš e-mail jsme odeslali potvrzení."}</p>
-                  <p>{en ? "We'll contact you shortly with activation instructions." : "Brzy vás budeme kontaktovat s instrukcemi pro aktivaci."}</p>
+                  <p>{en ? "A payment window has been opened in a new tab." : "Platební okno bylo otevřeno v nové záložce."}</p>
+                  <p>{en ? "Complete the payment there to activate your plan." : "Dokončete platbu tam pro aktivaci vašeho plánu."}</p>
+                  <p className="text-xs text-gray-500">{en ? "Test card: 4242 4242 4242 4242" : "Testovací karta: 4242 4242 4242 4242"}</p>
                 </>
               )}
             </div>

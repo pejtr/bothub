@@ -4,6 +4,7 @@ import { ParallaxDecorations } from "@/components/ParallaxDecorations";
 import { UnlockModal } from "@/components/UnlockModal";
 import { RegistrationModal } from "@/components/RegistrationModal";
 import { AffiliateModal } from "@/components/AffiliateModal";
+import { ExitIntentPopup } from "@/components/ExitIntentPopup";
 import { categories, getIBotsByCategory } from "@/data/ibots";
 import { getCTAText, trackCTAClick, getUserCTAVariant } from "@/lib/ctaAbTest";
 import { trpc } from "@/lib/trpc";
@@ -786,6 +787,7 @@ export default function Home() {
         open={affiliateModalOpen}
         onOpenChange={setAffiliateModalOpen}
       />
+      <ExitIntentPopup onRegister={(plan, source) => openRegistration(plan, source)} />
     </div>
   );
 }

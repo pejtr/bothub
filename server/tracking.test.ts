@@ -16,21 +16,66 @@ vi.mock("./db", () => ({
   getRegistrationCount: vi.fn().mockResolvedValue(10),
   createAffiliateRegistration: vi.fn().mockResolvedValue({ id: 1, affiliateCode: "BH-TEST01" }),
   getAffiliateByEmail: vi.fn().mockResolvedValue(undefined),
+  getDashboardStats: vi.fn().mockResolvedValue({ registrations: 15, affiliates: 3, emails: 42, affiliateClicks: 100 }),
+  getRegistrationsByPlan: vi.fn().mockResolvedValue([
+    { plan: "free", count: 10, activated: 8, pending: 2 },
+    { plan: "gold", count: 5, activated: 3, pending: 2 },
+  ]),
+  getAbTestResults: vi.fn().mockResolvedValue([
+    { id: 1, testName: "cta_hero", variant: "variant_a", impressions: 100, clicks: 20, conversions: 5, updatedAt: new Date() },
+  ]),
+  getRecentRegistrations: vi.fn().mockResolvedValue([]),
+  getRecentEmailCaptures: vi.fn().mockResolvedValue([]),
+  getAffiliatePartners: vi.fn().mockResolvedValue([]),
+  getRecentAffiliateClicks: vi.fn().mockResolvedValue([]),
+  getRegistrationsByDay: vi.fn().mockResolvedValue([]),
+  getEmailCapturesByDay: vi.fn().mockResolvedValue([]),
 }));
 
 vi.mock("./_core/notification", () => ({
   notifyOwner: vi.fn().mockResolvedValue(true),
 }));
 
+vi.mock("./email", () => ({
+  sendConfirmationEmail: vi.fn().mockResolvedValue(true),
+}));
+
 import {
   captureEmail, trackAbTestEvent, trackAffiliateClick,
   createRegistration, getRegistrationByEmail, activateRegistration,
   createAffiliateRegistration, getAffiliateByEmail,
+  getDashboardStats, getRegistrationsByPlan, getAbTestResults,
 } from "./db";
+
+import { sendConfirmationEmail } from "./email";
 
 function createPublicContext(): TrpcContext {
   return {
     user: null,
+    req: { protocol: "https", headers: {} } as TrpcContext["req"],
+    res: { clearCookie: vi.fn() } as unknown as TrpcContext["res"],
+  };
+}
+
+function createAdminContext(): TrpcContext {
+  return {
+    user: {
+      id: 1, openId: "admin-user", email: "admin@bothub.cz", name: "Admin",
+      loginMethod: "manus", role: "admin",
+      createdAt: new Date(), updatedAt: new Date(), lastSignedIn: new Date(),
+    },
+    req: { protocol: "https", headers: {} } as TrpcContext["req"],
+    res: { clearCookie: vi.fn() } as unknown as TrpcContext["res"],
+  };
+}
+
+function createUserContext(): TrpcContext {
+  return {
+    user: {
+      id: 2, openId: "regular-user", email: "user@test.cz", name: "User",
+      loginMethod: "manus", role: "user",
+      createdAt: new Date(), updatedAt: new Date(), lastSignedIn: new Date(),
+    },
     req: { protocol: "https", headers: {} } as TrpcContext["req"],
     res: { clearCookie: vi.fn() } as unknown as TrpcContext["res"],
   };
@@ -108,7 +153,7 @@ describe("tracking.affiliateClick", () => {
 describe("registration.register", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("creates a new FREE registration and auto-activates", async () => {
+  it("creates a new FREE registration, auto-activates, and sends email", async () => {
     const caller = appRouter.createCaller(createPublicContext());
     const result = await caller.registration.register({
       email: "new@user.cz", plan: "free", source: "hero_cta", gdprConsent: true,
@@ -121,6 +166,9 @@ describe("registration.register", () => {
       email: "new@user.cz", plan: "free", source: "hero_cta", gdprConsent: 1,
     }));
     expect(activateRegistration).toHaveBeenCalledWith(1);
+    expect(sendConfirmationEmail).toHaveBeenCalledWith(expect.objectContaining({
+      email: "new@user.cz", plan: "free", registrationId: 1, isAutoActivated: true,
+    }));
   });
 
   it("creates a GOLD registration with pending status", async () => {
@@ -132,6 +180,9 @@ describe("registration.register", () => {
     expect(result.plan).toBe("gold");
     expect(result.status).toBe("pending");
     expect(activateRegistration).not.toHaveBeenCalled();
+    expect(sendConfirmationEmail).toHaveBeenCalledWith(expect.objectContaining({
+      email: "gold@user.cz", plan: "gold", isAutoActivated: false,
+    }));
   });
 
   it("returns existing registration if email already registered", async () => {
@@ -148,6 +199,7 @@ describe("registration.register", () => {
     expect(result.alreadyRegistered).toBe(true);
     expect(result.registrationId).toBe(42);
     expect(createRegistration).not.toHaveBeenCalled();
+    expect(sendConfirmationEmail).not.toHaveBeenCalled();
   });
 
   it("tracks A/B conversion when ctaVariant is provided", async () => {
@@ -163,6 +215,27 @@ describe("registration.register", () => {
     await expect(caller.registration.register({
       email: "invalid", plan: "free", gdprConsent: true,
     })).rejects.toThrow();
+  });
+});
+
+// ===== Registration activation tests =====
+
+describe("registration.activate", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("activates registration with valid token", async () => {
+    const validToken = Buffer.from("1:bothub-activate").toString("base64url");
+    const caller = appRouter.createCaller(createPublicContext());
+    const result = await caller.registration.activate({ registrationId: 1, token: validToken });
+    expect(result.success).toBe(true);
+    expect(activateRegistration).toHaveBeenCalledWith(1);
+  });
+
+  it("rejects invalid activation token", async () => {
+    const caller = appRouter.createCaller(createPublicContext());
+    const result = await caller.registration.activate({ registrationId: 1, token: "invalid-token" });
+    expect(result.success).toBe(false);
+    expect(activateRegistration).not.toHaveBeenCalled();
   });
 });
 
@@ -205,5 +278,117 @@ describe("affiliate.register", () => {
     await expect(caller.affiliate.register({
       email: "test@test.cz", name: "", gdprConsent: true,
     })).rejects.toThrow();
+  });
+});
+
+// ===== Admin dashboard tests =====
+
+describe("admin.stats", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns dashboard stats for admin user", async () => {
+    const caller = appRouter.createCaller(createAdminContext());
+    const result = await caller.admin.stats();
+    expect(result).toEqual({ registrations: 15, affiliates: 3, emails: 42, affiliateClicks: 100 });
+    expect(getDashboardStats).toHaveBeenCalled();
+  });
+
+  it("rejects non-admin user", async () => {
+    const caller = appRouter.createCaller(createUserContext());
+    await expect(caller.admin.stats()).rejects.toThrow();
+  });
+
+  it("rejects unauthenticated user", async () => {
+    const caller = appRouter.createCaller(createPublicContext());
+    await expect(caller.admin.stats()).rejects.toThrow();
+  });
+});
+
+describe("admin.registrationsByPlan", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns plan breakdown for admin", async () => {
+    const caller = appRouter.createCaller(createAdminContext());
+    const result = await caller.admin.registrationsByPlan();
+    expect(result).toHaveLength(2);
+    expect(result[0]).toMatchObject({ plan: "free", count: 10 });
+    expect(getRegistrationsByPlan).toHaveBeenCalled();
+  });
+
+  it("rejects regular user", async () => {
+    const caller = appRouter.createCaller(createUserContext());
+    await expect(caller.admin.registrationsByPlan()).rejects.toThrow();
+  });
+});
+
+describe("admin.abTestResults", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns A/B test results for admin", async () => {
+    const caller = appRouter.createCaller(createAdminContext());
+    const result = await caller.admin.abTestResults();
+    expect(result).toHaveLength(1);
+    expect(result[0]).toMatchObject({ testName: "cta_hero", variant: "variant_a" });
+    expect(getAbTestResults).toHaveBeenCalled();
+  });
+});
+
+// ===== Email module tests =====
+
+describe("email.generateActivationToken", () => {
+  it("generates consistent base64url token", async () => {
+    // Import the actual function (not mocked)
+    const { generateActivationToken } = await vi.importActual<typeof import("./email")>("./email");
+    const token = generateActivationToken(42);
+    const expected = Buffer.from("42:bothub-activate").toString("base64url");
+    expect(token).toBe(expected);
+  });
+});
+
+describe("email.buildPlainText", () => {
+  it("generates plain text for free plan", async () => {
+    const { buildPlainText } = await vi.importActual<typeof import("./email")>("./email");
+    const text = buildPlainText({
+      email: "test@test.cz", name: "Jan", plan: "free",
+      registrationId: 1, isAutoActivated: true,
+    }, "https://bothub.cz");
+    expect(text).toContain("Ahoj Jan");
+    expect(text).toContain("FREE");
+    expect(text).toContain("aktivní");
+    expect(text).not.toContain("aktivaci");
+  });
+
+  it("generates plain text with activation link for gold plan", async () => {
+    const { buildPlainText } = await vi.importActual<typeof import("./email")>("./email");
+    const text = buildPlainText({
+      email: "test@test.cz", name: "Jan", plan: "gold",
+      registrationId: 5, isAutoActivated: false,
+    }, "https://bothub.cz");
+    expect(text).toContain("GOLD");
+    expect(text).toContain("https://bothub.cz/activate?id=5");
+  });
+});
+
+describe("email.buildEmailHtml", () => {
+  it("generates HTML with activation button for diamond plan", async () => {
+    const { buildEmailHtml } = await vi.importActual<typeof import("./email")>("./email");
+    const html = buildEmailHtml({
+      email: "test@test.cz", plan: "diamond",
+      registrationId: 10, isAutoActivated: false,
+    }, "https://bothub.cz");
+    expect(html).toContain("DIAMOND");
+    expect(html).toContain("Aktivovat plán DIAMOND");
+    expect(html).toContain("https://bothub.cz/activate?id=10");
+  });
+
+  it("generates HTML without activation button for free plan", async () => {
+    const { buildEmailHtml } = await vi.importActual<typeof import("./email")>("./email");
+    const html = buildEmailHtml({
+      email: "test@test.cz", plan: "free",
+      registrationId: 1, isAutoActivated: true,
+    }, "https://bothub.cz");
+    expect(html).toContain("FREE");
+    expect(html).toContain("aktivní");
+    expect(html).not.toContain("Aktivovat plán");
   });
 });

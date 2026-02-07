@@ -25,3 +25,13 @@
 - [x] Propojit Affiliate CTA s registrací partnera (generuje BH-XXXXXX kódy)
 - [x] Vytvořit RegistrationModal a AffiliateModal na frontendu
 - [x] Napsat testy pro registration a affiliate routery (16/16 passed)
+
+- [x] Admin dashboard: server-side query endpointy (registrace, affiliate, email captures, A/B testy)
+- [x] Admin dashboard: chráněná stránka s real-time přehledy a statistikami
+- [x] Admin dashboard: routing a role-based přístup (pouze admin)
+- [x] Potvrzovací e-maily: server-side odesílání po registraci (welcome email)
+- [x] Potvrzovací e-maily: aktivační odkaz pro GOLD/DIAMOND plány + /activate stránka
+- [x] Exit-intent popup: detekce opuštění stránky (mouse leave + mobile scroll)
+- [x] Exit-intent popup: personalizace obsahu dle CTA varianty (3 varianty)
+- [x] Exit-intent popup: 24h cooldown, 15s auto-close, 5s activation delay
+- [x] Testy pro admin dashboard, e-maily a exit-intent popup (29/29 passed)

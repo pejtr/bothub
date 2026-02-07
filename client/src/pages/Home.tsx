@@ -8,8 +8,11 @@ import { ExitIntentPopup } from "@/components/ExitIntentPopup";
 import { Testimonials } from "@/components/Testimonials";
 import { LiveChatDemo } from "@/components/LiveChatDemo";
 import { SocialProofWidget } from "@/components/SocialProofWidget";
+import { CountdownBanner } from "@/components/CountdownBanner";
+import { VideoShowcase } from "@/components/VideoShowcase";
 import { categories, getIBotsByCategory } from "@/data/ibots";
 import { getCTAText, trackCTAClick, getUserCTAVariant } from "@/lib/ctaAbTest";
+import { useI18n, LanguageSwitcher } from "@/lib/i18n";
 import { trpc } from "@/lib/trpc";
 import {
   Zap, Lock, Crown, CheckCircle2, ArrowRight, Bot, MessageSquare,
@@ -20,6 +23,7 @@ import {
 type Plan = "free" | "gold" | "diamond";
 
 export default function Home() {
+  const { t, locale } = useI18n();
   const [activeCategory, setActiveCategory] = useState("sales");
   const [unlockModalOpen, setUnlockModalOpen] = useState(false);
   const [registrationModalOpen, setRegistrationModalOpen] = useState(false);
@@ -42,7 +46,6 @@ export default function Home() {
     ctaImpression.mutate({ variant });
   }, []);
 
-  // Open registration modal with specific plan and source
   const openRegistration = (plan: Plan, source: string) => {
     trackCTAClick(`#registration-${plan}`);
     setSelectedPlan(plan);
@@ -50,37 +53,18 @@ export default function Home() {
     setRegistrationModalOpen(true);
   };
 
-  // Hero CTA — opens registration with free plan
-  const handleHeroCTA = () => {
-    openRegistration("free", "hero_cta");
-  };
-
-  // Nav CTA
-  const handleNavCTA = () => {
-    openRegistration("free", "nav_cta");
-  };
-
-  // Pricing CTAs
-  const handlePricingCTA = (plan: Plan) => {
-    openRegistration(plan, `pricing_${plan}`);
-  };
-
-  // Affiliate CTA
-  const handleAffiliateCTA = () => {
-    trackCTAClick("#affiliate-register");
-    setAffiliateModalOpen(true);
-  };
-
-  // Final CTA
-  const handleFinalCTA = () => {
-    openRegistration("free", "final_cta");
-  };
-
-  const handleUnlock = () => {
-    setIsUnlocked(true);
-  };
+  const handleHeroCTA = () => openRegistration("free", "hero_cta");
+  const handleNavCTA = () => openRegistration("free", "nav_cta");
+  const handlePricingCTA = (plan: Plan) => openRegistration(plan, `pricing_${plan}`);
+  const handleAffiliateCTA = () => { trackCTAClick("#affiliate-register"); setAffiliateModalOpen(true); };
+  const handleFinalCTA = () => openRegistration("free", "final_cta");
+  const handleCountdownCTA = () => openRegistration("gold", "countdown_banner");
+  const handleUnlock = () => setIsUnlocked(true);
 
   const currentBots = getIBotsByCategory(activeCategory);
+
+  // Category name based on locale
+  const getCatName = (cat: typeof categories[0]) => locale === "en" ? cat.name : cat.nameCs;
 
   return (
     <div className="min-h-screen bg-[#0A0A0F] text-white relative">
@@ -97,11 +81,12 @@ export default function Home() {
           </a>
 
           {/* Desktop nav */}
-          <div className="hidden md:flex items-center gap-8 text-sm text-gray-400">
-            <a href="#catalog" className="hover:text-amber-400 transition-colors">Katalog iBotů</a>
-            <a href="#pricing" className="hover:text-amber-400 transition-colors">Ceník</a>
-            <a href="#affiliate" className="hover:text-amber-400 transition-colors">Affiliate</a>
-            <a href="#platforms" className="hover:text-amber-400 transition-colors">Platformy</a>
+          <div className="hidden md:flex items-center gap-6 text-sm text-gray-400">
+            <a href="#catalog" className="hover:text-amber-400 transition-colors">{t("nav.catalog")}</a>
+            <a href="#pricing" className="hover:text-amber-400 transition-colors">{t("nav.pricing")}</a>
+            <a href="#affiliate" className="hover:text-amber-400 transition-colors">{t("nav.affiliate")}</a>
+            <a href="#platforms" className="hover:text-amber-400 transition-colors">{t("nav.platforms")}</a>
+            <LanguageSwitcher />
             <Button
               onClick={handleNavCTA}
               size="sm"
@@ -112,21 +97,24 @@ export default function Home() {
           </div>
 
           {/* Mobile menu toggle */}
-          <button
-            className="md:hidden text-gray-400 hover:text-white"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+          <div className="flex items-center gap-2 md:hidden">
+            <LanguageSwitcher />
+            <button
+              className="text-gray-400 hover:text-white"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile nav */}
         {mobileMenuOpen && (
           <div className="md:hidden bg-[#0A0A0F]/95 backdrop-blur-xl border-b border-white/5 px-4 pb-4 space-y-3">
-            <a href="#catalog" className="block text-gray-400 hover:text-amber-400 py-2" onClick={() => setMobileMenuOpen(false)}>Katalog iBotů</a>
-            <a href="#pricing" className="block text-gray-400 hover:text-amber-400 py-2" onClick={() => setMobileMenuOpen(false)}>Ceník</a>
-            <a href="#affiliate" className="block text-gray-400 hover:text-amber-400 py-2" onClick={() => setMobileMenuOpen(false)}>Affiliate</a>
-            <a href="#platforms" className="block text-gray-400 hover:text-amber-400 py-2" onClick={() => setMobileMenuOpen(false)}>Platformy</a>
+            <a href="#catalog" className="block text-gray-400 hover:text-amber-400 py-2" onClick={() => setMobileMenuOpen(false)}>{t("nav.catalog")}</a>
+            <a href="#pricing" className="block text-gray-400 hover:text-amber-400 py-2" onClick={() => setMobileMenuOpen(false)}>{t("nav.pricing")}</a>
+            <a href="#affiliate" className="block text-gray-400 hover:text-amber-400 py-2" onClick={() => setMobileMenuOpen(false)}>{t("nav.affiliate")}</a>
+            <a href="#platforms" className="block text-gray-400 hover:text-amber-400 py-2" onClick={() => setMobileMenuOpen(false)}>{t("nav.platforms")}</a>
             <Button onClick={() => { handleNavCTA(); setMobileMenuOpen(false); }} className="w-full bg-amber-500 hover:bg-amber-600 text-black font-semibold">
               {ctaText}
             </Button>
@@ -136,28 +124,32 @@ export default function Home() {
 
       {/* ===== HERO SECTION ===== */}
       <section className="relative pt-32 pb-20 md:pt-44 md:pb-32 overflow-hidden">
-        {/* Background effects */}
         <div className="absolute inset-0 bg-grid opacity-30" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-amber-500/5 rounded-full blur-[120px]" />
         <div className="absolute top-1/3 right-1/4 w-[400px] h-[400px] bg-purple-500/5 rounded-full blur-[100px]" />
 
         <div className="container relative z-10 text-center">
-          {/* Badge */}
           <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 rounded-full px-4 py-1.5 mb-8">
             <Sparkles className="w-4 h-4 text-amber-400" />
-            <span className="text-sm text-amber-300 font-medium">77 AI osobností ve 7 kategoriích</span>
+            <span className="text-sm text-amber-300 font-medium">{t("hero.badge")}</span>
           </div>
 
           <h1 className="font-[Space_Grotesk] text-4xl md:text-6xl lg:text-7xl font-black leading-tight mb-6 max-w-4xl mx-auto">
-            AI chatboti, kteří{" "}
-            <span className="text-gradient-gold">PRODÁVAJÍ</span>{" "}
-            za vás
+            {t("hero.title1")}{" "}
+            <span className="text-gradient-gold">{t("hero.title2")}</span>{" "}
+            {t("hero.title3")}
           </h1>
 
           <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-            Zvyšte své prodeje o <span className="text-amber-400 font-semibold">+42 %</span> a získejte{" "}
-            <span className="text-amber-400 font-semibold">327% ROI</span> díky unikátním AI osobnostem.
-            Platforma nové generace pro automatizaci prodeje, zákaznické podpory a osobního rozvoje.
+            {locale === "cs" ? (
+              <>Zvyšte své prodeje o <span className="text-amber-400 font-semibold">+42 %</span> a získejte{" "}
+              <span className="text-amber-400 font-semibold">327% ROI</span> díky unikátním AI osobnostem.
+              Platforma nové generace pro automatizaci prodeje, zákaznické podpory a osobního rozvoje.</>
+            ) : (
+              <>Boost your sales by <span className="text-amber-400 font-semibold">+42%</span> and achieve{" "}
+              <span className="text-amber-400 font-semibold">327% ROI</span> with unique AI personalities.
+              Next-gen platform for automating sales, customer support, and personal development.</>
+            )}
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -175,62 +167,63 @@ export default function Home() {
               className="border-white/10 text-gray-300 hover:bg-white/5 hover:text-white px-8 py-7"
               onClick={() => document.getElementById("catalog")?.scrollIntoView({ behavior: "smooth" })}
             >
-              Prohlédnout katalog
+              {t("hero.cta.catalog")}
             </Button>
           </div>
 
-          {/* Trust signals */}
           <div className="flex flex-wrap items-center justify-center gap-6 md:gap-10 mt-14 text-sm text-gray-500">
             <div className="flex items-center gap-2">
               <Shield className="w-4 h-4 text-green-500" />
-              <span>Žádná kreditní karta</span>
+              <span>{t("hero.trust1")}</span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-amber-400" />
-              <span>Nasazení do 5 minut</span>
+              <span>{t("hero.trust2")}</span>
             </div>
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-purple-400" />
-              <span>500+ firem</span>
+              <span>{t("hero.trust3")}</span>
             </div>
           </div>
         </div>
       </section>
+
+      {/* ===== COUNTDOWN BANNER ===== */}
+      <CountdownBanner onClaim={handleCountdownCTA} />
 
       {/* ===== PROBLEM / SOLUTION ===== */}
       <section className="relative py-20 md:py-28">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-purple-500/[0.02] to-transparent" />
         <div className="container relative z-10">
           <div className="text-center mb-14">
-            <span className="text-sm font-semibold text-purple-400 tracking-wider uppercase mb-3 block">Problém & Řešení</span>
+            <span className="text-sm font-semibold text-purple-400 tracking-wider uppercase mb-3 block">{t("ps.label")}</span>
             <h2 className="font-[Space_Grotesk] text-3xl md:text-5xl font-bold max-w-3xl mx-auto leading-tight">
-              <span className="text-red-400">89 % firem selhává</span> při implementaci AI — my to řešíme
+              {locale === "cs" ? (
+                <><span className="text-red-400">89 % firem selhává</span> při implementaci AI — my to řešíme</>
+              ) : (
+                <><span className="text-red-400">89% of companies fail</span> at AI implementation — we fix that</>
+              )}
             </h2>
-            <p className="text-gray-400 mt-6 max-w-2xl mx-auto text-lg">
-              Podle studie MIT z roku 2025 většina AI implementací nedosáhne očekávaného ROI.
-              Hlavní důvody? Generické odpovědi, nulová konverze a složitý onboarding.
-            </p>
           </div>
 
-          {/* Comparison Table */}
           <div className="max-w-3xl mx-auto">
             <div className="rounded-2xl border border-white/10 overflow-hidden bg-white/[0.02] backdrop-blur-sm">
-              {/* Header */}
               <div className="grid grid-cols-3 bg-white/5">
-                <div className="p-4 md:p-5 text-sm font-semibold text-gray-400">Problém</div>
-                <div className="p-4 md:p-5 text-sm font-semibold text-red-400 text-center">Tradiční Chatbot</div>
-                <div className="p-4 md:p-5 text-sm font-semibold text-amber-400 text-center">✅ iBots Řešení</div>
+                <div className="p-4 md:p-5 text-sm font-semibold text-gray-400">{t("ps.header.feature")}</div>
+                <div className="p-4 md:p-5 text-sm font-semibold text-red-400 text-center">{t("ps.header.traditional")}</div>
+                <div className="p-4 md:p-5 text-sm font-semibold text-amber-400 text-center">✅ {t("ps.header.ibot")}</div>
               </div>
-              {/* Rows */}
               {[
-                { problem: "🤖 Generické odpovědi", traditional: "Ano", ibots: "Unikátní osobnost" },
-                { problem: "📉 Nulová konverze", traditional: "Ano", ibots: "Hormozi prodejní principy" },
-                { problem: "🤯 Složitý setup", traditional: "Ano", ibots: "Nasazení do 5 minut" },
+                { feature: t("ps.row1.feature"), traditional: t("ps.row1.traditional"), ibot: t("ps.row1.ibot") },
+                { feature: t("ps.row2.feature"), traditional: t("ps.row2.traditional"), ibot: t("ps.row2.ibot") },
+                { feature: t("ps.row3.feature"), traditional: t("ps.row3.traditional"), ibot: t("ps.row3.ibot") },
+                { feature: t("ps.row4.feature"), traditional: t("ps.row4.traditional"), ibot: t("ps.row4.ibot") },
+                { feature: t("ps.row5.feature"), traditional: t("ps.row5.traditional"), ibot: t("ps.row5.ibot") },
               ].map((row, i) => (
-                <div key={i} className={`grid grid-cols-3 ${i < 2 ? "border-b border-white/5" : ""}`}>
-                  <div className="p-4 md:p-5 text-sm md:text-base text-gray-300">{row.problem}</div>
+                <div key={i} className={`grid grid-cols-3 ${i < 4 ? "border-b border-white/5" : ""}`}>
+                  <div className="p-4 md:p-5 text-sm md:text-base text-gray-300">{row.feature}</div>
                   <div className="p-4 md:p-5 text-sm md:text-base text-red-400/70 text-center">{row.traditional}</div>
-                  <div className="p-4 md:p-5 text-sm md:text-base text-amber-400 font-semibold text-center">{row.ibots}</div>
+                  <div className="p-4 md:p-5 text-sm md:text-base text-amber-400 font-semibold text-center">{row.ibot}</div>
                 </div>
               ))}
             </div>
@@ -243,17 +236,13 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-amber-500/[0.02] to-transparent" />
         <div className="container relative z-10">
           <div className="text-center mb-14">
-            <span className="text-sm font-semibold text-amber-400 tracking-wider uppercase mb-3 block">Katalog</span>
+            <span className="text-sm font-semibold text-amber-400 tracking-wider uppercase mb-3 block">{t("catalog.label")}</span>
             <h2 className="font-[Space_Grotesk] text-3xl md:text-5xl font-bold">
-              <span className="text-gradient-gold">77 AI osobností</span> ve 7 kategoriích
+              <span className="text-gradient-gold">{t("catalog.title1")}</span>{t("catalog.title2")}
             </h2>
-            <p className="text-gray-400 mt-4 max-w-2xl mx-auto text-lg">
-              Každý iBot je trénovaný na komunikační styl a principy reálné osobnosti.
-              Vyberte si personu, která nejlépe odpovídá vašim potřebám.
-            </p>
+            <p className="text-gray-400 mt-4 max-w-2xl mx-auto text-lg">{t("catalog.subtitle")}</p>
           </div>
 
-          {/* Category Tabs */}
           <div className="flex flex-wrap justify-center gap-2 mb-10">
             {categories.map((cat) => (
               <button
@@ -266,17 +255,15 @@ export default function Home() {
                 }`}
               >
                 <span className="mr-1.5">{cat.icon}</span>
-                {cat.nameCs}
+                {getCatName(cat)}
               </button>
             ))}
           </div>
 
-          {/* Bot Cards Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {currentBots.map((bot) => {
               const isFeatured = bot.featured;
               const isLocked = !isFeatured && !isUnlocked;
-
               return (
                 <div
                   key={bot.id}
@@ -289,53 +276,32 @@ export default function Home() {
                       : "border-white/5 bg-white/[0.02] card-hover-glow"
                   }`}
                 >
-                  {/* Featured badge */}
                   {isFeatured && (
                     <div className="absolute -top-3 left-4 flex items-center gap-1 bg-gradient-to-r from-amber-500 to-amber-600 text-black text-xs font-bold px-3 py-1 rounded-full">
                       <Crown className="w-3 h-3" />
-                      FEATURED
+                      {t("catalog.featured").toUpperCase()}
                     </div>
                   )}
-
-                  {/* Lock overlay */}
                   {isLocked && (
                     <div className="absolute inset-0 bg-[#0A0A0F]/60 backdrop-blur-[2px] rounded-xl flex flex-col items-center justify-center z-10">
                       <Lock className="w-6 h-6 text-amber-400/60 mb-2" />
-                      <span className="text-xs text-amber-400/60 font-medium">Klikni pro odemčení</span>
+                      <span className="text-xs text-amber-400/60 font-medium">{t("catalog.locked")}</span>
                     </div>
                   )}
-
-                  {/* Bot avatar */}
                   <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-3 ${
-                    isFeatured
-                      ? "bg-amber-500/20 text-amber-400"
-                      : "bg-white/5 text-gray-400"
+                    isFeatured ? "bg-amber-500/20 text-amber-400" : "bg-white/5 text-gray-400"
                   }`}>
                     <Bot className="w-6 h-6" />
                   </div>
-
-                  <h3 className={`font-[Space_Grotesk] font-bold text-base mb-1 ${
-                    isFeatured ? "text-amber-400" : "text-white"
-                  }`}>
+                  <h3 className={`font-[Space_Grotesk] font-bold text-base mb-1 ${isFeatured ? "text-amber-400" : "text-white"}`}>
                     {bot.name}
                   </h3>
-
-                  <p className="text-sm text-gray-400 leading-relaxed mb-3 line-clamp-2">
-                    {bot.description}
-                  </p>
-
+                  <p className="text-sm text-gray-400 leading-relaxed mb-3 line-clamp-2">{bot.description}</p>
                   <div className="flex flex-wrap gap-1.5">
                     {bot.tags.slice(0, 3).map((tag) => (
-                      <span
-                        key={tag}
-                        className={`text-xs px-2 py-0.5 rounded-full ${
-                          isFeatured
-                            ? "bg-amber-500/10 text-amber-400/80"
-                            : "bg-white/5 text-gray-500"
-                        }`}
-                      >
-                        {tag}
-                      </span>
+                      <span key={tag} className={`text-xs px-2 py-0.5 rounded-full ${
+                        isFeatured ? "bg-amber-500/10 text-amber-400/80" : "bg-white/5 text-gray-500"
+                      }`}>{tag}</span>
                     ))}
                   </div>
                 </div>
@@ -343,7 +309,6 @@ export default function Home() {
             })}
           </div>
 
-          {/* Unlock CTA */}
           {!isUnlocked && (
             <div className="text-center mt-10">
               <Button
@@ -351,9 +316,8 @@ export default function Home() {
                 className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-bold px-8 py-6 text-base"
               >
                 <Lock className="w-4 h-4 mr-2" />
-                Odemknout všech 77 iBotů ZDARMA
+                {t("catalog.unlock.cta")}
               </Button>
-              <p className="text-xs text-gray-500 mt-3">Stačí zadat e-mail. Žádné závazky.</p>
             </div>
           )}
         </div>
@@ -364,20 +328,18 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-amber-500/[0.03] to-transparent" />
         <div className="container relative z-10">
           <div className="text-center mb-14">
-            <span className="text-sm font-semibold text-amber-400 tracking-wider uppercase mb-3 block">Hodnotová propozice</span>
+            <span className="text-sm font-semibold text-amber-400 tracking-wider uppercase mb-3 block">{t("value.label")}</span>
             <h2 className="font-[Space_Grotesk] text-3xl md:text-5xl font-bold max-w-3xl mx-auto">
-              Nabídka tak dobrá, že byste se cítili{" "}
-              <span className="text-gradient-gold">hloupě ji odmítnout</span>
+              {t("value.title1")}<span className="text-gradient-gold">{t("value.title2")}</span>
             </h2>
           </div>
 
-          {/* Value Equation Visual */}
           <div className="max-w-3xl mx-auto mb-16">
             <div className="rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-purple-500/5 p-8 md:p-10">
               <div className="text-center mb-8">
                 <p className="text-sm text-gray-400 mb-3 uppercase tracking-wider">Hormozi Value Equation</p>
                 <div className="font-[Space_Grotesk] text-xl md:text-2xl font-bold">
-                  <span className="text-white">Hodnota = </span>
+                  <span className="text-white">Value = </span>
                   <span className="text-amber-400">(Dream Outcome × Perceived Likelihood)</span>
                   <span className="text-white"> / </span>
                   <span className="text-purple-400">(Time Delay × Effort & Sacrifice)</span>
@@ -385,47 +347,45 @@ export default function Home() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Maximize */}
                 <div className="space-y-4">
                   <h4 className="text-sm font-semibold text-green-400 flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4" /> MAXIMALIZUJEME
+                    <TrendingUp className="w-4 h-4" /> {t("value.maximize").toUpperCase()}
                   </h4>
                   <div className="space-y-3">
                     <div className="flex items-start gap-3 bg-green-500/5 rounded-lg p-3">
                       <Target className="w-5 h-5 text-amber-400 mt-0.5 shrink-0" />
                       <div>
-                        <p className="text-sm font-medium text-white">Dream Outcome</p>
-                        <p className="text-xs text-gray-400">Více peněz, méně práce, automatizace prodeje</p>
+                        <p className="text-sm font-medium text-white">{t("value.dreamOutcome")}</p>
+                        <p className="text-xs text-gray-400">{t("value.dreamOutcomeDesc")}</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3 bg-green-500/5 rounded-lg p-3">
                       <CheckCircle2 className="w-5 h-5 text-amber-400 mt-0.5 shrink-0" />
                       <div>
-                        <p className="text-sm font-medium text-white">Perceived Likelihood</p>
-                        <p className="text-xs text-gray-400">Ověřené techniky, reálné výsledky, 500+ firem</p>
+                        <p className="text-sm font-medium text-white">{t("value.perceivedLikelihood")}</p>
+                        <p className="text-xs text-gray-400">{t("value.perceivedLikelihoodDesc")}</p>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Minimize */}
                 <div className="space-y-4">
                   <h4 className="text-sm font-semibold text-red-400 flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4 rotate-180" /> MINIMALIZUJEME
+                    <TrendingUp className="w-4 h-4 rotate-180" /> {t("value.minimize").toUpperCase()}
                   </h4>
                   <div className="space-y-3">
                     <div className="flex items-start gap-3 bg-red-500/5 rounded-lg p-3">
                       <Clock className="w-5 h-5 text-purple-400 mt-0.5 shrink-0" />
                       <div>
-                        <p className="text-sm font-medium text-white">Time Delay</p>
-                        <p className="text-xs text-gray-400">Okamžitá aktivace, nasazení do 5 minut</p>
+                        <p className="text-sm font-medium text-white">{t("value.timeDelay")}</p>
+                        <p className="text-xs text-gray-400">{t("value.timeDelayDesc")}</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3 bg-red-500/5 rounded-lg p-3">
                       <Zap className="w-5 h-5 text-purple-400 mt-0.5 shrink-0" />
                       <div>
-                        <p className="text-sm font-medium text-white">Effort & Sacrifice</p>
-                        <p className="text-xs text-gray-400">Nulová práce s nastavováním, žádná kreditní karta</p>
+                        <p className="text-sm font-medium text-white">{t("value.effortSacrifice")}</p>
+                        <p className="text-xs text-gray-400">{t("value.effortSacrificeDesc")}</p>
                       </div>
                     </div>
                   </div>
@@ -434,28 +394,25 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Key Metrics */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {[
-              { value: "+327%", label: "Průměrné ROI", icon: TrendingUp, color: "text-amber-400" },
-              { value: "+42%", label: "Nárůst konverzí", icon: BarChart3, color: "text-green-400" },
-              { value: "89%", label: "Spokojenost zákazníků", icon: Star, color: "text-purple-400" },
-              { value: "5 min", label: "Průměrný čas nasazení", icon: Clock, color: "text-blue-400" },
+              { value: "+327%", label: t("value.metric.roi"), icon: TrendingUp, color: "text-amber-400" },
+              { value: "+42%", label: t("value.metric.conversion"), icon: BarChart3, color: "text-green-400" },
+              { value: "89%", label: t("value.metric.satisfaction"), icon: Star, color: "text-purple-400" },
+              { value: t("value.metric.deploy.value"), label: t("value.metric.deploy"), icon: Clock, color: "text-blue-400" },
             ].map((metric) => (
-              <div
-                key={metric.label}
-                className="text-center p-6 rounded-2xl border border-white/5 bg-white/[0.02] card-hover-glow"
-              >
+              <div key={metric.label} className="text-center p-6 rounded-2xl border border-white/5 bg-white/[0.02] card-hover-glow">
                 <metric.icon className={`w-8 h-8 ${metric.color} mx-auto mb-3`} />
-                <div className={`font-[Space_Grotesk] text-3xl md:text-4xl font-black ${metric.color}`}>
-                  {metric.value}
-                </div>
+                <div className={`font-[Space_Grotesk] text-3xl md:text-4xl font-black ${metric.color}`}>{metric.value}</div>
                 <p className="text-sm text-gray-400 mt-2">{metric.label}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
+
+      {/* ===== VIDEO SHOWCASE ===== */}
+      <VideoShowcase />
 
       {/* ===== TESTIMONIALS ===== */}
       <Testimonials />
@@ -465,80 +422,56 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-purple-500/[0.02] to-transparent" />
         <div className="container relative z-10">
           <div className="text-center mb-14">
-            <span className="text-sm font-semibold text-purple-400 tracking-wider uppercase mb-3 block">Cenové plány</span>
+            <span className="text-sm font-semibold text-purple-400 tracking-wider uppercase mb-3 block">{t("pricing.label")}</span>
             <h2 className="font-[Space_Grotesk] text-3xl md:text-5xl font-bold">
-              Tři jednoduché plány. <span className="text-gradient-gold">Začněte zdarma.</span>
+              {t("pricing.title1")}<span className="text-gradient-gold">{t("pricing.title2")}</span>
             </h2>
-            <p className="text-gray-400 mt-4 max-w-xl mx-auto text-lg">
-              Férový WIN:WIN model. Žádné skryté poplatky. Žádné závazky.
-            </p>
+            <p className="text-gray-400 mt-4 max-w-xl mx-auto text-lg">{t("pricing.subtitle")}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {/* FREE */}
             <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-8 flex flex-col">
               <div className="mb-6">
-                <h3 className="font-[Space_Grotesk] text-xl font-bold text-gray-300">FREE</h3>
+                <h3 className="font-[Space_Grotesk] text-xl font-bold text-gray-300">{t("pricing.free.name")}</h3>
                 <div className="mt-3">
-                  <span className="font-[Space_Grotesk] text-4xl font-black text-white">0 Kč</span>
-                  <span className="text-gray-500 text-sm">/měsíc</span>
+                  <span className="font-[Space_Grotesk] text-4xl font-black text-white">{t("pricing.free.price")}</span>
+                  <span className="text-gray-500 text-sm">/{t("pricing.free.period")}</span>
                 </div>
               </div>
               <ul className="space-y-3 mb-8 flex-1">
-                {[
-                  "3 iBoti k dispozici",
-                  "100 konverzací/měsíc",
-                  "Základní analytics",
-                  "Email podpora",
-                ].map((f) => (
+                {[t("pricing.free.f1"), t("pricing.free.f2"), t("pricing.free.f3"), t("pricing.free.f4")].map((f) => (
                   <li key={f} className="flex items-center gap-2 text-sm text-gray-400">
-                    <CheckCircle2 className="w-4 h-4 text-gray-500 shrink-0" />
-                    {f}
+                    <CheckCircle2 className="w-4 h-4 text-gray-500 shrink-0" />{f}
                   </li>
                 ))}
               </ul>
-              <Button
-                variant="outline"
-                className="w-full border-white/10 text-gray-300 hover:bg-white/5 py-6"
-                onClick={() => handlePricingCTA("free")}
-              >
-                Začít zdarma
+              <Button variant="outline" className="w-full border-white/10 text-gray-300 hover:bg-white/5 py-6" onClick={() => handlePricingCTA("free")}>
+                {t("pricing.free.cta")}
               </Button>
             </div>
 
-            {/* GOLD - Featured */}
+            {/* GOLD */}
             <div className="rounded-2xl border-2 border-amber-500/30 bg-gradient-to-b from-amber-500/10 to-transparent p-8 flex flex-col relative glow-gold">
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-500 to-amber-600 text-black text-xs font-bold px-4 py-1.5 rounded-full">
-                NEJOBLÍBENĚJŠÍ
+                {t("pricing.gold.badge")}
               </div>
               <div className="mb-6">
-                <h3 className="font-[Space_Grotesk] text-xl font-bold text-amber-400">GOLD</h3>
+                <h3 className="font-[Space_Grotesk] text-xl font-bold text-amber-400">{t("pricing.gold.name")}</h3>
                 <div className="mt-3">
-                  <span className="font-[Space_Grotesk] text-4xl font-black text-white">990 Kč</span>
-                  <span className="text-gray-500 text-sm">/měsíc</span>
+                  <span className="font-[Space_Grotesk] text-4xl font-black text-white">{t("pricing.gold.price")}</span>
+                  <span className="text-gray-500 text-sm">{t("pricing.gold.period")}</span>
                 </div>
               </div>
               <ul className="space-y-3 mb-8 flex-1">
-                {[
-                  "Neomezený počet iBotů",
-                  "Neomezené konverzace",
-                  "Hormozi metriky & analytics",
-                  "Telegram + Discord integrace",
-                  "API přístup",
-                  "66% affiliate provize",
-                ].map((f) => (
+                {[t("pricing.gold.f1"), t("pricing.gold.f2"), t("pricing.gold.f3"), t("pricing.gold.f4"), t("pricing.gold.f5"), t("pricing.gold.f6")].map((f) => (
                   <li key={f} className="flex items-center gap-2 text-sm text-gray-300">
-                    <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" />
-                    {f}
+                    <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" />{f}
                   </li>
                 ))}
               </ul>
-              <Button
-                className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-bold py-6 pulse-gold"
-                onClick={() => handlePricingCTA("gold")}
-              >
-                Vybrat GOLD
-                <ArrowRight className="w-4 h-4 ml-2" />
+              <Button className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-bold py-6 pulse-gold" onClick={() => handlePricingCTA("gold")}>
+                {t("pricing.gold.cta")} <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </div>
 
@@ -548,33 +481,21 @@ export default function Home() {
                 <Crown className="w-3 h-3" /> PREMIUM
               </div>
               <div className="mb-6">
-                <h3 className="font-[Space_Grotesk] text-xl font-bold text-purple-400">DIAMOND</h3>
+                <h3 className="font-[Space_Grotesk] text-xl font-bold text-purple-400">{t("pricing.diamond.name")}</h3>
                 <div className="mt-3">
-                  <span className="font-[Space_Grotesk] text-4xl font-black text-white">2 490 Kč</span>
-                  <span className="text-gray-500 text-sm">/měsíc</span>
+                  <span className="font-[Space_Grotesk] text-4xl font-black text-white">{t("pricing.diamond.price")}</span>
+                  <span className="text-gray-500 text-sm">{t("pricing.diamond.period")}</span>
                 </div>
               </div>
               <ul className="space-y-3 mb-8 flex-1">
-                {[
-                  "Vše z GOLD plánu",
-                  "White-label řešení",
-                  "Custom AI persony",
-                  "SLA 99.9% uptime",
-                  "Prioritní podpora",
-                  "77% affiliate provize",
-                ].map((f) => (
+                {[t("pricing.diamond.f1"), t("pricing.diamond.f2"), t("pricing.diamond.f3"), t("pricing.diamond.f4"), t("pricing.diamond.f5"), t("pricing.diamond.f6"), t("pricing.diamond.f7")].map((f) => (
                   <li key={f} className="flex items-center gap-2 text-sm text-gray-300">
-                    <CheckCircle2 className="w-4 h-4 text-purple-400 shrink-0" />
-                    {f}
+                    <CheckCircle2 className="w-4 h-4 text-purple-400 shrink-0" />{f}
                   </li>
                 ))}
               </ul>
-              <Button
-                className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold py-6"
-                onClick={() => handlePricingCTA("diamond")}
-              >
-                Vybrat DIAMOND
-                <ArrowRight className="w-4 h-4 ml-2" />
+              <Button className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold py-6" onClick={() => handlePricingCTA("diamond")}>
+                {t("pricing.diamond.cta")} <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </div>
           </div>
@@ -587,21 +508,17 @@ export default function Home() {
         <div className="container relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <span className="text-sm font-semibold text-amber-400 tracking-wider uppercase mb-3 block">Affiliate program</span>
+              <span className="text-sm font-semibold text-amber-400 tracking-wider uppercase mb-3 block">{t("affiliate.label")}</span>
               <h2 className="font-[Space_Grotesk] text-3xl md:text-4xl font-bold mb-6">
-                Vydělávejte s námi.{" "}
-                <span className="text-gradient-gold">Až 77% opakovaná provize.</span>
+                {t("affiliate.title1")}<span className="text-gradient-gold">{t("affiliate.title2")}</span>{t("affiliate.title3")}
               </h2>
-              <p className="text-gray-400 text-lg mb-8 leading-relaxed">
-                Náš affiliate program je klíčový růstový motor platformy. Aktivně odměňujeme partnery,
-                kteří šíří naši platformu. Získejte provizi z každého přivedeného zákazníka — navždy.
-              </p>
+              <p className="text-gray-400 text-lg mb-8 leading-relaxed">{t("affiliate.subtitle")}</p>
 
               <div className="space-y-4 mb-8">
                 {[
-                  { icon: TrendingUp, title: "Až 77% opakovaná provize", desc: "GOLD: 66% | DIAMOND: 77% z každé platby" },
-                  { icon: BarChart3, title: "Detailní affiliate dashboard", desc: "Sledujte konverze, provize a výdělky v reálném čase" },
-                  { icon: Sparkles, title: "Připravené marketingové materiály", desc: "Bannery, texty, landing pages — vše připraveno k použití" },
+                  { icon: TrendingUp, title: t("affiliate.benefit1.title"), desc: t("affiliate.benefit1.desc") },
+                  { icon: BarChart3, title: t("affiliate.benefit2.title"), desc: t("affiliate.benefit2.desc") },
+                  { icon: Sparkles, title: t("affiliate.benefit3.title"), desc: t("affiliate.benefit3.desc") },
                 ].map((item) => (
                   <div key={item.title} className="flex items-start gap-4 bg-white/[0.02] rounded-xl p-4 border border-white/5">
                     <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
@@ -619,31 +536,33 @@ export default function Home() {
                 className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-bold px-8 py-6"
                 onClick={handleAffiliateCTA}
               >
-                Staňte se partnerem
-                <ArrowRight className="w-4 h-4 ml-2" />
+                {t("affiliate.cta")} <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </div>
 
-            {/* Affiliate visual */}
             <div className="relative">
               <div className="rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-purple-500/5 p-8">
                 <div className="text-center mb-6">
-                  <p className="text-sm text-gray-400 mb-2">Příklad měsíčního výdělku</p>
-                  <div className="font-[Space_Grotesk] text-5xl font-black text-gradient-gold">38 115 Kč</div>
-                  <p className="text-xs text-gray-500 mt-2">při 20 zákaznících na GOLD plánu</p>
+                  <p className="text-sm text-gray-400 mb-2">{t("affiliate.visual.title")}</p>
+                  <div className="font-[Space_Grotesk] text-5xl font-black text-gradient-gold">
+                    {locale === "cs" ? "38 115 Kč" : "$1,524"}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    {locale === "cs" ? "při 20 zákaznících na GOLD plánu" : "with 20 customers on GOLD plan"}
+                  </p>
                 </div>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center bg-white/5 rounded-lg p-3">
-                    <span className="text-sm text-gray-400">20× GOLD (990 Kč)</span>
-                    <span className="text-sm font-semibold text-amber-400">19 800 Kč tržby</span>
+                    <span className="text-sm text-gray-400">{locale === "cs" ? "20× GOLD (990 Kč)" : "20× GOLD ($39)"}</span>
+                    <span className="text-sm font-semibold text-amber-400">{locale === "cs" ? "19 800 Kč" : "$780"}</span>
                   </div>
                   <div className="flex justify-between items-center bg-white/5 rounded-lg p-3">
-                    <span className="text-sm text-gray-400">Vaše provize (66%)</span>
-                    <span className="text-sm font-semibold text-green-400">13 068 Kč</span>
+                    <span className="text-sm text-gray-400">{locale === "cs" ? "Vaše provize (66%)" : "Your commission (66%)"}</span>
+                    <span className="text-sm font-semibold text-green-400">{locale === "cs" ? "13 068 Kč" : "$515"}</span>
                   </div>
                   <div className="flex justify-between items-center bg-amber-500/10 rounded-lg p-3 border border-amber-500/20">
-                    <span className="text-sm text-amber-300 font-medium">Ročně (opakovaně)</span>
-                    <span className="text-sm font-bold text-amber-400">156 816 Kč</span>
+                    <span className="text-sm text-amber-300 font-medium">{locale === "cs" ? "Ročně (opakovaně)" : "Yearly (recurring)"}</span>
+                    <span className="text-sm font-bold text-amber-400">{locale === "cs" ? "156 816 Kč" : "$6,180"}</span>
                   </div>
                 </div>
               </div>
@@ -657,26 +576,21 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-purple-500/[0.02] to-transparent" />
         <div className="container relative z-10">
           <div className="text-center mb-14">
-            <span className="text-sm font-semibold text-purple-400 tracking-wider uppercase mb-3 block">Multi-platform</span>
+            <span className="text-sm font-semibold text-purple-400 tracking-wider uppercase mb-3 block">{t("platforms.label")}</span>
             <h2 className="font-[Space_Grotesk] text-3xl md:text-5xl font-bold">
-              Jeden dashboard. <span className="text-gradient-purple">Všechny kanály.</span>
+              {t("platforms.title1")}<span className="text-gradient-purple">{t("platforms.title2")}</span>
             </h2>
-            <p className="text-gray-400 mt-4 max-w-2xl mx-auto text-lg">
-              iBoti fungují všude, kde jsou vaši zákazníci. Centralizovaná správa, analytics a reporting.
-            </p>
+            <p className="text-gray-400 mt-4 max-w-2xl mx-auto text-lg">{t("platforms.subtitle")}</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-4xl mx-auto">
             {[
-              { icon: Globe, name: "Web Widget", desc: "Integrace na jakýkoli web pomocí jednoho řádku kódu", status: "Dostupné" },
-              { icon: Send, name: "Telegram Bot", desc: "Plná integrace s Telegram platformou", status: "Dostupné" },
-              { icon: MessageSquare, name: "Discord Bot", desc: "Automatizace komunitní komunikace", status: "Dostupné" },
-              { icon: Cpu, name: "API", desc: "RESTful API pro custom integrace", status: "api.bothub.cz", link: true },
+              { icon: Globe, name: t("platforms.web.title"), desc: t("platforms.web.desc"), status: locale === "cs" ? "Dostupné" : "Available" },
+              { icon: Send, name: t("platforms.telegram.title"), desc: t("platforms.telegram.desc"), status: locale === "cs" ? "Dostupné" : "Available" },
+              { icon: MessageSquare, name: t("platforms.discord.title"), desc: t("platforms.discord.desc"), status: locale === "cs" ? "Dostupné" : "Available" },
+              { icon: Cpu, name: t("platforms.api.title"), desc: t("platforms.api.desc"), status: "api.bothub.cz", link: true },
             ].map((platform) => (
-              <div
-                key={platform.name}
-                className="rounded-2xl border border-white/5 bg-white/[0.02] p-6 text-center card-hover-glow"
-              >
+              <div key={platform.name} className="rounded-2xl border border-white/5 bg-white/[0.02] p-6 text-center card-hover-glow">
                 <div className="w-14 h-14 rounded-2xl bg-purple-500/10 flex items-center justify-center mx-auto mb-4">
                   <platform.icon className="w-7 h-7 text-purple-400" />
                 </div>
@@ -684,15 +598,9 @@ export default function Home() {
                 <p className="text-sm text-gray-400 mb-3">{platform.desc}</p>
                 <span className={`text-xs font-medium ${platform.link ? "text-purple-400" : "text-green-400"}`}>
                   {platform.link ? (
-                    <span className="flex items-center justify-center gap-1">
-                      {platform.status}
-                      <ExternalLink className="w-3 h-3" />
-                    </span>
+                    <span className="flex items-center justify-center gap-1">{platform.status}<ExternalLink className="w-3 h-3" /></span>
                   ) : (
-                    <span className="flex items-center justify-center gap-1">
-                      <span className="w-1.5 h-1.5 bg-green-400 rounded-full" />
-                      {platform.status}
-                    </span>
+                    <span className="flex items-center justify-center gap-1"><span className="w-1.5 h-1.5 bg-green-400 rounded-full" />{platform.status}</span>
                   )}
                 </span>
               </div>
@@ -707,21 +615,17 @@ export default function Home() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-amber-500/5 rounded-full blur-[120px]" />
         <div className="container relative z-10 text-center">
           <h2 className="font-[Space_Grotesk] text-3xl md:text-5xl lg:text-6xl font-black max-w-3xl mx-auto leading-tight mb-6">
-            Jste připraveni{" "}
-            <span className="text-gradient-gold">změnit pravidla hry?</span>
+            {t("final.title1")}<span className="text-gradient-gold">{t("final.title2")}</span>
           </h2>
-          <p className="text-lg text-gray-400 max-w-xl mx-auto mb-10">
-            Přestaňte ztrácet zákazníky a peníze. Nasaďte iBoty a sledujte, jak vaše tržby rostou. Bez práce.
-          </p>
+          <p className="text-lg text-gray-400 max-w-xl mx-auto mb-10">{t("final.subtitle")}</p>
           <Button
             onClick={handleFinalCTA}
             size="lg"
             className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-bold text-lg px-10 py-7 pulse-gold"
           >
-            Začněte prodávat s AI — ZDARMA
-            <ArrowRight className="w-5 h-5 ml-2" />
+            {t("final.cta")} <ArrowRight className="w-5 h-5 ml-2" />
           </Button>
-          <p className="text-sm text-gray-500 mt-4">Žádná kreditní karta. Žádné závazky. Okamžitý přístup.</p>
+          <p className="text-sm text-gray-500 mt-4">{t("final.note")}</p>
         </div>
       </section>
 
@@ -729,7 +633,6 @@ export default function Home() {
       <footer className="border-t border-white/5 py-12">
         <div className="container">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
-            {/* Brand */}
             <div className="md:col-span-1">
               <div className="flex items-center gap-2 mb-4">
                 <Bot className="w-7 h-7 text-amber-400" />
@@ -737,63 +640,44 @@ export default function Home() {
                   <span className="text-amber-400">BOT</span>HUB
                 </span>
               </div>
-              <p className="text-sm text-gray-500 leading-relaxed">
-                AI chatboti, kteří prodávají za vás. 77 unikátních osobností ve 7 kategoriích.
-              </p>
+              <p className="text-sm text-gray-500 leading-relaxed">{t("footer.desc")}</p>
             </div>
-
-            {/* Links */}
             <div>
-              <h4 className="text-sm font-semibold text-gray-300 mb-4">Produkt</h4>
+              <h4 className="text-sm font-semibold text-gray-300 mb-4">{t("footer.product")}</h4>
               <ul className="space-y-2 text-sm text-gray-500">
-                <li><a href="#catalog" className="hover:text-amber-400 transition-colors">Katalog iBotů</a></li>
-                <li><a href="#pricing" className="hover:text-amber-400 transition-colors">Ceník</a></li>
-                <li><a href="#platforms" className="hover:text-amber-400 transition-colors">Platformy</a></li>
-                <li><a href="/blog" className="hover:text-amber-400 transition-colors">Blog</a></li>
+                <li><a href="#catalog" className="hover:text-amber-400 transition-colors">{t("nav.catalog")}</a></li>
+                <li><a href="#pricing" className="hover:text-amber-400 transition-colors">{t("nav.pricing")}</a></li>
+                <li><a href="#platforms" className="hover:text-amber-400 transition-colors">{t("nav.platforms")}</a></li>
+                <li><a href="/blog" className="hover:text-amber-400 transition-colors">{t("nav.blog")}</a></li>
               </ul>
             </div>
-
             <div>
-              <h4 className="text-sm font-semibold text-gray-300 mb-4">Partneři</h4>
+              <h4 className="text-sm font-semibold text-gray-300 mb-4">{t("footer.partners")}</h4>
               <ul className="space-y-2 text-sm text-gray-500">
-                <li><a href="#affiliate" className="hover:text-amber-400 transition-colors">Affiliate program</a></li>
-                <li><a href="https://api.bothub.cz" target="_blank" rel="noopener noreferrer" className="hover:text-amber-400 transition-colors flex items-center gap-1">API Dokumentace <ExternalLink className="w-3 h-3" /></a></li>
+                <li><a href="#affiliate" className="hover:text-amber-400 transition-colors">{t("footer.affiliate")}</a></li>
+                <li><a href="https://api.bothub.cz" target="_blank" rel="noopener noreferrer" className="hover:text-amber-400 transition-colors flex items-center gap-1">{t("footer.api")} <ExternalLink className="w-3 h-3" /></a></li>
               </ul>
             </div>
-
             <div>
-              <h4 className="text-sm font-semibold text-gray-300 mb-4">Kontakt</h4>
+              <h4 className="text-sm font-semibold text-gray-300 mb-4">{t("footer.contact")}</h4>
               <ul className="space-y-2 text-sm text-gray-500">
                 <li><a href="mailto:info@bothub.cz" className="hover:text-amber-400 transition-colors">info@bothub.cz</a></li>
-                <li><span>Obchodní podmínky</span></li>
-                <li><span>Ochrana osobních údajů</span></li>
+                <li><span>{t("footer.terms")}</span></li>
+                <li><span>{t("footer.privacy")}</span></li>
               </ul>
             </div>
           </div>
-
           <div className="border-t border-white/5 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-gray-600">© 2026 BOTHUB.cz — Všechna práva vyhrazena.</p>
-            <p className="text-xs text-gray-600">Powered by AI. Built with Hormozi principles.</p>
+            <p className="text-xs text-gray-600">{t("footer.copyright")}</p>
+            <p className="text-xs text-gray-600">{t("footer.powered")}</p>
           </div>
         </div>
       </footer>
 
       {/* Modals */}
-      <UnlockModal
-        open={unlockModalOpen}
-        onOpenChange={setUnlockModalOpen}
-        onUnlock={handleUnlock}
-      />
-      <RegistrationModal
-        open={registrationModalOpen}
-        onOpenChange={setRegistrationModalOpen}
-        initialPlan={selectedPlan}
-        source={registrationSource}
-      />
-      <AffiliateModal
-        open={affiliateModalOpen}
-        onOpenChange={setAffiliateModalOpen}
-      />
+      <UnlockModal open={unlockModalOpen} onOpenChange={setUnlockModalOpen} onUnlock={handleUnlock} />
+      <RegistrationModal open={registrationModalOpen} onOpenChange={setRegistrationModalOpen} initialPlan={selectedPlan} source={registrationSource} />
+      <AffiliateModal open={affiliateModalOpen} onOpenChange={setAffiliateModalOpen} />
       <ExitIntentPopup onRegister={(plan, source) => openRegistration(plan, source)} />
       <LiveChatDemo />
       <SocialProofWidget />

@@ -1,35 +1,38 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2, Sparkles } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
-// Simulated social proof data — mix of realistic Czech names, cities and actions
-const socialProofEvents = [
-  { name: "Martin", city: "Praha", action: "aktivoval GOLD plán", plan: "gold" },
-  { name: "Petra", city: "Brno", action: "se zaregistrovala ZDARMA", plan: "free" },
-  { name: "Jakub", city: "Ostrava", action: "aktivoval DIAMOND plán", plan: "diamond" },
-  { name: "Lucie", city: "Plzeň", action: "odemkla katalog iBotů", plan: "free" },
-  { name: "Tomáš", city: "Olomouc", action: "se stal affiliate partnerem", plan: "affiliate" },
-  { name: "Kateřina", city: "Liberec", action: "aktivovala GOLD plán", plan: "gold" },
-  { name: "David", city: "České Budějovice", action: "se zaregistroval ZDARMA", plan: "free" },
-  { name: "Anna", city: "Hradec Králové", action: "aktivovala DIAMOND plán", plan: "diamond" },
-  { name: "Ondřej", city: "Pardubice", action: "odemkl katalog iBotů", plan: "free" },
-  { name: "Veronika", city: "Zlín", action: "se stala affiliate partnerem", plan: "affiliate" },
-  { name: "Filip", city: "Jihlava", action: "aktivoval GOLD plán", plan: "gold" },
-  { name: "Markéta", city: "Karlovy Vary", action: "se zaregistrovala ZDARMA", plan: "free" },
-  { name: "Michal", city: "Ústí nad Labem", action: "aktivoval DIAMOND plán", plan: "diamond" },
-  { name: "Tereza", city: "Opava", action: "aktivovala GOLD plán", plan: "gold" },
-  { name: "Jan", city: "Most", action: "se zaregistroval ZDARMA", plan: "free" },
-  { name: "Eliška", city: "Frýdek-Místek", action: "odemkla katalog iBotů", plan: "free" },
-  { name: "Pavel", city: "Kladno", action: "se stal affiliate partnerem", plan: "affiliate" },
-  { name: "Simona", city: "Teplice", action: "aktivovala GOLD plán", plan: "gold" },
-  { name: "Radek", city: "Děčín", action: "aktivoval DIAMOND plán", plan: "diamond" },
-  { name: "Nikola", city: "Chomutov", action: "se zaregistrovala ZDARMA", plan: "free" },
-];
-
-function getTimeAgo(): string {
-  const minutes = Math.floor(Math.random() * 15) + 1;
-  return `před ${minutes} min`;
+interface SocialEvent {
+  name: string;
+  city: string;
+  actionCs: string;
+  actionEn: string;
+  plan: string;
 }
+
+const socialProofEvents: SocialEvent[] = [
+  { name: "Martin", city: "Praha", actionCs: "aktivoval GOLD plán", actionEn: "activated GOLD plan", plan: "gold" },
+  { name: "Petra", city: "Brno", actionCs: "se zaregistrovala ZDARMA", actionEn: "registered for FREE", plan: "free" },
+  { name: "Jakub", city: "Ostrava", actionCs: "aktivoval DIAMOND plán", actionEn: "activated DIAMOND plan", plan: "diamond" },
+  { name: "Lucie", city: "Plzeň", actionCs: "odemkla katalog iBotů", actionEn: "unlocked the iBot catalog", plan: "free" },
+  { name: "Tomáš", city: "Olomouc", actionCs: "se stal affiliate partnerem", actionEn: "became an affiliate partner", plan: "affiliate" },
+  { name: "Kateřina", city: "Liberec", actionCs: "aktivovala GOLD plán", actionEn: "activated GOLD plan", plan: "gold" },
+  { name: "David", city: "České Budějovice", actionCs: "se zaregistroval ZDARMA", actionEn: "registered for FREE", plan: "free" },
+  { name: "Anna", city: "Hradec Králové", actionCs: "aktivovala DIAMOND plán", actionEn: "activated DIAMOND plan", plan: "diamond" },
+  { name: "Ondřej", city: "Pardubice", actionCs: "odemkl katalog iBotů", actionEn: "unlocked the iBot catalog", plan: "free" },
+  { name: "Veronika", city: "Zlín", actionCs: "se stala affiliate partnerem", actionEn: "became an affiliate partner", plan: "affiliate" },
+  { name: "Filip", city: "Jihlava", actionCs: "aktivoval GOLD plán", actionEn: "activated GOLD plan", plan: "gold" },
+  { name: "Markéta", city: "Karlovy Vary", actionCs: "se zaregistrovala ZDARMA", actionEn: "registered for FREE", plan: "free" },
+  { name: "Michal", city: "Ústí nad Labem", actionCs: "aktivoval DIAMOND plán", actionEn: "activated DIAMOND plan", plan: "diamond" },
+  { name: "Tereza", city: "Opava", actionCs: "aktivovala GOLD plán", actionEn: "activated GOLD plan", plan: "gold" },
+  { name: "Jan", city: "Most", actionCs: "se zaregistroval ZDARMA", actionEn: "registered for FREE", plan: "free" },
+  { name: "Eliška", city: "Frýdek-Místek", actionCs: "odemkla katalog iBotů", actionEn: "unlocked the iBot catalog", plan: "free" },
+  { name: "Pavel", city: "Kladno", actionCs: "se stal affiliate partnerem", actionEn: "became an affiliate partner", plan: "affiliate" },
+  { name: "Simona", city: "Teplice", actionCs: "aktivovala GOLD plán", actionEn: "activated GOLD plan", plan: "gold" },
+  { name: "Radek", city: "Děčín", actionCs: "aktivoval DIAMOND plán", actionEn: "activated DIAMOND plan", plan: "diamond" },
+  { name: "Nikola", city: "Chomutov", actionCs: "se zaregistrovala ZDARMA", actionEn: "registered for FREE", plan: "free" },
+];
 
 function getPlanColor(plan: string): string {
   switch (plan) {
@@ -51,42 +54,33 @@ function getPlanIcon(plan: string) {
 }
 
 export function SocialProofWidget() {
-  const [currentEvent, setCurrentEvent] = useState<typeof socialProofEvents[0] | null>(null);
+  const { locale } = useI18n();
+  const [currentEvent, setCurrentEvent] = useState<SocialEvent | null>(null);
   const [isVisible, setIsVisible] = useState(false);
-  const [eventIndex, setEventIndex] = useState(0);
 
-  // Check if user dismissed recently
   const isDismissed = useCallback(() => {
-    const dismissed = sessionStorage.getItem("social_proof_dismissed");
-    return dismissed === "true";
+    return sessionStorage.getItem("social_proof_dismissed") === "true";
   }, []);
+
+  const getTimeAgo = useCallback((): string => {
+    const minutes = Math.floor(Math.random() * 15) + 1;
+    return locale === "en" ? `${minutes} min ago` : `před ${minutes} min`;
+  }, [locale]);
 
   useEffect(() => {
     if (isDismissed()) return;
-
-    // Initial delay before first notification
-    const initialDelay = setTimeout(() => {
-      showNextEvent();
-    }, 8000);
-
+    const initialDelay = setTimeout(() => { showNextEvent(); }, 8000);
     return () => clearTimeout(initialDelay);
   }, []);
 
   const showNextEvent = useCallback(() => {
     const idx = Math.floor(Math.random() * socialProofEvents.length);
-    setEventIndex(idx);
     setCurrentEvent(socialProofEvents[idx]!);
     setIsVisible(true);
-
-    // Auto-hide after 5 seconds
     setTimeout(() => {
       setIsVisible(false);
-
-      // Schedule next notification (random 15-30 seconds)
       const nextDelay = (Math.random() * 15 + 15) * 1000;
-      setTimeout(() => {
-        if (!isDismissed()) showNextEvent();
-      }, nextDelay);
+      setTimeout(() => { if (!isDismissed()) showNextEvent(); }, nextDelay);
     }, 5000);
   }, [isDismissed]);
 
@@ -108,37 +102,28 @@ export function SocialProofWidget() {
           className="fixed bottom-6 left-6 z-40 max-w-xs"
         >
           <div className="relative rounded-xl border border-white/10 bg-[#0D0D14]/95 backdrop-blur-lg shadow-xl shadow-black/30 p-4 pr-8">
-            {/* Close button */}
             <button
               onClick={handleDismiss}
               className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center text-gray-500 hover:text-white transition-colors text-xs"
-              aria-label="Zavřít"
+              aria-label={locale === "en" ? "Close" : "Zavřít"}
             >
               ×
             </button>
-
             <div className="flex items-start gap-3">
-              {/* Icon */}
-              <div className="shrink-0 mt-0.5">
-                {getPlanIcon(currentEvent.plan)}
-              </div>
-
-              {/* Content */}
+              <div className="shrink-0 mt-0.5">{getPlanIcon(currentEvent.plan)}</div>
               <div className="min-w-0">
                 <p className="text-sm text-gray-200 leading-snug">
                   <span className="font-semibold text-white">{currentEvent.name}</span>
-                  {" z "}
+                  {locale === "en" ? " from " : " z "}
                   <span className="text-gray-400">{currentEvent.city}</span>
-                  {" právě "}
+                  {locale === "en" ? " just " : " právě "}
                   <span className={`font-medium ${getPlanColor(currentEvent.plan)}`}>
-                    {currentEvent.action}
+                    {locale === "en" ? currentEvent.actionEn : currentEvent.actionCs}
                   </span>
                 </p>
                 <p className="text-xs text-gray-500 mt-1">{getTimeAgo()}</p>
               </div>
             </div>
-
-            {/* Progress bar (auto-dismiss indicator) */}
             <motion.div
               initial={{ width: "100%" }}
               animate={{ width: "0%" }}

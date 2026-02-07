@@ -55,3 +55,15 @@
 - [x] Týdenní souhrn: strategická doporučení na základě dat (LLM - Hormozi principy)
 - [x] Týdenní souhrn: scheduled task každý pondělí v 9:00
 - [x] Testy pro nové features (41/41 passed)
+
+- [x] Countdown timer: FOMO sekce s odpočtem "Prvních 100 registrací = GOLD na 30 dní zdarma"
+- [x] Countdown timer: real-time počítadlo zbývajících míst z databáze (promo.remainingSpots)
+- [x] Countdown timer: urgentní CTA s animací (pulse + gradient)
+- [x] Video reference: sekce "iBoti v akci" s ukázkovými videi
+- [x] Video reference: 3 demo videa (prodejní iBot, zákaznická podpora, affiliate)
+- [x] Video reference: responsive karty s ikonami a metrikami
+- [x] i18n: systém pro vícejazyčnou podporu (CZ/EN) - I18nProvider + useI18n hook
+- [x] i18n: přepínač jazyků v navigaci (vlajky CZ/EN)
+- [x] i18n: kompletní překlad landing page do angličtiny (všechny sekce + modaly)
+- [x] i18n: překlad blog stránek do angličtiny
+- [x] Testy pro nové features (43/43 passed)

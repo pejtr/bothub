@@ -612,3 +612,22 @@ describe("dailyReport.formatWeeklyReportContent", () => {
     expect(content).toContain("Test doporučení");
   });
 });
+
+
+describe("promo.remainingSpots", () => {
+  const caller = appRouter.createCaller(createPublicContext());
+
+  it("returns remaining spots based on registration count", async () => {
+    const result = await caller.promo.remainingSpots();
+    // getRegistrationCount mock returns 10
+    expect(result).toEqual({ remaining: 90, total: 100, taken: 10, isActive: true });
+  });
+
+  it("returns correct structure with numeric values", async () => {
+    const result = await caller.promo.remainingSpots();
+    expect(typeof result.remaining).toBe("number");
+    expect(typeof result.total).toBe("number");
+    expect(typeof result.taken).toBe("number");
+    expect(typeof result.isActive).toBe("boolean");
+  });
+});

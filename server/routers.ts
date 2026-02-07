@@ -10,6 +10,7 @@ import {
   getDashboardStats, getRegistrationsByPlan, getAbTestResults,
   getRecentRegistrations, getRecentEmailCaptures, getAffiliatePartners,
   getRecentAffiliateClicks, getRegistrationsByDay, getEmailCapturesByDay,
+  getRegistrationCount,
 } from "./db";
 import { notifyOwner } from "./_core/notification";
 import { sendConfirmationEmail } from "./email";
@@ -282,6 +283,17 @@ export const appRouter = router({
         content: formatWeeklyReportContent(data, recommendations),
         recommendations,
       };
+    }),
+  }),
+
+  // ===== COUNTDOWN / PROMO =====
+  promo: router({
+    /** Get remaining spots for limited offer */
+    remainingSpots: publicProcedure.query(async () => {
+      const totalRegistrations = await getRegistrationCount();
+      const limit = 100;
+      const remaining = Math.max(0, limit - totalRegistrations);
+      return { remaining, total: limit, taken: totalRegistrations, isActive: remaining > 0 };
     }),
   }),
 

@@ -52,6 +52,21 @@ vi.mock("./dailyReport", () => ({
     topSource: "hero_cta",
   }),
   formatReportContent: vi.fn().mockReturnValue("Test report content"),
+  sendWeeklyReport: vi.fn().mockResolvedValue(true),
+  generateWeeklyReport: vi.fn().mockResolvedValue({
+    weekStart: "2026-01-31",
+    weekEnd: "2026-02-07",
+    dailyTrend: [{ date: "2026-02-07", registrations: 5, emails: 12 }],
+    totalRegistrations: { total: 20, free: 12, gold: 5, diamond: 3 },
+    totalEmails: 50,
+    totalAffiliatePartners: 4,
+    totalAffiliateClicks: 80,
+    abTestSummary: [{ testName: "cta_hero", variant: "variant_a", impressions: 500, clicks: 100, conversions: 25, ctr: "20.0", cvr: "25.0" }],
+    topSources: [{ source: "hero_cta", count: 10 }],
+    estimatedRevenue: 12420,
+  }),
+  formatWeeklyReportContent: vi.fn().mockReturnValue("Test weekly report content"),
+  generateStrategicRecommendations: vi.fn().mockResolvedValue("1. Zvy\u0161te investice do affiliate programu."),
 }));
 
 vi.mock("./_core/llm", () => ({
@@ -68,7 +83,7 @@ import {
 } from "./db";
 
 import { sendConfirmationEmail } from "./email";
-import { sendDailyReport, generateDailyReport, formatReportContent } from "./dailyReport";
+import { sendDailyReport, generateDailyReport, formatReportContent, sendWeeklyReport, generateWeeklyReport, formatWeeklyReportContent, generateStrategicRecommendations } from "./dailyReport";
 import { invokeLLM } from "./_core/llm";
 
 function createPublicContext(): TrpcContext {
@@ -519,5 +534,81 @@ describe("chat.send", () => {
     const systemMsgs = callArgs.messages.filter((m: { role: string }) => m.role === "system");
     expect(systemMsgs).toHaveLength(1);
     expect(systemMsgs[0].content).toContain("Alex Hormozi iBot");
+  });
+});
+
+// ===== Weekly Report tests =====
+
+describe("admin.sendWeeklyReport", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("triggers weekly report for admin", async () => {
+    const caller = appRouter.createCaller(createAdminContext());
+    const result = await caller.admin.sendWeeklyReport();
+    expect(result).toEqual({ success: true });
+    expect(sendWeeklyReport).toHaveBeenCalled();
+  });
+
+  it("rejects non-admin user", async () => {
+    const caller = appRouter.createCaller(createUserContext());
+    await expect(caller.admin.sendWeeklyReport()).rejects.toThrow();
+  });
+});
+
+describe("admin.weeklyReportPreview", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns formatted weekly report with recommendations for admin", async () => {
+    const caller = appRouter.createCaller(createAdminContext());
+    const result = await caller.admin.weeklyReportPreview();
+    expect(result.content).toBe("Test weekly report content");
+    expect(result.recommendations).toBe("1. Zvyšte investice do affiliate programu.");
+    expect(generateWeeklyReport).toHaveBeenCalled();
+    expect(generateStrategicRecommendations).toHaveBeenCalled();
+    expect(formatWeeklyReportContent).toHaveBeenCalled();
+  });
+
+  it("rejects non-admin user", async () => {
+    const caller = appRouter.createCaller(createUserContext());
+    await expect(caller.admin.weeklyReportPreview()).rejects.toThrow();
+  });
+});
+
+// ===== Weekly Report module tests =====
+
+describe("dailyReport.formatWeeklyReportContent", () => {
+  it("formats weekly report data with recommendations", async () => {
+    const { formatWeeklyReportContent: realFormat } = await vi.importActual<typeof import("./dailyReport")>("./dailyReport");
+    const data = {
+      weekStart: "2026-01-31",
+      weekEnd: "2026-02-07",
+      dailyTrend: [
+        { date: "2026-02-06", registrations: 3, emails: 8 },
+        { date: "2026-02-07", registrations: 5, emails: 12 },
+      ],
+      totalRegistrations: { total: 20, free: 12, gold: 5, diamond: 3 },
+      totalEmails: 50,
+      totalAffiliatePartners: 4,
+      totalAffiliateClicks: 80,
+      abTestSummary: [
+        { testName: "cta_hero", variant: "variant_a", impressions: 500, clicks: 100, conversions: 25, ctr: "20.0", cvr: "25.0" },
+      ],
+      topSources: [{ source: "hero_cta", count: 10 }],
+      estimatedRevenue: 12420,
+    };
+    const content = realFormat(data, "Test doporučení");
+    expect(content).toContain("TÝDENNÍ STRATEGICKÝ SOUHRN");
+    expect(content).toContain("2026-01-31");
+    expect(content).toContain("2026-02-07");
+    expect(content).toContain("REGISTRACE ZA TÝDEN: 20");
+    expect(content).toContain("FREE: 12");
+    expect(content).toContain("GOLD: 5");
+    expect(content).toContain("DIAMOND: 3");
+    expect(content).toContain("12");
+    expect(content).toContain("Email captures: 50");
+    expect(content).toContain("hero_cta");
+    expect(content).toContain("variant_a");
+    expect(content).toContain("STRATEGICKÁ DOPORUČENÍ");
+    expect(content).toContain("Test doporučení");
   });
 });

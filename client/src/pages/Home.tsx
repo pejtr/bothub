@@ -7,6 +7,7 @@ import { AffiliateModal } from "@/components/AffiliateModal";
 import { ExitIntentPopup } from "@/components/ExitIntentPopup";
 import { Testimonials } from "@/components/Testimonials";
 import { LiveChatDemo } from "@/components/LiveChatDemo";
+import { SocialProofWidget } from "@/components/SocialProofWidget";
 import { categories, getIBotsByCategory } from "@/data/ibots";
 import { getCTAText, trackCTAClick, getUserCTAVariant } from "@/lib/ctaAbTest";
 import { trpc } from "@/lib/trpc";
@@ -748,6 +749,7 @@ export default function Home() {
                 <li><a href="#catalog" className="hover:text-amber-400 transition-colors">Katalog iBotů</a></li>
                 <li><a href="#pricing" className="hover:text-amber-400 transition-colors">Ceník</a></li>
                 <li><a href="#platforms" className="hover:text-amber-400 transition-colors">Platformy</a></li>
+                <li><a href="/blog" className="hover:text-amber-400 transition-colors">Blog</a></li>
               </ul>
             </div>
 
@@ -794,6 +796,7 @@ export default function Home() {
       />
       <ExitIntentPopup onRegister={(plan, source) => openRegistration(plan, source)} />
       <LiveChatDemo />
+      <SocialProofWidget />
     </div>
   );
 }

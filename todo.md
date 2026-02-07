@@ -43,3 +43,15 @@
 - [x] Live chat demo: interaktivní iBot widget na landing page (LiveChatDemo.tsx)
 - [x] Live chat demo: napojení na LLM pro reálné odpovědi (Alex Hormozi persona)
 - [x] Testy pro nové features (36/36 passed)
+
+- [x] Social proof: real-time notifikace widget ("Martin z Prahy právě aktivoval GOLD")
+- [x] Social proof: simulace aktivity z databáze registrací (20 realistických událostí)
+- [x] Social proof: animace slide-in/slide-out s auto-rotation (15-30s interval, 5s display)
+- [x] Blog: stránka se seznamem článků o AI chatbotech (/blog)
+- [x] Blog: detail článku s SEO meta tagy a strukturovanými daty (/blog/:slug)
+- [x] Blog: 3 seed články (konverze, affiliate, kategorie iBotů)
+- [x] Blog: sitemap.xml (dynamický) a robots.txt pro SEO
+- [x] Týdenní souhrn: rozšíření daily report o týdenní analýzu (generateWeeklyReport)
+- [x] Týdenní souhrn: strategická doporučení na základě dat (LLM - Hormozi principy)
+- [x] Týdenní souhrn: scheduled task každý pondělí v 9:00
+- [x] Testy pro nové features (41/41 passed)

@@ -43,6 +43,27 @@ async function startServer() {
       createContext,
     })
   );
+  // Dynamic sitemap.xml
+  app.get("/sitemap.xml", (_req, res) => {
+    const baseUrl = "https://bothub.cz";
+    const blogSlugs = [
+      "jak-ai-chatboti-zvysuji-konverze-o-42-procent",
+      "affiliate-marketing-s-ai-chatboty-77-procent-provize",
+      "7-kategorii-ai-chatbotu-ktery-je-pro-vas",
+    ];
+    const urls = [
+      { loc: "/", priority: "1.0", changefreq: "weekly" },
+      { loc: "/blog", priority: "0.8", changefreq: "daily" },
+      ...blogSlugs.map(slug => ({ loc: `/blog/${slug}`, priority: "0.6", changefreq: "monthly" })),
+    ];
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls.map(u => `  <url>\n    <loc>${baseUrl}${u.loc}</loc>\n    <changefreq>${u.changefreq}</changefreq>\n    <priority>${u.priority}</priority>\n  </url>`).join("\n")}
+</urlset>`;
+    res.set("Content-Type", "application/xml");
+    res.send(xml);
+  });
+
   // development mode uses Vite, production mode uses static files
   if (process.env.NODE_ENV === "development") {
     await setupVite(app, server);

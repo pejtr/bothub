@@ -13,7 +13,7 @@ import {
 } from "./db";
 import { notifyOwner } from "./_core/notification";
 import { sendConfirmationEmail } from "./email";
-import { sendDailyReport, generateDailyReport, formatReportContent } from "./dailyReport";
+import { sendDailyReport, generateDailyReport, formatReportContent, sendWeeklyReport, generateWeeklyReport, formatWeeklyReportContent, generateStrategicRecommendations } from "./dailyReport";
 import { invokeLLM } from "./_core/llm";
 
 export const appRouter = router({
@@ -265,6 +265,23 @@ export const appRouter = router({
       const data = await generateDailyReport();
       if (!data) return { content: "Databáze není dostupná." };
       return { content: formatReportContent(data) };
+    }),
+
+    /** Trigger weekly report manually */
+    sendWeeklyReport: adminProcedure.mutation(async () => {
+      const success = await sendWeeklyReport();
+      return { success };
+    }),
+
+    /** Get weekly report preview with AI recommendations */
+    weeklyReportPreview: adminProcedure.query(async () => {
+      const data = await generateWeeklyReport();
+      if (!data) return { content: "Databáze není dostupná.", recommendations: "" };
+      const recommendations = await generateStrategicRecommendations(data);
+      return {
+        content: formatWeeklyReportContent(data, recommendations),
+        recommendations,
+      };
     }),
   }),
 

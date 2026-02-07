@@ -1,11 +1,11 @@
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, emailCaptures, abTestResults, affiliateClicks } from "../drizzle/schema";
+import type { InsertEmailCapture, InsertAbTestResult, InsertAffiliateClick } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
-// Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
@@ -89,4 +89,45 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+// Email capture
+export async function captureEmail(data: InsertEmailCapture) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(emailCaptures).values(data);
+}
+
+// A/B test tracking
+export async function trackAbTestEvent(testName: string, variant: string, type: "impression" | "click" | "conversion") {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const field = type === "impression" ? "impressions" : type === "click" ? "clicks" : "conversions";
+
+  // Upsert: increment the counter
+  await db.insert(abTestResults).values({
+    testName,
+    variant,
+    impressions: type === "impression" ? 1 : 0,
+    clicks: type === "click" ? 1 : 0,
+    conversions: type === "conversion" ? 1 : 0,
+  }).onDuplicateKeyUpdate({
+    set: {
+      [field]: sql`${abTestResults[field as keyof typeof abTestResults]} + 1`,
+    },
+  });
+}
+
+// Affiliate click tracking
+export async function trackAffiliateClick(data: InsertAffiliateClick) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(affiliateClicks).values(data);
+}
+
+// Get email capture count
+export async function getEmailCaptureCount() {
+  const db = await getDb();
+  if (!db) return 0;
+  const result = await db.select({ count: sql<number>`count(*)` }).from(emailCaptures);
+  return result[0]?.count ?? 0;
+}

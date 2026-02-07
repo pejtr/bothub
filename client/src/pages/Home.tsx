@@ -5,6 +5,8 @@ import { UnlockModal } from "@/components/UnlockModal";
 import { RegistrationModal } from "@/components/RegistrationModal";
 import { AffiliateModal } from "@/components/AffiliateModal";
 import { ExitIntentPopup } from "@/components/ExitIntentPopup";
+import { Testimonials } from "@/components/Testimonials";
+import { LiveChatDemo } from "@/components/LiveChatDemo";
 import { categories, getIBotsByCategory } from "@/data/ibots";
 import { getCTAText, trackCTAClick, getUserCTAVariant } from "@/lib/ctaAbTest";
 import { trpc } from "@/lib/trpc";
@@ -454,6 +456,9 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ===== TESTIMONIALS ===== */}
+      <Testimonials />
+
       {/* ===== PRICING ===== */}
       <section id="pricing" className="relative py-20 md:py-28">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-purple-500/[0.02] to-transparent" />
@@ -788,6 +793,7 @@ export default function Home() {
         onOpenChange={setAffiliateModalOpen}
       />
       <ExitIntentPopup onRegister={(plan, source) => openRegistration(plan, source)} />
+      <LiveChatDemo />
     </div>
   );
 }

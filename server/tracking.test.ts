@@ -40,6 +40,26 @@ vi.mock("./email", () => ({
   sendConfirmationEmail: vi.fn().mockResolvedValue(true),
 }));
 
+vi.mock("./dailyReport", () => ({
+  sendDailyReport: vi.fn().mockResolvedValue(true),
+  generateDailyReport: vi.fn().mockResolvedValue({
+    date: "2026-02-07",
+    newRegistrations: { total: 5, free: 3, gold: 1, diamond: 1 },
+    newEmails: 12,
+    newAffiliatePartners: 2,
+    newAffiliateClicks: 25,
+    abTestSummary: [{ testName: "cta_hero", variant: "variant_a", impressions: 100, clicks: 20, conversions: 5, ctr: "20.0", cvr: "25.0" }],
+    topSource: "hero_cta",
+  }),
+  formatReportContent: vi.fn().mockReturnValue("Test report content"),
+}));
+
+vi.mock("./_core/llm", () => ({
+  invokeLLM: vi.fn().mockResolvedValue({
+    choices: [{ message: { content: "Ahoj! Jsem Alex Hormozi iBot." } }],
+  }),
+}));
+
 import {
   captureEmail, trackAbTestEvent, trackAffiliateClick,
   createRegistration, getRegistrationByEmail, activateRegistration,
@@ -48,6 +68,8 @@ import {
 } from "./db";
 
 import { sendConfirmationEmail } from "./email";
+import { sendDailyReport, generateDailyReport, formatReportContent } from "./dailyReport";
+import { invokeLLM } from "./_core/llm";
 
 function createPublicContext(): TrpcContext {
   return {
@@ -390,5 +412,112 @@ describe("email.buildEmailHtml", () => {
     expect(html).toContain("FREE");
     expect(html).toContain("aktivní");
     expect(html).not.toContain("Aktivovat plán");
+  });
+});
+
+// ===== Daily Report tests =====
+
+describe("admin.sendDailyReport", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("triggers daily report for admin", async () => {
+    const caller = appRouter.createCaller(createAdminContext());
+    const result = await caller.admin.sendDailyReport();
+    expect(result).toEqual({ success: true });
+    expect(sendDailyReport).toHaveBeenCalled();
+  });
+
+  it("rejects non-admin user", async () => {
+    const caller = appRouter.createCaller(createUserContext());
+    await expect(caller.admin.sendDailyReport()).rejects.toThrow();
+  });
+});
+
+describe("admin.dailyReportPreview", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns formatted report content for admin", async () => {
+    const caller = appRouter.createCaller(createAdminContext());
+    const result = await caller.admin.dailyReportPreview();
+    expect(result).toEqual({ content: "Test report content" });
+    expect(generateDailyReport).toHaveBeenCalled();
+    expect(formatReportContent).toHaveBeenCalled();
+  });
+});
+
+// ===== Daily Report module tests =====
+
+describe("dailyReport.formatReportContent", () => {
+  it("formats report data into readable text", async () => {
+    const { formatReportContent: realFormat } = await vi.importActual<typeof import("./dailyReport")>("./dailyReport");
+    const data = {
+      date: "2026-02-07",
+      newRegistrations: { total: 5, free: 3, gold: 1, diamond: 1 },
+      newEmails: 12,
+      newAffiliatePartners: 2,
+      newAffiliateClicks: 25,
+      abTestSummary: [
+        { testName: "cta_hero", variant: "variant_a", impressions: 100, clicks: 20, conversions: 5, ctr: "20.0", cvr: "25.0" },
+      ],
+      topSource: "hero_cta",
+    };
+    const content = realFormat(data);
+    expect(content).toContain("2026-02-07");
+    expect(content).toContain("NOVÉ REGISTRACE: 5");
+    expect(content).toContain("FREE: 3");
+    expect(content).toContain("GOLD: 1");
+    expect(content).toContain("DIAMOND: 1");
+    expect(content).toContain("e-mail captures: 12");
+    expect(content).toContain("Affiliate kliky: 25");
+    expect(content).toContain("hero_cta");
+    expect(content).toContain("A/B TESTY");
+    expect(content).toContain("variant_a");
+    expect(content).toContain("CVR: 25.0%");
+  });
+});
+
+// ===== Live Chat Demo tests =====
+
+describe("chat.send", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns assistant response from LLM", async () => {
+    const caller = appRouter.createCaller(createPublicContext());
+    const result = await caller.chat.send({
+      messages: [{ role: "user", content: "Jak fungují iBoti?" }],
+    });
+    expect(result.role).toBe("assistant");
+    expect(result.content).toBe("Ahoj! Jsem Alex Hormozi iBot.");
+    expect(invokeLLM).toHaveBeenCalledWith({
+      messages: expect.arrayContaining([
+        expect.objectContaining({ role: "system" }),
+        expect.objectContaining({ role: "user", content: "Jak fungují iBoti?" }),
+      ]),
+    });
+  });
+
+  it("handles LLM error gracefully", async () => {
+    vi.mocked(invokeLLM).mockRejectedValueOnce(new Error("LLM unavailable"));
+    const caller = appRouter.createCaller(createPublicContext());
+    const result = await caller.chat.send({
+      messages: [{ role: "user", content: "Test" }],
+    });
+    expect(result.role).toBe("assistant");
+    expect(result.content).toContain("technické potíže");
+  });
+
+  it("filters out system messages from input", async () => {
+    const caller = appRouter.createCaller(createPublicContext());
+    await caller.chat.send({
+      messages: [
+        { role: "system", content: "Custom system" },
+        { role: "user", content: "Hello" },
+      ],
+    });
+    // Should use built-in system prompt, not the one from input
+    const callArgs = vi.mocked(invokeLLM).mock.calls[0]![0];
+    const systemMsgs = callArgs.messages.filter((m: { role: string }) => m.role === "system");
+    expect(systemMsgs).toHaveLength(1);
+    expect(systemMsgs[0].content).toContain("Alex Hormozi iBot");
   });
 });

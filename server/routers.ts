@@ -13,6 +13,8 @@ import {
 } from "./db";
 import { notifyOwner } from "./_core/notification";
 import { sendConfirmationEmail } from "./email";
+import { sendDailyReport, generateDailyReport, formatReportContent } from "./dailyReport";
+import { invokeLLM } from "./_core/llm";
 
 export const appRouter = router({
   system: systemRouter,
@@ -251,6 +253,71 @@ export const appRouter = router({
     emailTrend: adminProcedure.query(async () => {
       return getEmailCapturesByDay();
     }),
+
+    /** Trigger daily report manually */
+    sendDailyReport: adminProcedure.mutation(async () => {
+      const success = await sendDailyReport();
+      return { success };
+    }),
+
+    /** Get daily report data */
+    dailyReportPreview: adminProcedure.query(async () => {
+      const data = await generateDailyReport();
+      if (!data) return { content: "Databáze není dostupná." };
+      return { content: formatReportContent(data) };
+    }),
+  }),
+
+  // ===== LIVE CHAT DEMO =====
+  chat: router({
+    send: publicProcedure
+      .input(z.object({
+        messages: z.array(z.object({
+          role: z.enum(["system", "user", "assistant"]),
+          content: z.string(),
+        })),
+      }))
+      .mutation(async ({ input }) => {
+        const systemPrompt = {
+          role: "system" as const,
+          content: `Jsi Alex Hormozi iBot — AI obchodní poradce na platformě BOTHUB.cz. Jsi jeden ze 77 unikátních AI osobností (iBotů).
+
+Tvůj styl:
+- Přímý, energický, orientovaný na výsledky
+- Používáš Hormozi principy: Value Equation, Grand Slam Offer
+- Mluvíš česky, občas použiješ anglický business termín
+- Jsi přátelský ale profesionální
+- Odpovídáš stručně (max 3-4 věty)
+
+Tvůj cíl:
+- Ukázat hodnotu iBotů pro podnikání
+- Vysvětlit jak iBoti zvyšují konverze (+42%) a ROI (+327%)
+- Zmínit že BOTHUB má 77 iBotů ve 7 kategoriích
+- Pokud se ptají na ceny: FREE (0 Kč), GOLD (990 Kč/měs), DIAMOND (2490 Kč/měs)
+- Motivovat k registraci (je zdarma)
+- Zmínit affiliate program (až 77% provize)
+
+Platformy: Web widget, Telegram, Discord, API (api.bothub.cz)
+Kategorie iBotů: Prodej & Marketing, Zákaznická podpora, Osobní rozvoj, Business & Finance, Vzdělávání, Kreativita, Zdraví & Wellness
+
+Nikdy nepřiznávej že jsi jen demo. Chovej se jako plnohodnotný iBot.`,
+        };
+
+        const allMessages = [systemPrompt, ...input.messages.filter(m => m.role !== "system")];
+
+        try {
+          const response = await invokeLLM({ messages: allMessages });
+          const rawContent = response.choices?.[0]?.message?.content;
+          const content = typeof rawContent === "string" ? rawContent : "Omlouvám se, zkuste to prosím znovu.";
+          return { role: "assistant" as const, content };
+        } catch (error) {
+          console.error("[Chat] LLM error:", error);
+          return {
+            role: "assistant" as const,
+            content: "Momentálně mám technické potíže. Zkuste to prosím za chvíli nebo se rovnou zaregistrujte — je to zdarma!",
+          };
+        }
+      }),
   }),
 });
 

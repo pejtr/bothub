@@ -35,3 +35,11 @@
 - [x] Exit-intent popup: personalizace obsahu dle CTA varianty (3 varianty)
 - [x] Exit-intent popup: 24h cooldown, 15s auto-close, 5s activation delay
 - [x] Testy pro admin dashboard, e-maily a exit-intent popup (29/29 passed)
+
+- [x] Denní reporty: server-side endpoint pro generování denního přehledu (dailyReport.ts)
+- [x] Denní reporty: scheduled task pro automatické odesílání každý den v 8:00
+- [x] Sekce s referencemi: 3 ukázkové ohlasy spokojených zákazníků (Testimonials.tsx)
+- [x] Sekce s referencemi: integrace do landing page (před Pricing sekcí)
+- [x] Live chat demo: interaktivní iBot widget na landing page (LiveChatDemo.tsx)
+- [x] Live chat demo: napojení na LLM pro reálné odpovědi (Alex Hormozi persona)
+- [x] Testy pro nové features (36/36 passed)

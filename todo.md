@@ -79,3 +79,17 @@
 - [x] Scroll animace: fade-in/slide-up/left/right efekty (AnimatedSection.tsx)
 - [x] Scroll animace: Intersection Observer pro lazy triggering (useScrollAnimation hook)
 - [x] Testy pro nové features (47/47 passed)
+
+- [x] FAQ sekce: komponenta s nejčastějšími otázkami (nasazení, ceny, funkce)
+- [x] FAQ sekce: accordion UI s animacemi
+- [x] FAQ sekce: i18n podpora CZ/EN
+- [x] FAQ sekce: integrace do landing page
+- [x] User dashboard: stránka /dashboard s přehledem aktivních iBotů
+- [x] User dashboard: stav předplatného a historie plateb
+- [x] User dashboard: server-side endpointy pro user data
+- [x] User dashboard: routing s auth ochranou
+- [x] Affiliate dashboard: stránka /affiliate-dashboard se statistikami
+- [x] Affiliate dashboard: přehled provizí a kliků
+- [x] Affiliate dashboard: propagační materiály (bannery, linky, texty)
+- [x] Affiliate dashboard: server-side endpointy pro affiliate data
+- [x] Testy pro nové features (58/58 passed)

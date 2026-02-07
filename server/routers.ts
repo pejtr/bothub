@@ -1,7 +1,7 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router, adminProcedure } from "./_core/trpc";
+import { publicProcedure, protectedProcedure, router, adminProcedure } from "./_core/trpc";
 import { z } from "zod";
 import {
   captureEmail, trackAbTestEvent, trackAffiliateClick,
@@ -10,7 +10,8 @@ import {
   getDashboardStats, getRegistrationsByPlan, getAbTestResults,
   getRecentRegistrations, getRecentEmailCaptures, getAffiliatePartners,
   getRecentAffiliateClicks, getRegistrationsByDay, getEmailCapturesByDay,
-  getRegistrationCount,
+  getRegistrationCount, getUserRegistrations, getAffiliateStats,
+  getAffiliateReferrals,
 } from "./db";
 import { notifyOwner } from "./_core/notification";
 import { sendConfirmationEmail } from "./email";
@@ -372,6 +373,41 @@ Nikdy nepřiznávej že jsi jen demo. Chovej se jako plnohodnotný iBot.`,
           };
         }
       }),
+  }),
+
+  // User dashboard
+  userDashboard: router({
+    myRegistrations: protectedProcedure.query(async ({ ctx }) => {
+      if (!ctx.user.email) return [];
+      return getUserRegistrations(ctx.user.email);
+    }),
+    myProfile: protectedProcedure.query(async ({ ctx }) => {
+      return {
+        id: ctx.user.id,
+        name: ctx.user.name,
+        email: ctx.user.email,
+        role: ctx.user.role,
+        createdAt: ctx.user.createdAt,
+      };
+    }),
+  }),
+
+  // Affiliate dashboard
+  affiliateDashboard: router({
+    myStats: protectedProcedure
+      .input(z.object({ affiliateCode: z.string() }))
+      .query(async ({ input }) => {
+        return getAffiliateStats(input.affiliateCode);
+      }),
+    myReferrals: protectedProcedure
+      .input(z.object({ affiliateCode: z.string() }))
+      .query(async ({ input }) => {
+        return getAffiliateReferrals(input.affiliateCode);
+      }),
+    myPartnerInfo: protectedProcedure.query(async ({ ctx }) => {
+      if (!ctx.user.email) return null;
+      return getAffiliateByEmail(ctx.user.email);
+    }),
   }),
 });
 

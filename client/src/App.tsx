@@ -13,6 +13,8 @@ import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancel from "./pages/PaymentCancel";
+import UserDashboard from "./pages/UserDashboard";
+import AffiliateDashboard from "./pages/AffiliateDashboard";
 
 function Router() {
   return (
@@ -24,6 +26,8 @@ function Router() {
       <Route path={"/blog/:slug"} component={BlogPost} />
       <Route path={"/payment-success"} component={PaymentSuccess} />
       <Route path={"/payment-cancel"} component={PaymentCancel} />
+      <Route path={"/dashboard"} component={UserDashboard} />
+      <Route path={"/affiliate-dashboard"} component={AffiliateDashboard} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

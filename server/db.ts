@@ -250,3 +250,58 @@ export async function getEmailCapturesByDay() {
     .groupBy(sql`DATE(capturedAt)`)
     .orderBy(sql`DATE(capturedAt)`);
 }
+
+/** Get registrations for a specific user email */
+export async function getUserRegistrations(email: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(registrations)
+    .where(eq(registrations.email, email))
+    .orderBy(sql`createdAt DESC`);
+}
+
+/** Get affiliate stats for a specific partner code */
+export async function getAffiliateStats(affiliateCode: string) {
+  const db = await getDb();
+  if (!db) return { totalClicks: 0, totalReferrals: 0, pendingCommission: 0 };
+
+  const clicks = await db.select({
+    count: sql<number>`count(*)`,
+  }).from(affiliateClicks)
+    .where(eq(affiliateClicks.partner, affiliateCode));
+
+  const referrals = await db.select({
+    count: sql<number>`count(*)`,
+    goldCount: sql<number>`SUM(CASE WHEN plan = 'gold' THEN 1 ELSE 0 END)`,
+    diamondCount: sql<number>`SUM(CASE WHEN plan = 'diamond' THEN 1 ELSE 0 END)`,
+  }).from(registrations)
+    .where(eq(registrations.affiliateCode, affiliateCode));
+
+  const goldCount = referrals[0]?.goldCount ?? 0;
+  const diamondCount = referrals[0]?.diamondCount ?? 0;
+  const pendingCommission = (goldCount * 990 * 0.66) + (diamondCount * 2490 * 0.77);
+
+  return {
+    totalClicks: clicks[0]?.count ?? 0,
+    totalReferrals: referrals[0]?.count ?? 0,
+    goldReferrals: goldCount,
+    diamondReferrals: diamondCount,
+    pendingCommission: Math.round(pendingCommission),
+  };
+}
+
+/** Get referral registrations for a specific affiliate code */
+export async function getAffiliateReferrals(affiliateCode: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select({
+    id: registrations.id,
+    email: registrations.email,
+    plan: registrations.plan,
+    status: registrations.status,
+    createdAt: registrations.createdAt,
+  }).from(registrations)
+    .where(eq(registrations.affiliateCode, affiliateCode))
+    .orderBy(sql`createdAt DESC`)
+    .limit(50);
+}

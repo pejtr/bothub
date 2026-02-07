@@ -30,6 +30,15 @@ vi.mock("./db", () => ({
   getRecentAffiliateClicks: vi.fn().mockResolvedValue([]),
   getRegistrationsByDay: vi.fn().mockResolvedValue([]),
   getEmailCapturesByDay: vi.fn().mockResolvedValue([]),
+  getUserRegistrations: vi.fn().mockResolvedValue([
+    { id: 1, email: "user@test.cz", name: "User", plan: "free", status: "activated", source: "hero_cta", company: null, ctaVariant: null, affiliateCode: null, gdprConsent: 1, createdAt: new Date(), updatedAt: new Date() },
+  ]),
+  getAffiliateStats: vi.fn().mockResolvedValue({
+    totalClicks: 50, totalReferrals: 5, goldReferrals: 3, diamondReferrals: 2, pendingCommission: 5793,
+  }),
+  getAffiliateReferrals: vi.fn().mockResolvedValue([
+    { id: 10, email: "ref@test.cz", plan: "gold", status: "activated", createdAt: new Date() },
+  ]),
 }));
 
 vi.mock("./_core/notification", () => ({
@@ -84,6 +93,7 @@ import {
   createRegistration, getRegistrationByEmail, activateRegistration,
   createAffiliateRegistration, getAffiliateByEmail,
   getDashboardStats, getRegistrationsByPlan, getAbTestResults,
+  getUserRegistrations, getAffiliateStats, getAffiliateReferrals,
 } from "./db";
 
 import { sendConfirmationEmail } from "./email";
@@ -692,5 +702,113 @@ describe("stripe.createCheckout", () => {
         origin: "https://bothub.cz",
       })
     ).rejects.toThrow();
+  });
+});
+
+
+// ===== User Dashboard tests =====
+
+describe("userDashboard.myRegistrations", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns registrations for authenticated user", async () => {
+    const caller = appRouter.createCaller(createUserContext());
+    const result = await caller.userDashboard.myRegistrations();
+    expect(result).toHaveLength(1);
+    expect(result[0]).toMatchObject({ email: "user@test.cz", plan: "free", status: "activated" });
+    expect(getUserRegistrations).toHaveBeenCalledWith("user@test.cz");
+  });
+
+  it("rejects unauthenticated user", async () => {
+    const caller = appRouter.createCaller(createPublicContext());
+    await expect(caller.userDashboard.myRegistrations()).rejects.toThrow();
+  });
+});
+
+describe("userDashboard.myProfile", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns profile info for authenticated user", async () => {
+    const caller = appRouter.createCaller(createUserContext());
+    const result = await caller.userDashboard.myProfile();
+    expect(result).toMatchObject({
+      id: 2,
+      name: "User",
+      email: "user@test.cz",
+      role: "user",
+    });
+  });
+
+  it("rejects unauthenticated user", async () => {
+    const caller = appRouter.createCaller(createPublicContext());
+    await expect(caller.userDashboard.myProfile()).rejects.toThrow();
+  });
+});
+
+// ===== Affiliate Dashboard tests =====
+
+describe("affiliateDashboard.myStats", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns affiliate stats for authenticated user", async () => {
+    const caller = appRouter.createCaller(createUserContext());
+    const result = await caller.affiliateDashboard.myStats({ affiliateCode: "BH-TEST01" });
+    expect(result).toMatchObject({
+      totalClicks: 50,
+      totalReferrals: 5,
+      goldReferrals: 3,
+      diamondReferrals: 2,
+      pendingCommission: 5793,
+    });
+    expect(getAffiliateStats).toHaveBeenCalledWith("BH-TEST01");
+  });
+
+  it("rejects unauthenticated user", async () => {
+    const caller = appRouter.createCaller(createPublicContext());
+    await expect(caller.affiliateDashboard.myStats({ affiliateCode: "BH-TEST01" })).rejects.toThrow();
+  });
+});
+
+describe("affiliateDashboard.myReferrals", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns referral list for authenticated user", async () => {
+    const caller = appRouter.createCaller(createUserContext());
+    const result = await caller.affiliateDashboard.myReferrals({ affiliateCode: "BH-TEST01" });
+    expect(result).toHaveLength(1);
+    expect(result[0]).toMatchObject({ email: "ref@test.cz", plan: "gold", status: "activated" });
+    expect(getAffiliateReferrals).toHaveBeenCalledWith("BH-TEST01");
+  });
+
+  it("rejects unauthenticated user", async () => {
+    const caller = appRouter.createCaller(createPublicContext());
+    await expect(caller.affiliateDashboard.myReferrals({ affiliateCode: "BH-TEST01" })).rejects.toThrow();
+  });
+});
+
+describe("affiliateDashboard.myPartnerInfo", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns null when user is not an affiliate partner", async () => {
+    const caller = appRouter.createCaller(createUserContext());
+    const result = await caller.affiliateDashboard.myPartnerInfo();
+    expect(result).toBeUndefined();
+    expect(getAffiliateByEmail).toHaveBeenCalledWith("user@test.cz");
+  });
+
+  it("returns partner info when user is an affiliate", async () => {
+    vi.mocked(getAffiliateByEmail).mockResolvedValueOnce({
+      id: 5, email: "user@test.cz", name: "User", affiliateCode: "BH-USER01",
+      company: null, website: null, status: "active", gdprConsent: 1,
+      createdAt: new Date(), updatedAt: new Date(),
+    });
+    const caller = appRouter.createCaller(createUserContext());
+    const result = await caller.affiliateDashboard.myPartnerInfo();
+    expect(result).toMatchObject({ affiliateCode: "BH-USER01", email: "user@test.cz" });
+  });
+
+  it("rejects unauthenticated user", async () => {
+    const caller = appRouter.createCaller(createPublicContext());
+    await expect(caller.affiliateDashboard.myPartnerInfo()).rejects.toThrow();
   });
 });

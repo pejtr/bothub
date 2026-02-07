@@ -11,7 +11,10 @@ import { SocialProofWidget } from "@/components/SocialProofWidget";
 import { CountdownBanner } from "@/components/CountdownBanner";
 import { VideoShowcase } from "@/components/VideoShowcase";
 import { AnimatedSection } from "@/components/AnimatedSection";
+import { FAQ } from "@/components/FAQ";
 import { categories, getIBotsByCategory } from "@/data/ibots";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { Link } from "wouter";
 import { getCTAText, trackCTAClick, getUserCTAVariant } from "@/lib/ctaAbTest";
 import { useI18n, LanguageSwitcher } from "@/lib/i18n";
 import { trpc } from "@/lib/trpc";
@@ -36,6 +39,7 @@ export default function Home() {
 
   const ctaText = useMemo(() => getCTAText(), []);
   const ctaImpression = trpc.tracking.ctaImpression.useMutation();
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     const unlocked = localStorage.getItem("ibots_unlocked");
@@ -87,6 +91,9 @@ export default function Home() {
             <a href="#pricing" className="hover:text-amber-400 transition-colors">{t("nav.pricing")}</a>
             <a href="#affiliate" className="hover:text-amber-400 transition-colors">{t("nav.affiliate")}</a>
             <a href="#platforms" className="hover:text-amber-400 transition-colors">{t("nav.platforms")}</a>
+            {isAuthenticated && (
+              <Link href="/dashboard" className="hover:text-amber-400 transition-colors">{locale === "cs" ? "Dashboard" : "Dashboard"}</Link>
+            )}
             <LanguageSwitcher />
             <Button
               onClick={handleNavCTA}
@@ -624,6 +631,11 @@ export default function Home() {
           </div>
         </div>
       </section>
+      </AnimatedSection>
+
+      {/* ===== FAQ ===== */}
+      <AnimatedSection direction="fade">
+        <FAQ />
       </AnimatedSection>
 
       {/* ===== FINAL CTA ===== */}

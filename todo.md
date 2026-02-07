@@ -17,3 +17,11 @@
 - [x] Email capture server-side API endpoint
 - [x] Footer with links and copyright
 - [x] Vitest tests for A/B testing and email capture
+
+- [x] Prozkoumat BotHub API (api.bothub.cz) dokumentaci a endpointy (DNS neresolvuje, API zatím neexistuje)
+- [x] Implementovat server-side registrační/aktivační flow (DB-based, ready for API swap)
+- [x] Propojit Hero CTA tlačítka s registračním flow
+- [x] Propojit Pricing CTA tlačítka s výběrem plánu (FREE/GOLD/DIAMOND)
+- [x] Propojit Affiliate CTA s registrací partnera (generuje BH-XXXXXX kódy)
+- [x] Vytvořit RegistrationModal a AffiliateModal na frontendu
+- [x] Napsat testy pro registration a affiliate routery (16/16 passed)

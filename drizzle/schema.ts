@@ -62,3 +62,50 @@ export const affiliateClicks = mysqlTable("affiliate_clicks", {
 
 export type AffiliateClick = typeof affiliateClicks.$inferSelect;
 export type InsertAffiliateClick = typeof affiliateClicks.$inferInsert;
+
+/**
+ * iBot registrations — user sign-ups for specific plans.
+ * When BotHub API (api.bothub.cz) goes live, these records will be
+ * synced/forwarded to the external API. Until then, this table serves
+ * as the primary registration store.
+ */
+export const registrations = mysqlTable("registrations", {
+  id: int("id").autoincrement().primaryKey(),
+  email: varchar("email", { length: 320 }).notNull(),
+  name: varchar("name", { length: 200 }),
+  company: varchar("company", { length: 200 }),
+  plan: mysqlEnum("plan", ["free", "gold", "diamond"]).default("free").notNull(),
+  source: varchar("source", { length: 100 }).default("hero_cta"),
+  /** Status of the registration flow */
+  status: mysqlEnum("status", ["pending", "activated", "synced"]).default("pending").notNull(),
+  /** CTA variant that led to this registration (A/B test) */
+  ctaVariant: varchar("ctaVariant", { length: 50 }),
+  /** Affiliate partner code if referred */
+  affiliateCode: varchar("affiliateCode", { length: 100 }),
+  gdprConsent: int("gdprConsent").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Registration = typeof registrations.$inferSelect;
+export type InsertRegistration = typeof registrations.$inferInsert;
+
+/**
+ * Affiliate partner registrations.
+ */
+export const affiliateRegistrations = mysqlTable("affiliate_registrations", {
+  id: int("id").autoincrement().primaryKey(),
+  email: varchar("email", { length: 320 }).notNull(),
+  name: varchar("name", { length: 200 }),
+  company: varchar("company", { length: 200 }),
+  website: varchar("website", { length: 500 }),
+  /** Unique affiliate code assigned to this partner */
+  affiliateCode: varchar("affiliateCode", { length: 100 }).notNull(),
+  status: mysqlEnum("status", ["pending", "approved", "active"]).default("pending").notNull(),
+  gdprConsent: int("gdprConsent").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type AffiliateRegistration = typeof affiliateRegistrations.$inferSelect;
+export type InsertAffiliateRegistration = typeof affiliateRegistrations.$inferInsert;

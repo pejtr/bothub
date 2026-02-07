@@ -2,7 +2,9 @@ import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { ParallaxDecorations } from "@/components/ParallaxDecorations";
 import { UnlockModal } from "@/components/UnlockModal";
-import { categories, ibots, getIBotsByCategory } from "@/data/ibots";
+import { RegistrationModal } from "@/components/RegistrationModal";
+import { AffiliateModal } from "@/components/AffiliateModal";
+import { categories, getIBotsByCategory } from "@/data/ibots";
 import { getCTAText, trackCTAClick, getUserCTAVariant } from "@/lib/ctaAbTest";
 import { trpc } from "@/lib/trpc";
 import {
@@ -11,9 +13,15 @@ import {
   Sparkles, TrendingUp, Clock, Target, ExternalLink, Menu, X
 } from "lucide-react";
 
+type Plan = "free" | "gold" | "diamond";
+
 export default function Home() {
   const [activeCategory, setActiveCategory] = useState("sales");
   const [unlockModalOpen, setUnlockModalOpen] = useState(false);
+  const [registrationModalOpen, setRegistrationModalOpen] = useState(false);
+  const [affiliateModalOpen, setAffiliateModalOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<Plan>("free");
+  const [registrationSource, setRegistrationSource] = useState("hero_cta");
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -30,9 +38,38 @@ export default function Home() {
     ctaImpression.mutate({ variant });
   }, []);
 
-  const handleCTAClick = () => {
-    trackCTAClick("#pricing");
-    document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" });
+  // Open registration modal with specific plan and source
+  const openRegistration = (plan: Plan, source: string) => {
+    trackCTAClick(`#registration-${plan}`);
+    setSelectedPlan(plan);
+    setRegistrationSource(source);
+    setRegistrationModalOpen(true);
+  };
+
+  // Hero CTA — opens registration with free plan
+  const handleHeroCTA = () => {
+    openRegistration("free", "hero_cta");
+  };
+
+  // Nav CTA
+  const handleNavCTA = () => {
+    openRegistration("free", "nav_cta");
+  };
+
+  // Pricing CTAs
+  const handlePricingCTA = (plan: Plan) => {
+    openRegistration(plan, `pricing_${plan}`);
+  };
+
+  // Affiliate CTA
+  const handleAffiliateCTA = () => {
+    trackCTAClick("#affiliate-register");
+    setAffiliateModalOpen(true);
+  };
+
+  // Final CTA
+  const handleFinalCTA = () => {
+    openRegistration("free", "final_cta");
   };
 
   const handleUnlock = () => {
@@ -62,7 +99,7 @@ export default function Home() {
             <a href="#affiliate" className="hover:text-amber-400 transition-colors">Affiliate</a>
             <a href="#platforms" className="hover:text-amber-400 transition-colors">Platformy</a>
             <Button
-              onClick={handleCTAClick}
+              onClick={handleNavCTA}
               size="sm"
               className="bg-amber-500 hover:bg-amber-600 text-black font-semibold"
             >
@@ -86,7 +123,7 @@ export default function Home() {
             <a href="#pricing" className="block text-gray-400 hover:text-amber-400 py-2" onClick={() => setMobileMenuOpen(false)}>Ceník</a>
             <a href="#affiliate" className="block text-gray-400 hover:text-amber-400 py-2" onClick={() => setMobileMenuOpen(false)}>Affiliate</a>
             <a href="#platforms" className="block text-gray-400 hover:text-amber-400 py-2" onClick={() => setMobileMenuOpen(false)}>Platformy</a>
-            <Button onClick={() => { handleCTAClick(); setMobileMenuOpen(false); }} className="w-full bg-amber-500 hover:bg-amber-600 text-black font-semibold">
+            <Button onClick={() => { handleNavCTA(); setMobileMenuOpen(false); }} className="w-full bg-amber-500 hover:bg-amber-600 text-black font-semibold">
               {ctaText}
             </Button>
           </div>
@@ -121,7 +158,7 @@ export default function Home() {
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button
-              onClick={handleCTAClick}
+              onClick={handleHeroCTA}
               size="lg"
               className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-bold text-lg px-8 py-7 pulse-gold"
             >
@@ -232,7 +269,7 @@ export default function Home() {
 
           {/* Bot Cards Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {currentBots.map((bot, index) => {
+            {currentBots.map((bot) => {
               const isFeatured = bot.featured;
               const isLocked = !isFeatured && !isUnlocked;
 
@@ -456,7 +493,7 @@ export default function Home() {
               <Button
                 variant="outline"
                 className="w-full border-white/10 text-gray-300 hover:bg-white/5 py-6"
-                onClick={handleCTAClick}
+                onClick={() => handlePricingCTA("free")}
               >
                 Začít zdarma
               </Button>
@@ -491,7 +528,7 @@ export default function Home() {
               </ul>
               <Button
                 className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-bold py-6 pulse-gold"
-                onClick={handleCTAClick}
+                onClick={() => handlePricingCTA("gold")}
               >
                 Vybrat GOLD
                 <ArrowRight className="w-4 h-4 ml-2" />
@@ -527,7 +564,7 @@ export default function Home() {
               </ul>
               <Button
                 className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold py-6"
-                onClick={handleCTAClick}
+                onClick={() => handlePricingCTA("diamond")}
               >
                 Vybrat DIAMOND
                 <ArrowRight className="w-4 h-4 ml-2" />
@@ -573,7 +610,7 @@ export default function Home() {
 
               <Button
                 className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-bold px-8 py-6"
-                onClick={handleCTAClick}
+                onClick={handleAffiliateCTA}
               >
                 Staňte se partnerem
                 <ArrowRight className="w-4 h-4 ml-2" />
@@ -670,7 +707,7 @@ export default function Home() {
             Přestaňte ztrácet zákazníky a peníze. Nasaďte iBoty a sledujte, jak vaše tržby rostou. Bez práce.
           </p>
           <Button
-            onClick={handleCTAClick}
+            onClick={handleFinalCTA}
             size="lg"
             className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-bold text-lg px-10 py-7 pulse-gold"
           >
@@ -733,11 +770,21 @@ export default function Home() {
         </div>
       </footer>
 
-      {/* Unlock Modal */}
+      {/* Modals */}
       <UnlockModal
         open={unlockModalOpen}
         onOpenChange={setUnlockModalOpen}
         onUnlock={handleUnlock}
+      />
+      <RegistrationModal
+        open={registrationModalOpen}
+        onOpenChange={setRegistrationModalOpen}
+        initialPlan={selectedPlan}
+        source={registrationSource}
+      />
+      <AffiliateModal
+        open={affiliateModalOpen}
+        onOpenChange={setAffiliateModalOpen}
       />
     </div>
   );

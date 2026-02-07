@@ -15,6 +15,13 @@
       "when": 1770480650029,
       "tag": "0001_overjoyed_venom",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1770485195280,
+      "tag": "0002_solid_cobalt_man",
+      "breakpoints": true
     }
   ]
 }

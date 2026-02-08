@@ -113,3 +113,65 @@ export const affiliateRegistrations = mysqlTable("affiliate_registrations", {
 
 export type AffiliateRegistration = typeof affiliateRegistrations.$inferSelect;
 export type InsertAffiliateRegistration = typeof affiliateRegistrations.$inferInsert;
+
+/**
+ * In-app notifications for users.
+ * Triggered by registration status changes, affiliate milestones, etc.
+ */
+export const userNotifications = mysqlTable("user_notifications", {
+  id: int("id").autoincrement().primaryKey(),
+  /** User ID (references users.id) */
+  userId: int("userId").notNull(),
+  /** Notification type for icon/color selection */
+  type: mysqlEnum("type", ["registration", "affiliate", "milestone", "system", "payment"]).default("system").notNull(),
+  title: varchar("title", { length: 200 }).notNull(),
+  message: text("message").notNull(),
+  /** Whether the notification has been read */
+  isRead: int("isRead").default(0).notNull(),
+  /** Optional link to navigate to */
+  actionUrl: varchar("actionUrl", { length: 500 }),
+  /** Optional metadata JSON */
+  metadata: text("metadata"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type UserNotification = typeof userNotifications.$inferSelect;
+export type InsertUserNotification = typeof userNotifications.$inferInsert;
+
+/**
+ * Blog posts managed through admin dashboard editor.
+ * Supports Markdown content, SEO metadata, and publish/draft status.
+ */
+export const blogPosts = mysqlTable("blog_posts", {
+  id: int("id").autoincrement().primaryKey(),
+  /** URL-friendly slug */
+  slug: varchar("slug", { length: 200 }).notNull().unique(),
+  titleCs: varchar("titleCs", { length: 300 }).notNull(),
+  titleEn: varchar("titleEn", { length: 300 }),
+  /** Markdown content (Czech) */
+  contentCs: text("contentCs").notNull(),
+  /** Markdown content (English) */
+  contentEn: text("contentEn"),
+  /** Short excerpt for cards/previews */
+  excerptCs: text("excerptCs"),
+  excerptEn: text("excerptEn"),
+  /** SEO meta description */
+  metaDescriptionCs: varchar("metaDescriptionCs", { length: 300 }),
+  metaDescriptionEn: varchar("metaDescriptionEn", { length: 300 }),
+  /** Category tag */
+  category: varchar("category", { length: 100 }),
+  /** Cover image URL */
+  coverImage: varchar("coverImage", { length: 500 }),
+  /** Author name */
+  author: varchar("author", { length: 200 }).default("BOTHUB Team"),
+  /** Publication status */
+  status: mysqlEnum("blogStatus", ["draft", "published"]).default("draft").notNull(),
+  /** Reading time in minutes */
+  readingTime: int("readingTime").default(5),
+  publishedAt: timestamp("publishedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type BlogPost = typeof blogPosts.$inferSelect;
+export type InsertBlogPost = typeof blogPosts.$inferInsert;

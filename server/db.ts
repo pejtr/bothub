@@ -1,12 +1,13 @@
-import { eq, sql, desc } from "drizzle-orm";
+import { eq, sql, desc, and, isNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   InsertUser, users, emailCaptures, abTestResults, affiliateClicks,
-  registrations, affiliateRegistrations
+  registrations, affiliateRegistrations, userNotifications, blogPosts
 } from "../drizzle/schema";
 import type {
   InsertEmailCapture, InsertAbTestResult, InsertAffiliateClick,
-  InsertRegistration, InsertAffiliateRegistration
+  InsertRegistration, InsertAffiliateRegistration, InsertUserNotification,
+  InsertBlogPost
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -304,4 +305,151 @@ export async function getAffiliateReferrals(affiliateCode: string) {
     .where(eq(registrations.affiliateCode, affiliateCode))
     .orderBy(sql`createdAt DESC`)
     .limit(50);
+}
+
+// ===== USER NOTIFICATIONS =====
+
+/** Create a notification for a user */
+export async function createNotification(data: InsertUserNotification) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(userNotifications).values(data);
+}
+
+/** Get notifications for a user (newest first) */
+export async function getUserNotifications(userId: number, limit = 20) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(userNotifications)
+    .where(eq(userNotifications.userId, userId))
+    .orderBy(desc(userNotifications.createdAt))
+    .limit(limit);
+}
+
+/** Count unread notifications for a user */
+export async function getUnreadNotificationCount(userId: number) {
+  const db = await getDb();
+  if (!db) return 0;
+  const result = await db.select({ count: sql<number>`count(*)` })
+    .from(userNotifications)
+    .where(and(eq(userNotifications.userId, userId), eq(userNotifications.isRead, 0)));
+  return result[0]?.count ?? 0;
+}
+
+/** Mark a single notification as read */
+export async function markNotificationRead(notificationId: number, userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(userNotifications)
+    .set({ isRead: 1 })
+    .where(and(eq(userNotifications.id, notificationId), eq(userNotifications.userId, userId)));
+}
+
+/** Mark all notifications as read for a user */
+export async function markAllNotificationsRead(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(userNotifications)
+    .set({ isRead: 1 })
+    .where(and(eq(userNotifications.userId, userId), eq(userNotifications.isRead, 0)));
+}
+
+/** Create notification for registration status change */
+export async function notifyRegistrationChange(userId: number, plan: string, status: string) {
+  const titles: Record<string, string> = {
+    activated: `Plán ${plan.toUpperCase()} aktivován!`,
+    pending: `Registrace ${plan.toUpperCase()} přijata`,
+    synced: `Plán ${plan.toUpperCase()} synchronizován`,
+  };
+  const messages: Record<string, string> = {
+    activated: `Váš plán ${plan.toUpperCase()} byl úspěšně aktivován. Můžete začít používat iBoty!`,
+    pending: `Vaše registrace pro plán ${plan.toUpperCase()} byla přijata a čeká na aktivaci.`,
+    synced: `Váš plán ${plan.toUpperCase()} byl synchronizován s BotHub API.`,
+  };
+  await createNotification({
+    userId,
+    type: "registration",
+    title: titles[status] || `Registrace aktualizována`,
+    message: messages[status] || `Stav vaší registrace se změnil na: ${status}`,
+    actionUrl: "/dashboard",
+  });
+}
+
+/** Create notification for new affiliate referral */
+export async function notifyNewReferral(userId: number, referralEmail: string, plan: string) {
+  const commission = plan === "diamond" ? "1 917 Kč (77%)" : plan === "gold" ? "653 Kč (66%)" : "0 Kč";
+  await createNotification({
+    userId,
+    type: "affiliate",
+    title: `Nový referral: ${plan.toUpperCase()}`,
+    message: `Nový zákazník se zaregistroval přes váš odkaz (${plan.toUpperCase()}). Provize: ${commission}/měs.`,
+    actionUrl: "/affiliate-dashboard",
+  });
+}
+
+/** Create notification for affiliate milestone */
+export async function notifyAffiliateMilestone(userId: number, milestone: number, totalCommission: number) {
+  await createNotification({
+    userId,
+    type: "milestone",
+    title: `Milník dosažen: ${milestone} referralů!`,
+    message: `Gratulujeme! Dosáhli jste ${milestone} referralů. Celková provize: ${totalCommission} Kč/měs.`,
+    actionUrl: "/affiliate-dashboard",
+  });
+}
+
+// ===== BLOG POSTS (ADMIN CRUD) =====
+
+/** Create a new blog post */
+export async function createBlogPost(data: InsertBlogPost) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(blogPosts).values(data);
+  return { id: result[0].insertId };
+}
+
+/** Update an existing blog post */
+export async function updateBlogPost(id: number, data: Partial<InsertBlogPost>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(blogPosts).set(data).where(eq(blogPosts.id, id));
+}
+
+/** Delete a blog post */
+export async function deleteBlogPost(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(blogPosts).where(eq(blogPosts.id, id));
+}
+
+/** Get a single blog post by ID */
+export async function getBlogPostById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(blogPosts).where(eq(blogPosts.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+/** Get a single blog post by slug */
+export async function getBlogPostBySlug(slug: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(blogPosts).where(eq(blogPosts.slug, slug)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+/** Get all blog posts (admin - includes drafts) */
+export async function getAllBlogPosts() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(blogPosts).orderBy(desc(blogPosts.createdAt));
+}
+
+/** Get published blog posts only (public) */
+export async function getPublishedBlogPosts() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(blogPosts)
+    .where(eq(blogPosts.status, "published"))
+    .orderBy(desc(blogPosts.publishedAt));
 }

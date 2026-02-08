@@ -39,6 +39,44 @@ vi.mock("./db", () => ({
   getAffiliateReferrals: vi.fn().mockResolvedValue([
     { id: 10, email: "ref@test.cz", plan: "gold", status: "activated", createdAt: new Date() },
   ]),
+  // Notifications
+  createNotification: vi.fn().mockResolvedValue(undefined),
+  getUserNotifications: vi.fn().mockResolvedValue([
+    { id: 1, userId: 2, type: "registration", title: "Plán FREE aktivován!", message: "Váš plán FREE byl úspěšně aktivován.", isRead: 0, actionUrl: "/dashboard", metadata: null, createdAt: new Date() },
+    { id: 2, userId: 2, type: "system", title: "Vítejte v BOTHUB!", message: "Děkujeme za registraci.", isRead: 1, actionUrl: null, metadata: null, createdAt: new Date() },
+  ]),
+  getUnreadNotificationCount: vi.fn().mockResolvedValue(1),
+  markNotificationRead: vi.fn().mockResolvedValue(undefined),
+  markAllNotificationsRead: vi.fn().mockResolvedValue(undefined),
+  notifyRegistrationChange: vi.fn().mockResolvedValue(undefined),
+  // Blog
+  createBlogPost: vi.fn().mockResolvedValue({ id: 1 }),
+  updateBlogPost: vi.fn().mockResolvedValue(undefined),
+  deleteBlogPost: vi.fn().mockResolvedValue(undefined),
+  getBlogPostById: vi.fn().mockResolvedValue({
+    id: 1, slug: "test-post", titleCs: "Test článek", titleEn: "Test Article",
+    contentCs: "# Test\nObsah", contentEn: "# Test\nContent",
+    excerptCs: "Výtah", excerptEn: "Excerpt",
+    metaDescriptionCs: "Meta CZ", metaDescriptionEn: "Meta EN",
+    category: "AI", coverImage: null, author: "BOTHUB Team",
+    status: "published", readingTime: 5, publishedAt: new Date(),
+    createdAt: new Date(), updatedAt: new Date(),
+  }),
+  getBlogPostBySlug: vi.fn().mockResolvedValue({
+    id: 1, slug: "test-post", titleCs: "Test článek", titleEn: "Test Article",
+    contentCs: "# Test\nObsah", contentEn: "# Test\nContent",
+    excerptCs: "Výtah", excerptEn: "Excerpt",
+    metaDescriptionCs: "Meta CZ", metaDescriptionEn: "Meta EN",
+    category: "AI", coverImage: null, author: "BOTHUB Team",
+    status: "published", readingTime: 5, publishedAt: new Date(),
+    createdAt: new Date(), updatedAt: new Date(),
+  }),
+  getAllBlogPosts: vi.fn().mockResolvedValue([
+    { id: 1, slug: "test-post", titleCs: "Test článek", status: "published", category: "AI", author: "BOTHUB Team", readingTime: 5, createdAt: new Date(), updatedAt: new Date() },
+  ]),
+  getPublishedBlogPosts: vi.fn().mockResolvedValue([
+    { id: 1, slug: "test-post", titleCs: "Test článek", status: "published", category: "AI", author: "BOTHUB Team", readingTime: 5, publishedAt: new Date(), createdAt: new Date(), updatedAt: new Date() },
+  ]),
 }));
 
 vi.mock("./_core/notification", () => ({
@@ -82,6 +120,16 @@ vi.mock("./stripe", () => ({
   createCheckoutSession: vi.fn().mockResolvedValue({ url: "https://checkout.stripe.com/test", sessionId: "cs_test_123" }),
 }));
 
+vi.mock("./botHubApi", () => ({
+  checkApiHealth: vi.fn().mockResolvedValue({
+    status: "not_configured",
+    message: "BotHub API není nakonfigurováno. Používá se lokální databáze.",
+    checkedAt: new Date(),
+  }),
+  syncRegistration: vi.fn().mockResolvedValue({ success: true, synced: false, error: "API not configured" }),
+  getApiConfig: vi.fn().mockReturnValue({ baseUrl: "https://api.bothub.cz", apiKey: "", timeout: 10000, isEnabled: false }),
+}));
+
 vi.mock("./_core/llm", () => ({
   invokeLLM: vi.fn().mockResolvedValue({
     choices: [{ message: { content: "Ahoj! Jsem Alex Hormozi iBot." } }],
@@ -94,6 +142,9 @@ import {
   createAffiliateRegistration, getAffiliateByEmail,
   getDashboardStats, getRegistrationsByPlan, getAbTestResults,
   getUserRegistrations, getAffiliateStats, getAffiliateReferrals,
+  getUserNotifications, getUnreadNotificationCount, markNotificationRead,
+  markAllNotificationsRead, createBlogPost, updateBlogPost, deleteBlogPost,
+  getBlogPostById, getAllBlogPosts, getPublishedBlogPosts, getBlogPostBySlug,
 } from "./db";
 
 import { sendConfirmationEmail } from "./email";
@@ -810,5 +861,247 @@ describe("affiliateDashboard.myPartnerInfo", () => {
   it("rejects unauthenticated user", async () => {
     const caller = appRouter.createCaller(createPublicContext());
     await expect(caller.affiliateDashboard.myPartnerInfo()).rejects.toThrow();
+  });
+});
+
+// ===== Notification System tests =====
+
+import { checkApiHealth, getApiConfig } from "./botHubApi";
+
+describe("notifications.list", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns notifications for authenticated user", async () => {
+    const caller = appRouter.createCaller(createUserContext());
+    const result = await caller.notifications.list();
+    expect(result).toHaveLength(2);
+    expect(result[0]).toMatchObject({ type: "registration", title: "Plán FREE aktivován!" });
+    expect(getUserNotifications).toHaveBeenCalledWith(2, 20);
+  });
+
+  it("rejects unauthenticated user", async () => {
+    const caller = appRouter.createCaller(createPublicContext());
+    await expect(caller.notifications.list()).rejects.toThrow();
+  });
+});
+
+describe("notifications.unreadCount", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns unread count for authenticated user", async () => {
+    const caller = appRouter.createCaller(createUserContext());
+    const result = await caller.notifications.unreadCount();
+    expect(result).toEqual({ count: 1 });
+    expect(getUnreadNotificationCount).toHaveBeenCalledWith(2);
+  });
+
+  it("rejects unauthenticated user", async () => {
+    const caller = appRouter.createCaller(createPublicContext());
+    await expect(caller.notifications.unreadCount()).rejects.toThrow();
+  });
+});
+
+describe("notifications.markRead", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("marks notification as read", async () => {
+    const caller = appRouter.createCaller(createUserContext());
+    const result = await caller.notifications.markRead({ notificationId: 1 });
+    expect(result).toEqual({ success: true });
+    expect(markNotificationRead).toHaveBeenCalledWith(1, 2);
+  });
+
+  it("rejects unauthenticated user", async () => {
+    const caller = appRouter.createCaller(createPublicContext());
+    await expect(caller.notifications.markRead({ notificationId: 1 })).rejects.toThrow();
+  });
+});
+
+describe("notifications.markAllRead", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("marks all notifications as read", async () => {
+    const caller = appRouter.createCaller(createUserContext());
+    const result = await caller.notifications.markAllRead();
+    expect(result).toEqual({ success: true });
+    expect(markAllNotificationsRead).toHaveBeenCalledWith(2);
+  });
+
+  it("rejects unauthenticated user", async () => {
+    const caller = appRouter.createCaller(createPublicContext());
+    await expect(caller.notifications.markAllRead()).rejects.toThrow();
+  });
+});
+
+// ===== Blog Admin tests =====
+
+describe("blogAdmin.list", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns all blog posts for admin", async () => {
+    const caller = appRouter.createCaller(createAdminContext());
+    const result = await caller.blogAdmin.list();
+    expect(result).toHaveLength(1);
+    expect(result[0]).toMatchObject({ slug: "test-post", titleCs: "Test článek" });
+    expect(getAllBlogPosts).toHaveBeenCalled();
+  });
+
+  it("rejects non-admin user", async () => {
+    const caller = appRouter.createCaller(createUserContext());
+    await expect(caller.blogAdmin.list()).rejects.toThrow();
+  });
+});
+
+describe("blogAdmin.getById", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns blog post by ID for admin", async () => {
+    const caller = appRouter.createCaller(createAdminContext());
+    const result = await caller.blogAdmin.getById({ id: 1 });
+    expect(result).toMatchObject({ slug: "test-post", titleCs: "Test článek" });
+    expect(getBlogPostById).toHaveBeenCalledWith(1);
+  });
+
+  it("rejects non-admin user", async () => {
+    const caller = appRouter.createCaller(createUserContext());
+    await expect(caller.blogAdmin.getById({ id: 1 })).rejects.toThrow();
+  });
+});
+
+describe("blogAdmin.create", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("creates a new blog post", async () => {
+    const caller = appRouter.createCaller(createAdminContext());
+    const result = await caller.blogAdmin.create({
+      slug: "new-post",
+      titleCs: "Nový článek",
+      contentCs: "# Nový\nObsah článku",
+      status: "draft",
+    });
+    expect(result).toEqual({ success: true, id: 1 });
+    expect(createBlogPost).toHaveBeenCalledWith(expect.objectContaining({
+      slug: "new-post", titleCs: "Nový článek",
+    }));
+  });
+
+  it("sets publishedAt when status is published", async () => {
+    const caller = appRouter.createCaller(createAdminContext());
+    await caller.blogAdmin.create({
+      slug: "published-post",
+      titleCs: "Publikovaný článek",
+      contentCs: "Obsah",
+      status: "published",
+    });
+    expect(createBlogPost).toHaveBeenCalledWith(expect.objectContaining({
+      status: "published",
+      publishedAt: expect.any(Date),
+    }));
+  });
+
+  it("rejects non-admin user", async () => {
+    const caller = appRouter.createCaller(createUserContext());
+    await expect(caller.blogAdmin.create({
+      slug: "test", titleCs: "Test", contentCs: "Content",
+    })).rejects.toThrow();
+  });
+});
+
+describe("blogAdmin.update", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("updates an existing blog post", async () => {
+    const caller = appRouter.createCaller(createAdminContext());
+    const result = await caller.blogAdmin.update({
+      id: 1, titleCs: "Aktualizovaný článek",
+    });
+    expect(result).toEqual({ success: true });
+    expect(updateBlogPost).toHaveBeenCalledWith(1, expect.objectContaining({
+      titleCs: "Aktualizovaný článek",
+    }));
+  });
+
+  it("rejects non-admin user", async () => {
+    const caller = appRouter.createCaller(createUserContext());
+    await expect(caller.blogAdmin.update({ id: 1, titleCs: "Test" })).rejects.toThrow();
+  });
+});
+
+describe("blogAdmin.delete", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("deletes a blog post", async () => {
+    const caller = appRouter.createCaller(createAdminContext());
+    const result = await caller.blogAdmin.delete({ id: 1 });
+    expect(result).toEqual({ success: true });
+    expect(deleteBlogPost).toHaveBeenCalledWith(1);
+  });
+
+  it("rejects non-admin user", async () => {
+    const caller = appRouter.createCaller(createUserContext());
+    await expect(caller.blogAdmin.delete({ id: 1 })).rejects.toThrow();
+  });
+});
+
+// ===== Blog Public tests =====
+
+describe("blogPublic.published", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns published blog posts", async () => {
+    const caller = appRouter.createCaller(createPublicContext());
+    const result = await caller.blogPublic.published();
+    expect(result).toHaveLength(1);
+    expect(result[0]).toMatchObject({ slug: "test-post", status: "published" });
+    expect(getPublishedBlogPosts).toHaveBeenCalled();
+  });
+});
+
+describe("blogPublic.bySlug", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns blog post by slug", async () => {
+    const caller = appRouter.createCaller(createPublicContext());
+    const result = await caller.blogPublic.bySlug({ slug: "test-post" });
+    expect(result).toMatchObject({ slug: "test-post", titleCs: "Test článek" });
+    expect(getBlogPostBySlug).toHaveBeenCalledWith("test-post");
+  });
+});
+
+// ===== API Integration tests =====
+
+describe("apiIntegration.healthCheck", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns health check status for admin", async () => {
+    const caller = appRouter.createCaller(createAdminContext());
+    const result = await caller.apiIntegration.healthCheck();
+    expect(result).toMatchObject({ status: "not_configured" });
+    expect(checkApiHealth).toHaveBeenCalled();
+  });
+
+  it("rejects non-admin user", async () => {
+    const caller = appRouter.createCaller(createUserContext());
+    await expect(caller.apiIntegration.healthCheck()).rejects.toThrow();
+  });
+});
+
+describe("apiIntegration.config", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns API config for admin", async () => {
+    const caller = appRouter.createCaller(createAdminContext());
+    const result = await caller.apiIntegration.config();
+    expect(result).toMatchObject({
+      baseUrl: "https://api.bothub.cz",
+      isEnabled: false,
+      hasApiKey: false,
+    });
+    expect(getApiConfig).toHaveBeenCalled();
+  });
+
+  it("rejects non-admin user", async () => {
+    const caller = appRouter.createCaller(createUserContext());
+    await expect(caller.apiIntegration.config()).rejects.toThrow();
   });
 });

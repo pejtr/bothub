@@ -93,3 +93,22 @@
 - [x] Affiliate dashboard: propagační materiály (bannery, linky, texty)
 - [x] Affiliate dashboard: server-side endpointy pro affiliate data
 - [x] Testy pro nové features (58/58 passed)
+
+- [x] Notifikace: DB tabulka pro in-app notifikace (user_notifications)
+- [x] Notifikace: server-side endpointy (list, mark read, count unread)
+- [x] Notifikace: automatické generování notifikací při změně stavu registrace
+- [x] Notifikace: notifikace při novém referralu a affiliate milnících
+- [x] Notifikace: zvoneček v navigaci s badge počtem nepřečtených
+- [x] Notifikace: dropdown panel s historií notifikací
+- [x] Notifikace: i18n podpora CZ/EN
+- [x] Blog editor: DB tabulka pro blog články (blog_posts)
+- [x] Blog editor: admin CRUD endpointy (create, update, delete, list)
+- [x] Blog editor: WYSIWYG/Markdown editor v admin dashboardu
+- [x] Blog editor: náhled článku před publikací
+- [x] Blog editor: SEO metadata (title, description, slug) editor
+- [x] Blog editor: propojení s existující blog stránkou (/blog)
+- [x] API integrace: abstrakční vrstva pro api.bothub.cz (botHubApi.ts)
+- [x] API integrace: sync registrací s externím API (s fallback na lokální DB)
+- [x] API integrace: health check endpoint pro monitoring stavu API
+- [x] API integrace: konfigurace přes environment variables
+- [x] Testy pro všechny nové features (83/83 passed)

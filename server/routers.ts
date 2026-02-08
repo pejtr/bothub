@@ -12,12 +12,20 @@ import {
   getRecentAffiliateClicks, getRegistrationsByDay, getEmailCapturesByDay,
   getRegistrationCount, getUserRegistrations, getAffiliateStats,
   getAffiliateReferrals,
+  // Notifications
+  createNotification, getUserNotifications, getUnreadNotificationCount,
+  markNotificationRead, markAllNotificationsRead,
+  notifyRegistrationChange,
+  // Blog CRUD
+  createBlogPost, updateBlogPost, deleteBlogPost,
+  getBlogPostById, getBlogPostBySlug, getAllBlogPosts, getPublishedBlogPosts,
 } from "./db";
 import { notifyOwner } from "./_core/notification";
 import { sendConfirmationEmail } from "./email";
 import { sendDailyReport, generateDailyReport, formatReportContent, sendWeeklyReport, generateWeeklyReport, formatWeeklyReportContent, generateStrategicRecommendations } from "./dailyReport";
 import { invokeLLM } from "./_core/llm";
 import { createCheckoutSession } from "./stripe";
+import { checkApiHealth, syncRegistration, getApiConfig } from "./botHubApi";
 
 export const appRouter = router({
   system: systemRouter,
@@ -408,6 +416,124 @@ Nikdy nepřiznávej že jsi jen demo. Chovej se jako plnohodnotný iBot.`,
       if (!ctx.user.email) return null;
       return getAffiliateByEmail(ctx.user.email);
     }),
+  }),
+
+  // Notifications
+  notifications: router({
+    list: protectedProcedure
+      .input(z.object({ limit: z.number().min(1).max(50).default(20) }).optional())
+      .query(async ({ ctx, input }) => {
+        return getUserNotifications(ctx.user.id, input?.limit ?? 20);
+      }),
+    unreadCount: protectedProcedure.query(async ({ ctx }) => {
+      return { count: await getUnreadNotificationCount(ctx.user.id) };
+    }),
+    markRead: protectedProcedure
+      .input(z.object({ notificationId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        await markNotificationRead(input.notificationId, ctx.user.id);
+        return { success: true };
+      }),
+    markAllRead: protectedProcedure.mutation(async ({ ctx }) => {
+      await markAllNotificationsRead(ctx.user.id);
+      return { success: true };
+    }),
+  }),
+
+  // Blog admin CRUD
+  blogAdmin: router({
+    list: adminProcedure.query(async () => {
+      return getAllBlogPosts();
+    }),
+    getById: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        return getBlogPostById(input.id);
+      }),
+    create: adminProcedure
+      .input(z.object({
+        slug: z.string().min(1).max(200),
+        titleCs: z.string().min(1).max(300),
+        titleEn: z.string().max(300).optional(),
+        contentCs: z.string().min(1),
+        contentEn: z.string().optional(),
+        excerptCs: z.string().optional(),
+        excerptEn: z.string().optional(),
+        metaDescriptionCs: z.string().max(300).optional(),
+        metaDescriptionEn: z.string().max(300).optional(),
+        category: z.string().max(100).optional(),
+        coverImage: z.string().max(500).optional(),
+        author: z.string().max(200).optional(),
+        status: z.enum(["draft", "published"]).default("draft"),
+        readingTime: z.number().min(1).max(60).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const publishedAt = input.status === "published" ? new Date() : undefined;
+        const result = await createBlogPost({ ...input, publishedAt });
+        return { success: true, id: result.id };
+      }),
+    update: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        slug: z.string().min(1).max(200).optional(),
+        titleCs: z.string().min(1).max(300).optional(),
+        titleEn: z.string().max(300).optional(),
+        contentCs: z.string().optional(),
+        contentEn: z.string().optional(),
+        excerptCs: z.string().optional(),
+        excerptEn: z.string().optional(),
+        metaDescriptionCs: z.string().max(300).optional(),
+        metaDescriptionEn: z.string().max(300).optional(),
+        category: z.string().max(100).optional(),
+        coverImage: z.string().max(500).optional(),
+        author: z.string().max(200).optional(),
+        status: z.enum(["draft", "published"]).optional(),
+        readingTime: z.number().min(1).max(60).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, ...data } = input;
+        if (data.status === "published") {
+          const existing = await getBlogPostById(id);
+          if (existing && !existing.publishedAt) {
+            (data as any).publishedAt = new Date();
+          }
+        }
+        await updateBlogPost(id, data);
+        return { success: true };
+      }),
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await deleteBlogPost(input.id);
+        return { success: true };
+      }),
+  }),
+
+  // API Integration
+  apiIntegration: router({
+    healthCheck: adminProcedure.query(async () => {
+      return checkApiHealth();
+    }),
+    config: adminProcedure.query(async () => {
+      const config = getApiConfig();
+      return {
+        baseUrl: config.baseUrl,
+        isEnabled: config.isEnabled,
+        hasApiKey: !!config.apiKey,
+      };
+    }),
+  }),
+
+  // Blog public (for frontend)
+  blogPublic: router({
+    published: publicProcedure.query(async () => {
+      return getPublishedBlogPosts();
+    }),
+    bySlug: publicProcedure
+      .input(z.object({ slug: z.string() }))
+      .query(async ({ input }) => {
+        return getBlogPostBySlug(input.slug);
+      }),
   }),
 });
 

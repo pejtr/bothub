@@ -29,6 +29,13 @@
       "when": 1770494015059,
       "tag": "0003_heavy_blob",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1770519563560,
+      "tag": "0004_curly_sentinels",
+      "breakpoints": true
     }
   ]
 }

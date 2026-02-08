@@ -8,6 +8,7 @@ import {
   ArrowLeft, User, CreditCard, Settings, ExternalLink, Loader2
 } from "lucide-react";
 import { Link } from "wouter";
+import { NotificationBell } from "@/components/NotificationBell";
 
 export default function UserDashboard() {
   const { user, loading: authLoading, isAuthenticated } = useAuth();
@@ -97,6 +98,7 @@ export default function UserDashboard() {
             <span className="text-sm text-gray-400">{t ? "Můj Dashboard" : "My Dashboard"}</span>
           </div>
           <div className="flex items-center gap-3">
+            <NotificationBell />
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10">
               <User className="w-4 h-4 text-amber-400" />
               <span className="text-sm text-gray-300">{user?.name || user?.email}</span>

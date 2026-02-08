@@ -5,9 +5,11 @@ import { getLoginUrl } from "@/const";
 import {
   BarChart3, Users, Mail, MousePointerClick, TrendingUp, Bot,
   ArrowLeft, RefreshCw, Shield, Crown, Loader2, LogOut,
-  CheckCircle2, Clock, ExternalLink
+  CheckCircle2, Clock, ExternalLink, FileText, Plus, Pencil,
+  Trash2, Eye, Save, X
 } from "lucide-react";
 import { useState } from "react";
+import { Streamdown } from "streamdown";
 
 function StatCard({ title, value, icon: Icon, color, subtitle }: {
   title: string; value: string | number; icon: React.ElementType; color: string; subtitle?: string;
@@ -62,12 +64,62 @@ function DataTable({ title, headers, rows, emptyMessage }: {
   );
 }
 
-type TabId = "overview" | "registrations" | "emails" | "affiliates" | "ab-tests";
+type TabId = "overview" | "registrations" | "emails" | "affiliates" | "ab-tests" | "blog";
 
 export default function AdminDashboard() {
   const { user, loading, isAuthenticated, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<TabId>("overview");
   const utils = trpc.useUtils();
+
+  const [blogEditorOpen, setBlogEditorOpen] = useState(false);
+  const [editingPostId, setEditingPostId] = useState<number | null>(null);
+  const [blogForm, setBlogForm] = useState({
+    slug: "", titleCs: "", titleEn: "", contentCs: "", contentEn: "",
+    excerptCs: "", excerptEn: "", metaDescriptionCs: "", metaDescriptionEn: "",
+    category: "", coverImage: "", author: "BOTHUB Team", status: "draft" as "draft" | "published",
+    readingTime: 5,
+  });
+  const [previewMode, setPreviewMode] = useState(false);
+
+  const blogPosts = trpc.blogAdmin.list.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin" && activeTab === "blog" });
+  const createPost = trpc.blogAdmin.create.useMutation({ onSuccess: () => { blogPosts.refetch(); resetBlogForm(); } });
+  const updatePost = trpc.blogAdmin.update.useMutation({ onSuccess: () => { blogPosts.refetch(); resetBlogForm(); } });
+  const deletePost = trpc.blogAdmin.delete.useMutation({ onSuccess: () => { blogPosts.refetch(); } });
+
+  const resetBlogForm = () => {
+    setBlogEditorOpen(false);
+    setEditingPostId(null);
+    setPreviewMode(false);
+    setBlogForm({ slug: "", titleCs: "", titleEn: "", contentCs: "", contentEn: "", excerptCs: "", excerptEn: "", metaDescriptionCs: "", metaDescriptionEn: "", category: "", coverImage: "", author: "BOTHUB Team", status: "draft", readingTime: 5 });
+  };
+
+  const openEditPost = (post: any) => {
+    setBlogForm({
+      slug: post.slug, titleCs: post.titleCs, titleEn: post.titleEn || "",
+      contentCs: post.contentCs, contentEn: post.contentEn || "",
+      excerptCs: post.excerptCs || "", excerptEn: post.excerptEn || "",
+      metaDescriptionCs: post.metaDescriptionCs || "", metaDescriptionEn: post.metaDescriptionEn || "",
+      category: post.category || "", coverImage: post.coverImage || "",
+      author: post.author || "BOTHUB Team", status: post.status,
+      readingTime: post.readingTime || 5,
+    });
+    setEditingPostId(post.id);
+    setBlogEditorOpen(true);
+  };
+
+  const handleSaveBlogPost = () => {
+    if (editingPostId) {
+      updatePost.mutate({ id: editingPostId, ...blogForm });
+    } else {
+      createPost.mutate(blogForm);
+    }
+  };
+
+  const autoSlug = (title: string) => {
+    return title.toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  };
 
   const stats = trpc.admin.stats.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin", refetchInterval: 30000 });
   const planBreakdown = trpc.admin.registrationsByPlan.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin" });
@@ -129,6 +181,7 @@ export default function AdminDashboard() {
     { id: "emails", label: "E-maily", icon: Mail },
     { id: "affiliates", label: "Affiliate", icon: TrendingUp },
     { id: "ab-tests", label: "A/B Testy", icon: MousePointerClick },
+    { id: "blog", label: "Blog Editor", icon: FileText },
   ];
 
   const formatDate = (d: Date | string) => {
@@ -353,6 +406,298 @@ export default function AdminDashboard() {
                     return `Nejlepší varianta: "${best.variant}" s konverzním poměrem ${cvr}%. Doporučujeme ji použít jako výchozí.`;
                   })()}
                 </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ===== BLOG EDITOR TAB ===== */}
+        {activeTab === "blog" && (
+          <div className="space-y-6">
+            {!blogEditorOpen ? (
+              <>
+                {/* Blog posts list */}
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="font-[Space_Grotesk] text-lg font-bold text-white">Blog články</h2>
+                  <Button
+                    onClick={() => { resetBlogForm(); setBlogEditorOpen(true); }}
+                    className="bg-amber-500 hover:bg-amber-600 text-black font-semibold"
+                  >
+                    <Plus className="w-4 h-4 mr-1" /> Nový článek
+                  </Button>
+                </div>
+
+                {blogPosts.isLoading ? (
+                  <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 text-amber-400 animate-spin" /></div>
+                ) : (blogPosts.data ?? []).length === 0 ? (
+                  <div className="rounded-xl border border-white/5 bg-white/[0.02] p-10 text-center">
+                    <FileText className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                    <p className="text-gray-400">Zatím žádné články. Vytvořte první!</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {(blogPosts.data ?? []).map((post) => (
+                      <div key={post.id} className="rounded-xl border border-white/5 bg-white/[0.02] p-4 flex items-center justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-semibold text-white text-sm truncate">{post.titleCs}</h3>
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                              post.status === "published" ? "bg-green-500/20 text-green-400" : "bg-gray-500/20 text-gray-400"
+                            }`}>
+                              {post.status === "published" ? "Publikováno" : "Koncept"}
+                            </span>
+                            {post.category && (
+                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400">{post.category}</span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-3 text-xs text-gray-500">
+                            <span>/{post.slug}</span>
+                            <span>{post.author}</span>
+                            <span>{post.readingTime} min čtení</span>
+                            <span>{formatDate(post.createdAt)}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          {post.status === "published" && (
+                            <a href={`/blog/${post.slug}`} target="_blank" rel="noopener noreferrer">
+                              <Button variant="outline" size="sm" className="border-white/10 text-gray-400 hover:text-white">
+                                <Eye className="w-3.5 h-3.5" />
+                              </Button>
+                            </a>
+                          )}
+                          <Button variant="outline" size="sm" className="border-white/10 text-gray-400 hover:text-amber-400" onClick={() => openEditPost(post)}>
+                            <Pencil className="w-3.5 h-3.5" />
+                          </Button>
+                          <Button
+                            variant="outline" size="sm"
+                            className="border-white/10 text-gray-400 hover:text-red-400"
+                            onClick={() => { if (confirm("Opravdu smazat tento článek?")) deletePost.mutate({ id: post.id }); }}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : (
+              /* Blog Editor Form */
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h2 className="font-[Space_Grotesk] text-lg font-bold text-white">
+                    {editingPostId ? "Upravit článek" : "Nový článek"}
+                  </h2>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline" size="sm"
+                      className={`border-white/10 ${previewMode ? "text-amber-400 border-amber-500/30" : "text-gray-400"}`}
+                      onClick={() => setPreviewMode(!previewMode)}
+                    >
+                      <Eye className="w-4 h-4 mr-1" /> Náhled
+                    </Button>
+                    <Button variant="outline" size="sm" className="border-white/10 text-gray-400" onClick={resetBlogForm}>
+                      <X className="w-4 h-4 mr-1" /> Zrušit
+                    </Button>
+                    <Button
+                      className="bg-amber-500 hover:bg-amber-600 text-black font-semibold"
+                      onClick={handleSaveBlogPost}
+                      disabled={createPost.isPending || updatePost.isPending || !blogForm.titleCs || !blogForm.contentCs}
+                    >
+                      {(createPost.isPending || updatePost.isPending) ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Save className="w-4 h-4 mr-1" />}
+                      Uložit
+                    </Button>
+                  </div>
+                </div>
+
+                {previewMode ? (
+                  <div className="rounded-xl border border-white/5 bg-white/[0.02] p-8">
+                    <h1 className="font-[Space_Grotesk] text-3xl font-bold text-white mb-4">{blogForm.titleCs || "Bez názvu"}</h1>
+                    <div className="flex items-center gap-3 text-sm text-gray-400 mb-6">
+                      <span>{blogForm.author}</span>
+                      <span>•</span>
+                      <span>{blogForm.readingTime} min čtení</span>
+                      {blogForm.category && <><span>•</span><span className="text-purple-400">{blogForm.category}</span></>}
+                    </div>
+                    <div className="prose prose-invert max-w-none">
+                      <Streamdown>{blogForm.contentCs || "*Zatím žádný obsah...*"}</Streamdown>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Left column - Content */}
+                    <div className="space-y-4">
+                      <div className="rounded-xl border border-white/5 bg-white/[0.02] p-5 space-y-4">
+                        <h3 className="font-semibold text-white text-sm flex items-center gap-2">
+                          <FileText className="w-4 h-4 text-amber-400" /> Obsah (CZ)
+                        </h3>
+                        <div>
+                          <label className="text-xs text-gray-400 mb-1 block">Název *</label>
+                          <input
+                            type="text" value={blogForm.titleCs}
+                            onChange={(e) => {
+                              const title = e.target.value;
+                              setBlogForm(f => ({ ...f, titleCs: title, slug: f.slug || autoSlug(title) }));
+                            }}
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:border-amber-500/50 focus:outline-none"
+                            placeholder="Název článku..."
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-400 mb-1 block">Obsah (Markdown) *</label>
+                          <textarea
+                            value={blogForm.contentCs}
+                            onChange={(e) => setBlogForm(f => ({ ...f, contentCs: e.target.value }))}
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:border-amber-500/50 focus:outline-none min-h-[300px] font-mono"
+                            placeholder="Markdown obsah článku..."
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-400 mb-1 block">Výtah</label>
+                          <textarea
+                            value={blogForm.excerptCs}
+                            onChange={(e) => setBlogForm(f => ({ ...f, excerptCs: e.target.value }))}
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:border-amber-500/50 focus:outline-none min-h-[80px]"
+                            placeholder="Krátký výtah pro náhled..."
+                          />
+                        </div>
+                      </div>
+
+                      <div className="rounded-xl border border-white/5 bg-white/[0.02] p-5 space-y-4">
+                        <h3 className="font-semibold text-white text-sm">Obsah (EN) — volitelné</h3>
+                        <div>
+                          <label className="text-xs text-gray-400 mb-1 block">Title</label>
+                          <input
+                            type="text" value={blogForm.titleEn}
+                            onChange={(e) => setBlogForm(f => ({ ...f, titleEn: e.target.value }))}
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:border-amber-500/50 focus:outline-none"
+                            placeholder="English title..."
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-400 mb-1 block">Content (Markdown)</label>
+                          <textarea
+                            value={blogForm.contentEn}
+                            onChange={(e) => setBlogForm(f => ({ ...f, contentEn: e.target.value }))}
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:border-amber-500/50 focus:outline-none min-h-[200px] font-mono"
+                            placeholder="English markdown content..."
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-400 mb-1 block">Excerpt</label>
+                          <textarea
+                            value={blogForm.excerptEn}
+                            onChange={(e) => setBlogForm(f => ({ ...f, excerptEn: e.target.value }))}
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:border-amber-500/50 focus:outline-none min-h-[60px]"
+                            placeholder="Short English excerpt..."
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right column - SEO & Settings */}
+                    <div className="space-y-4">
+                      <div className="rounded-xl border border-white/5 bg-white/[0.02] p-5 space-y-4">
+                        <h3 className="font-semibold text-white text-sm">Nastavení</h3>
+                        <div>
+                          <label className="text-xs text-gray-400 mb-1 block">Slug (URL) *</label>
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs text-gray-500">/blog/</span>
+                            <input
+                              type="text" value={blogForm.slug}
+                              onChange={(e) => setBlogForm(f => ({ ...f, slug: e.target.value }))}
+                              className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:border-amber-500/50 focus:outline-none font-mono"
+                              placeholder="url-slug"
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-xs text-gray-400 mb-1 block">Kategorie</label>
+                            <input
+                              type="text" value={blogForm.category}
+                              onChange={(e) => setBlogForm(f => ({ ...f, category: e.target.value }))}
+                              className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:border-amber-500/50 focus:outline-none"
+                              placeholder="AI, Marketing..."
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs text-gray-400 mb-1 block">Doba čtení (min)</label>
+                            <input
+                              type="number" value={blogForm.readingTime} min={1} max={60}
+                              onChange={(e) => setBlogForm(f => ({ ...f, readingTime: Number(e.target.value) }))}
+                              className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:border-amber-500/50 focus:outline-none"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-400 mb-1 block">Autor</label>
+                          <input
+                            type="text" value={blogForm.author}
+                            onChange={(e) => setBlogForm(f => ({ ...f, author: e.target.value }))}
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:border-amber-500/50 focus:outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-400 mb-1 block">Cover Image URL</label>
+                          <input
+                            type="text" value={blogForm.coverImage}
+                            onChange={(e) => setBlogForm(f => ({ ...f, coverImage: e.target.value }))}
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:border-amber-500/50 focus:outline-none"
+                            placeholder="https://..."
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-400 mb-1 block">Stav</label>
+                          <div className="flex gap-3">
+                            <button
+                              onClick={() => setBlogForm(f => ({ ...f, status: "draft" }))}
+                              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
+                                blogForm.status === "draft" ? "bg-gray-500/20 text-white border border-gray-500/30" : "bg-white/5 text-gray-400 border border-white/5"
+                              }`}
+                            >
+                              Koncept
+                            </button>
+                            <button
+                              onClick={() => setBlogForm(f => ({ ...f, status: "published" }))}
+                              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
+                                blogForm.status === "published" ? "bg-green-500/20 text-green-400 border border-green-500/30" : "bg-white/5 text-gray-400 border border-white/5"
+                              }`}
+                            >
+                              Publikovat
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="rounded-xl border border-white/5 bg-white/[0.02] p-5 space-y-4">
+                        <h3 className="font-semibold text-white text-sm">SEO Metadata</h3>
+                        <div>
+                          <label className="text-xs text-gray-400 mb-1 block">Meta popis (CZ)</label>
+                          <textarea
+                            value={blogForm.metaDescriptionCs}
+                            onChange={(e) => setBlogForm(f => ({ ...f, metaDescriptionCs: e.target.value }))}
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:border-amber-500/50 focus:outline-none min-h-[60px]"
+                            placeholder="SEO popis pro vyhledávače..."
+                            maxLength={300}
+                          />
+                          <span className="text-[10px] text-gray-600">{blogForm.metaDescriptionCs.length}/300</span>
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-400 mb-1 block">Meta Description (EN)</label>
+                          <textarea
+                            value={blogForm.metaDescriptionEn}
+                            onChange={(e) => setBlogForm(f => ({ ...f, metaDescriptionEn: e.target.value }))}
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:border-amber-500/50 focus:outline-none min-h-[60px]"
+                            placeholder="SEO description for search engines..."
+                            maxLength={300}
+                          />
+                          <span className="text-[10px] text-gray-600">{blogForm.metaDescriptionEn.length}/300</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

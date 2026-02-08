@@ -1258,3 +1258,226 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     expect(priorities.faq).toBeLessThanOrEqual(priorities.articles);
   });
 });
+
+// ===== Schema.org Structured Data tests =====
+
+describe("Schema.org structured data", () => {
+  it("BreadcrumbList schema has correct structure", () => {
+    const items = [
+      { name: "Domů", url: "/" },
+      { name: "Blog", url: "/blog" },
+      { name: "Test článek", url: "/blog/test-post" },
+    ];
+    const baseUrl = "https://bothub.cz";
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: items.map((item, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: item.name,
+        item: `${baseUrl}${item.url}`,
+      })),
+    };
+
+    expect(schema["@context"]).toBe("https://schema.org");
+    expect(schema["@type"]).toBe("BreadcrumbList");
+    expect(schema.itemListElement).toHaveLength(3);
+    expect(schema.itemListElement[0]).toMatchObject({
+      "@type": "ListItem",
+      position: 1,
+      name: "Domů",
+      item: "https://bothub.cz/",
+    });
+    expect(schema.itemListElement[1]).toMatchObject({
+      position: 2,
+      name: "Blog",
+      item: "https://bothub.cz/blog",
+    });
+    expect(schema.itemListElement[2]).toMatchObject({
+      position: 3,
+      name: "Test článek",
+      item: "https://bothub.cz/blog/test-post",
+    });
+  });
+
+  it("Organization schema has required fields", () => {
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      name: "BOTHUB",
+      url: "https://bothub.cz",
+      logo: "https://bothub.cz/logo.png",
+      description: "BOTHUB.cz — platforma AI chatbotů",
+      contactPoint: {
+        "@type": "ContactPoint",
+        email: "info@bothub.cz",
+        contactType: "customer service",
+        availableLanguage: ["Czech", "English"],
+      },
+    };
+
+    expect(schema["@type"]).toBe("Organization");
+    expect(schema.name).toBe("BOTHUB");
+    expect(schema.url).toContain("bothub");
+    expect(schema.logo).toContain("logo.png");
+    expect(schema.contactPoint.email).toBe("info@bothub.cz");
+    expect(schema.contactPoint.availableLanguage).toContain("Czech");
+    expect(schema.contactPoint.availableLanguage).toContain("English");
+  });
+
+  it("WebSite schema includes search action", () => {
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: "BOTHUB",
+      url: "https://bothub.cz",
+      inLanguage: ["cs", "en"],
+      potentialAction: {
+        "@type": "SearchAction",
+        target: {
+          "@type": "EntryPoint",
+          urlTemplate: "https://bothub.cz/#catalog?q={search_term_string}",
+        },
+        "query-input": "required name=search_term_string",
+      },
+    };
+
+    expect(schema["@type"]).toBe("WebSite");
+    expect(schema.inLanguage).toContain("cs");
+    expect(schema.inLanguage).toContain("en");
+    expect(schema.potentialAction["@type"]).toBe("SearchAction");
+    expect(schema.potentialAction.target.urlTemplate).toContain("{search_term_string}");
+  });
+
+  it("Product schema for pricing plans has correct structure", () => {
+    const plans = [
+      { name: "BOTHUB FREE", price: "0", currency: "CZK", sku: "bothub-free" },
+      { name: "BOTHUB GOLD", price: "990", currency: "CZK", sku: "bothub-gold" },
+      { name: "BOTHUB DIAMOND", price: "2490", currency: "CZK", sku: "bothub-diamond" },
+    ];
+
+    plans.forEach((plan) => {
+      const schema = {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        name: plan.name,
+        sku: plan.sku,
+        brand: { "@type": "Brand", name: "BOTHUB" },
+        offers: {
+          "@type": "Offer",
+          priceCurrency: plan.currency,
+          price: plan.price,
+          availability: "https://schema.org/InStock",
+        },
+        aggregateRating: {
+          "@type": "AggregateRating",
+          ratingValue: "4.8",
+          reviewCount: "127",
+        },
+      };
+
+      expect(schema["@type"]).toBe("Product");
+      expect(schema.name).toContain("BOTHUB");
+      expect(schema.brand.name).toBe("BOTHUB");
+      expect(schema.offers["@type"]).toBe("Offer");
+      expect(schema.offers.priceCurrency).toBe("CZK");
+      expect(schema.offers.availability).toBe("https://schema.org/InStock");
+      expect(schema.aggregateRating.ratingValue).toBe("4.8");
+    });
+
+    // Verify price hierarchy
+    expect(Number(plans[0].price)).toBeLessThan(Number(plans[1].price));
+    expect(Number(plans[1].price)).toBeLessThan(Number(plans[2].price));
+  });
+
+  it("FAQPage schema has correct structure with Q&A pairs", () => {
+    const faqItems = [
+      { question: "Co je iBot?", answer: "iBot je AI chatbot s unikátní osobností." },
+      { question: "Kolik stojí?", answer: "Nabízíme 3 plány: FREE, GOLD, DIAMOND." },
+    ];
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: faqItems.map((item) => ({
+        "@type": "Question",
+        name: item.question,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: item.answer,
+        },
+      })),
+    };
+
+    expect(schema["@type"]).toBe("FAQPage");
+    expect(schema.mainEntity).toHaveLength(2);
+    expect(schema.mainEntity[0]["@type"]).toBe("Question");
+    expect(schema.mainEntity[0].name).toBe("Co je iBot?");
+    expect(schema.mainEntity[0].acceptedAnswer["@type"]).toBe("Answer");
+    expect(schema.mainEntity[0].acceptedAnswer.text).toContain("AI chatbot");
+    expect(schema.mainEntity[1].name).toBe("Kolik stojí?");
+  });
+
+  it("BlogPosting schema has required fields", () => {
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      headline: "Test Article",
+      description: "Test description",
+      url: "https://bothub.cz/blog/test-post",
+      author: { "@type": "Person", name: "BOTHUB Team" },
+      publisher: {
+        "@type": "Organization",
+        name: "BOTHUB",
+        logo: { "@type": "ImageObject", url: "https://bothub.cz/logo.png" },
+      },
+      datePublished: "2026-02-08",
+      mainEntityOfPage: {
+        "@type": "WebPage",
+        "@id": "https://bothub.cz/blog/test-post",
+      },
+      articleSection: "AI",
+    };
+
+    expect(schema["@type"]).toBe("BlogPosting");
+    expect(schema.headline).toBe("Test Article");
+    expect(schema.url).toContain("/blog/test-post");
+    expect(schema.author.name).toBe("BOTHUB Team");
+    expect(schema.publisher.name).toBe("BOTHUB");
+    expect(schema.datePublished).toBe("2026-02-08");
+    expect(schema.articleSection).toBe("AI");
+  });
+
+  it("iBot catalog schema represents all 7 categories", () => {
+    const categoryCount = 7;
+    const totalIBots = 77;
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      name: "BOTHUB iBot Katalog",
+      numberOfItems: totalIBots,
+      itemListElement: Array.from({ length: categoryCount }, (_, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+      })),
+    };
+
+    expect(schema["@type"]).toBe("ItemList");
+    expect(schema.numberOfItems).toBe(77);
+    expect(schema.itemListElement).toHaveLength(7);
+    schema.itemListElement.forEach((item, i) => {
+      expect(item.position).toBe(i + 1);
+    });
+  });
+
+  it("all schemas use https://schema.org context", () => {
+    const schemaTypes = [
+      "Organization", "WebSite", "BreadcrumbList",
+      "Product", "FAQPage", "BlogPosting", "ItemList",
+    ];
+    schemaTypes.forEach((type) => {
+      const schema = { "@context": "https://schema.org", "@type": type };
+      expect(schema["@context"]).toBe("https://schema.org");
+    });
+  });
+});

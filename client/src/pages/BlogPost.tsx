@@ -4,6 +4,7 @@ import { getBlogPost, blogPosts } from "@/data/blogPosts";
 import { Bot, ArrowLeft, Clock, Tag, ChevronRight, User } from "lucide-react";
 import { Streamdown } from "streamdown";
 import { useI18n, LanguageSwitcher } from "@/lib/i18n";
+import { BreadcrumbSchema, BlogArticleSchema } from "@/components/SchemaOrg";
 
 export default function BlogPost() {
   const { locale } = useI18n();
@@ -34,6 +35,19 @@ export default function BlogPost() {
 
   return (
     <div className="min-h-screen bg-[#0A0A0F] text-white">
+      <BreadcrumbSchema items={[
+        { name: en ? "Home" : "Domů", url: "/" },
+        { name: "Blog", url: "/blog" },
+        { name: post.title, url: `/blog/${post.slug}` },
+      ]} />
+      <BlogArticleSchema
+        title={post.title}
+        description={post.metaDescription}
+        slug={post.slug}
+        author={post.author}
+        publishedAt={post.publishedAt}
+        category={post.category}
+      />
       <nav className="sticky top-0 z-50 border-b border-white/5 bg-[#0A0A0F]/90 backdrop-blur-xl">
         <div className="container flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2">

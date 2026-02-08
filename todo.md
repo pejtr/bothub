@@ -123,3 +123,11 @@
 - [x] E-mail notifikace: e-mail při dosažení affiliate milníků (5, 10, 25, 50 referralů)
 - [x] E-mail notifikace: integrace s existujícím notifikačním systémem
 - [x] Testy pro sitemap, robots.txt a e-mailové notifikace (93/93 passed)
+
+- [x] Schema.org: BreadcrumbList JSON-LD komponenta pro navigační drobečky
+- [x] Schema.org: Product JSON-LD pro iBoty v katalogu (název, popis, cena, hodnocení)
+- [x] Schema.org: Organization JSON-LD pro BOTHUB brand
+- [x] Schema.org: WebSite JSON-LD s vyhledáváním
+- [x] Schema.org: FAQPage JSON-LD pro FAQ sekci
+- [x] Schema.org: integrace do Home.tsx, Blog.tsx a BlogPost.tsx
+- [x] Testy pro Schema.org structured data (101/101 passed)

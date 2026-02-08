@@ -11,7 +11,8 @@ import { SocialProofWidget } from "@/components/SocialProofWidget";
 import { CountdownBanner } from "@/components/CountdownBanner";
 import { VideoShowcase } from "@/components/VideoShowcase";
 import { AnimatedSection } from "@/components/AnimatedSection";
-import { FAQ } from "@/components/FAQ";
+import { FAQ, faqItems } from "@/components/FAQ";
+import { HomePageSchema } from "@/components/SchemaOrg";
 import { categories, getIBotsByCategory } from "@/data/ibots";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Link } from "wouter";
@@ -74,6 +75,14 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#0A0A0F] text-white relative">
+      {/* Schema.org Structured Data */}
+      <HomePageSchema
+        locale={locale as "cs" | "en"}
+        faqItems={faqItems.map(item => ({
+          question: locale === "en" ? item.questionEn : item.questionCs,
+          answer: locale === "en" ? item.answerEn : item.answerCs,
+        }))}
+      />
       <ParallaxDecorations />
 
       {/* Navigation */}

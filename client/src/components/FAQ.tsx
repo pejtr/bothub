@@ -10,7 +10,7 @@ interface FAQItem {
   answerEn: string;
 }
 
-const faqItems: FAQItem[] = [
+export const faqItems: FAQItem[] = [
   {
     questionCs: "Co je iBot a jak se liší od běžného chatbota?",
     questionEn: "What is an iBot and how is it different from a regular chatbot?",

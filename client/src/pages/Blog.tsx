@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { blogPosts } from "@/data/blogPosts";
 import { Bot, ArrowRight, Clock, Tag, ChevronRight } from "lucide-react";
 import { useI18n, LanguageSwitcher } from "@/lib/i18n";
+import { BreadcrumbSchema } from "@/components/SchemaOrg";
 
 export default function Blog() {
   const { t, locale } = useI18n();
@@ -13,6 +14,10 @@ export default function Blog() {
 
   return (
     <div className="min-h-screen bg-[#0A0A0F] text-white">
+      <BreadcrumbSchema items={[
+        { name: en ? "Home" : "Domů", url: "/" },
+        { name: "Blog", url: "/blog" },
+      ]} />
       <nav className="sticky top-0 z-50 border-b border-white/5 bg-[#0A0A0F]/90 backdrop-blur-xl">
         <div className="container flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2">

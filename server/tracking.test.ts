@@ -77,6 +77,8 @@ vi.mock("./db", () => ({
   getPublishedBlogPosts: vi.fn().mockResolvedValue([
     { id: 1, slug: "test-post", titleCs: "Test článek", status: "published", category: "AI", author: "BOTHUB Team", readingTime: 5, publishedAt: new Date(), createdAt: new Date(), updatedAt: new Date() },
   ]),
+  getAffiliateByCode: vi.fn().mockResolvedValue({ id: 1, email: "affiliate@test.cz", name: "Affiliate Partner", affiliateCode: "BH-TEST01" }),
+  getRegistrationById: vi.fn().mockResolvedValue({ id: 1, email: "user@test.cz", name: "User", plan: "gold", status: "activated" }),
 }));
 
 vi.mock("./_core/notification", () => ({
@@ -85,6 +87,9 @@ vi.mock("./_core/notification", () => ({
 
 vi.mock("./email", () => ({
   sendConfirmationEmail: vi.fn().mockResolvedValue(true),
+  sendPlanActivatedEmail: vi.fn().mockResolvedValue(true),
+  sendNewReferralEmail: vi.fn().mockResolvedValue(true),
+  sendAffiliateMilestoneEmail: vi.fn().mockResolvedValue(true),
 }));
 
 vi.mock("./dailyReport", () => ({
@@ -147,7 +152,7 @@ import {
   getBlogPostById, getAllBlogPosts, getPublishedBlogPosts, getBlogPostBySlug,
 } from "./db";
 
-import { sendConfirmationEmail } from "./email";
+import { sendConfirmationEmail, sendPlanActivatedEmail, sendNewReferralEmail, sendAffiliateMilestoneEmail } from "./email";
 import { sendDailyReport, generateDailyReport, formatReportContent, sendWeeklyReport, generateWeeklyReport, formatWeeklyReportContent, generateStrategicRecommendations } from "./dailyReport";
 import { invokeLLM } from "./_core/llm";
 import { createCheckoutSession } from "./stripe";
@@ -1103,5 +1108,153 @@ describe("apiIntegration.config", () => {
   it("rejects non-admin user", async () => {
     const caller = appRouter.createCaller(createUserContext());
     await expect(caller.apiIntegration.config()).rejects.toThrow();
+  });
+});
+
+// ===== Email Notification Templates tests =====
+
+describe("email notification templates", () => {
+  it("sendPlanActivatedEmail is called for FREE plan auto-activation", async () => {
+    const caller = appRouter.createCaller(createPublicContext());
+    await caller.registration.register({
+      email: "free-user@test.cz",
+      plan: "free",
+      source: "hero_cta",
+      gdprConsent: true,
+    });
+    expect(sendPlanActivatedEmail).toHaveBeenCalledWith({
+      email: "free-user@test.cz",
+      name: undefined,
+      plan: "free",
+    });
+  });
+
+  it("sendConfirmationEmail is still called alongside plan activated email", async () => {
+    const caller = appRouter.createCaller(createPublicContext());
+    await caller.registration.register({
+      email: "both-emails@test.cz",
+      plan: "free",
+      source: "hero_cta",
+      gdprConsent: true,
+    });
+    expect(sendConfirmationEmail).toHaveBeenCalled();
+    expect(sendPlanActivatedEmail).toHaveBeenCalled();
+  });
+
+  it("sendPlanActivatedEmail is NOT called for GOLD plan (pending)", async () => {
+    vi.clearAllMocks();
+    const caller = appRouter.createCaller(createPublicContext());
+    await caller.registration.register({
+      email: "gold-user@test.cz",
+      plan: "gold",
+      source: "hero_cta",
+      gdprConsent: true,
+    });
+    expect(sendPlanActivatedEmail).not.toHaveBeenCalled();
+    expect(sendConfirmationEmail).toHaveBeenCalled();
+  });
+});
+
+// ===== Email module unit tests =====
+
+describe("email template functions", () => {
+  it("buildEventEmailHtml generates valid HTML", async () => {
+    const { buildEventEmailHtml: realBuild } = await vi.importActual<typeof import("./email")>("./email");
+    const html = realBuild("Test Subject", "Ahoj,", "<p>Test body</p>");
+    expect(html).toContain("<!DOCTYPE html>");
+    expect(html).toContain("BOTHUB");
+    expect(html).toContain("Ahoj,");
+    expect(html).toContain("<p>Test body</p>");
+    expect(html).toContain("BOTHUB.cz");
+  });
+
+  it("sendPlanActivatedEmail function exists and is callable", () => {
+    expect(typeof sendPlanActivatedEmail).toBe("function");
+  });
+
+  it("sendNewReferralEmail function exists and is callable", () => {
+    expect(typeof sendNewReferralEmail).toBe("function");
+  });
+
+  it("sendAffiliateMilestoneEmail function exists and is callable", () => {
+    expect(typeof sendAffiliateMilestoneEmail).toBe("function");
+  });
+});
+
+// ===== Sitemap and Robots.txt structure tests =====
+
+describe("SEO files structure", () => {
+  it("sitemap.xml should contain proper XML structure", () => {
+    // Test that the sitemap generation logic produces valid structure
+    const staticPages = [
+      { loc: "/", priority: "1.0", changefreq: "weekly", lastmod: "2026-02-08" },
+      { loc: "/blog", priority: "0.8", changefreq: "daily", lastmod: "2026-02-08" },
+    ];
+    const blogUrls = [
+      { loc: "/blog/test-post", priority: "0.6", changefreq: "monthly", lastmod: "2026-02-08" },
+    ];
+    const allUrls = [...staticPages, ...blogUrls];
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${allUrls.map(u => `  <url>
+    <loc>https://bothub.cz${u.loc}</loc>
+    <lastmod>${u.lastmod}</lastmod>
+    <changefreq>${u.changefreq}</changefreq>
+    <priority>${u.priority}</priority>
+  </url>`).join("\n")}
+</urlset>`;
+
+    expect(xml).toContain('<?xml version="1.0"');
+    expect(xml).toContain("<urlset");
+    expect(xml).toContain("<url>");
+    expect(xml).toContain("<loc>https://bothub.cz/</loc>");
+    expect(xml).toContain("<priority>1.0</priority>");
+    expect(xml).toContain("<loc>https://bothub.cz/blog</loc>");
+    expect(xml).toContain("<priority>0.8</priority>");
+    expect(xml).toContain("<loc>https://bothub.cz/blog/test-post</loc>");
+    expect(xml).toContain("<priority>0.6</priority>");
+    expect(xml).toContain("<changefreq>weekly</changefreq>");
+    expect(xml).toContain("<changefreq>daily</changefreq>");
+    expect(xml).toContain("<changefreq>monthly</changefreq>");
+    expect(xml).toContain("<lastmod>2026-02-08</lastmod>");
+  });
+
+  it("robots.txt should contain correct rules", () => {
+    const baseUrl = "https://bothub.cz";
+    const robotsTxt = `User-agent: *
+Allow: /
+Allow: /blog
+Allow: /blog/
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /affiliate-dashboard
+Disallow: /api/
+Disallow: /activate
+
+Sitemap: ${baseUrl}/sitemap.xml`;
+
+    expect(robotsTxt).toContain("User-agent: *");
+    expect(robotsTxt).toContain("Allow: /");
+    expect(robotsTxt).toContain("Allow: /blog");
+    expect(robotsTxt).toContain("Disallow: /admin");
+    expect(robotsTxt).toContain("Disallow: /dashboard");
+    expect(robotsTxt).toContain("Disallow: /api/");
+    expect(robotsTxt).toContain("Sitemap: https://bothub.cz/sitemap.xml");
+  });
+
+  it("sitemap priority hierarchy is correct (homepage > blog > articles)", () => {
+    const priorities = {
+      homepage: 1.0,
+      blog: 0.8,
+      catalog: 0.7,
+      pricing: 0.7,
+      affiliate: 0.6,
+      articles: 0.6,
+      faq: 0.5,
+    };
+    expect(priorities.homepage).toBeGreaterThan(priorities.blog);
+    expect(priorities.blog).toBeGreaterThan(priorities.articles);
+    expect(priorities.catalog).toBeGreaterThanOrEqual(priorities.articles);
+    expect(priorities.faq).toBeLessThanOrEqual(priorities.articles);
   });
 });

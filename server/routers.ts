@@ -21,7 +21,7 @@ import {
   getBlogPostById, getBlogPostBySlug, getAllBlogPosts, getPublishedBlogPosts,
 } from "./db";
 import { notifyOwner } from "./_core/notification";
-import { sendConfirmationEmail } from "./email";
+import { sendConfirmationEmail, sendPlanActivatedEmail, sendNewReferralEmail, sendAffiliateMilestoneEmail } from "./email";
 import { sendDailyReport, generateDailyReport, formatReportContent, sendWeeklyReport, generateWeeklyReport, formatWeeklyReportContent, generateStrategicRecommendations } from "./dailyReport";
 import { invokeLLM } from "./_core/llm";
 import { createCheckoutSession } from "./stripe";
@@ -127,6 +127,12 @@ export const appRouter = router({
         // Auto-activate for FREE plan
         if (input.plan === "free") {
           await activateRegistration(id).catch(() => {});
+          // Send plan activated email for auto-activated FREE plans
+          await sendPlanActivatedEmail({
+            email: input.email,
+            name: input.name ?? undefined,
+            plan: input.plan,
+          }).catch((err) => console.warn("[Email] Failed to send plan activated email:", err));
         }
 
         // Send confirmation email
@@ -137,6 +143,35 @@ export const appRouter = router({
           registrationId: id,
           isAutoActivated: input.plan === "free",
         }).catch((err) => console.warn("[Email] Failed to send confirmation:", err));
+
+        // If registered via affiliate, send new referral email to affiliate partner
+        if (input.affiliateCode) {
+          // Look up affiliate partner by code to send them a notification
+          const { getAffiliateByCode } = await import("./db");
+          const partner = await getAffiliateByCode(input.affiliateCode).catch(() => null);
+          if (partner) {
+            const { getAffiliateStats: getStats } = await import("./db");
+            const stats = await getStats(input.affiliateCode).catch(() => ({ totalReferrals: 1, pendingCommission: 0, totalClicks: 0 }));
+            await sendNewReferralEmail({
+              email: partner.email,
+              name: partner.name ?? undefined,
+              referralEmail: input.email,
+              referralPlan: input.plan,
+              totalReferrals: stats.totalReferrals,
+            }).catch((err) => console.warn("[Email] Failed to send referral email:", err));
+
+            // Check affiliate milestones (5, 10, 25, 50)
+            const milestones = [5, 10, 25, 50];
+            if (milestones.includes(stats.totalReferrals)) {
+              await sendAffiliateMilestoneEmail({
+                email: partner.email,
+                name: partner.name ?? undefined,
+                milestone: stats.totalReferrals,
+                totalCommission: (stats as any).pendingCommission ?? 0,
+              }).catch((err) => console.warn("[Email] Failed to send milestone email:", err));
+            }
+          }
+        }
 
         // Notify owner
         await notifyOwner({
@@ -171,6 +206,18 @@ export const appRouter = router({
           return { success: false, message: "Neplatný aktivační odkaz." };
         }
         await activateRegistration(input.registrationId);
+
+        // Send plan activated email for manually activated plans (GOLD/DIAMOND)
+        const { getRegistrationById } = await import("./db");
+        const reg = await getRegistrationById(input.registrationId).catch(() => null);
+        if (reg) {
+          await sendPlanActivatedEmail({
+            email: reg.email,
+            name: reg.name ?? undefined,
+            plan: reg.plan,
+          }).catch((err) => console.warn("[Email] Failed to send plan activated email:", err));
+        }
+
         return { success: true, message: "Váš plán byl úspěšně aktivován!" };
       }),
   }),

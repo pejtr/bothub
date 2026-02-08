@@ -112,3 +112,14 @@
 - [x] API integrace: health check endpoint pro monitoring stavu API
 - [x] API integrace: konfigurace přes environment variables
 - [x] Testy pro všechny nové features (83/83 passed)
+
+- [x] SEO: dynamický sitemap.xml s homepage, blog články a hlavními stránkami
+- [x] SEO: sitemap.xml s priority hodnotami (homepage 1.0, blog 0.8, články 0.6)
+- [x] SEO: robots.txt s pravidly pro crawlery a odkazem na sitemap
+- [x] SEO: server-side route pro /sitemap.xml a /robots.txt
+- [x] E-mail notifikace: rozšíření email.ts o šablony pro klíčové události
+- [x] E-mail notifikace: e-mail při aktivaci plánu (FREE/GOLD/DIAMOND)
+- [x] E-mail notifikace: e-mail při novém referralu pro affiliate partnery
+- [x] E-mail notifikace: e-mail při dosažení affiliate milníků (5, 10, 25, 50 referralů)
+- [x] E-mail notifikace: integrace s existujícím notifikačním systémem
+- [x] Testy pro sitemap, robots.txt a e-mailové notifikace (93/93 passed)

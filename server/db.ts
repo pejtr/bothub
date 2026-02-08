@@ -453,3 +453,21 @@ export async function getPublishedBlogPosts() {
     .where(eq(blogPosts.status, "published"))
     .orderBy(desc(blogPosts.publishedAt));
 }
+
+/** Get affiliate partner by affiliate code */
+export async function getAffiliateByCode(code: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(affiliateRegistrations)
+    .where(eq(affiliateRegistrations.affiliateCode, code)).limit(1);
+  return result[0];
+}
+
+/** Get registration by ID */
+export async function getRegistrationById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(registrations)
+    .where(eq(registrations.id, id)).limit(1);
+  return result[0];
+}

@@ -91,25 +91,78 @@ async function startServer() {
       createContext,
     })
   );
-  // Dynamic sitemap.xml
-  app.get("/sitemap.xml", (_req, res) => {
-    const baseUrl = "https://bothub.cz";
-    const blogSlugs = [
-      "jak-ai-chatboti-zvysuji-konverze-o-42-procent",
-      "affiliate-marketing-s-ai-chatboty-77-procent-provize",
-      "7-kategorii-ai-chatbotu-ktery-je-pro-vas",
-    ];
-    const urls = [
-      { loc: "/", priority: "1.0", changefreq: "weekly" },
-      { loc: "/blog", priority: "0.8", changefreq: "daily" },
-      ...blogSlugs.map(slug => ({ loc: `/blog/${slug}`, priority: "0.6", changefreq: "monthly" })),
-    ];
-    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+  // Dynamic sitemap.xml — reads published blog posts from DB
+  app.get("/sitemap.xml", async (_req, res) => {
+    try {
+      const { getPublishedBlogPosts } = await import("../db");
+      const baseUrl = _req.headers["x-forwarded-host"]
+        ? `${_req.headers["x-forwarded-proto"] || "https"}://${_req.headers["x-forwarded-host"]}`
+        : `${_req.protocol}://${_req.get("host")}`;
+
+      const blogPosts = await getPublishedBlogPosts().catch(() => []);
+      const now = new Date().toISOString().split("T")[0];
+
+      const staticPages = [
+        { loc: "/", priority: "1.0", changefreq: "weekly", lastmod: now },
+        { loc: "/blog", priority: "0.8", changefreq: "daily", lastmod: now },
+        { loc: "/#catalog", priority: "0.7", changefreq: "weekly", lastmod: now },
+        { loc: "/#pricing", priority: "0.7", changefreq: "monthly", lastmod: now },
+        { loc: "/#affiliate", priority: "0.6", changefreq: "monthly", lastmod: now },
+        { loc: "/#faq", priority: "0.5", changefreq: "monthly", lastmod: now },
+      ];
+
+      const blogUrls = blogPosts.map((post: any) => ({
+        loc: `/blog/${post.slug}`,
+        priority: "0.6",
+        changefreq: "monthly",
+        lastmod: post.updatedAt ? new Date(post.updatedAt).toISOString().split("T")[0] : now,
+      }));
+
+      const allUrls = [...staticPages, ...blogUrls];
+
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls.map(u => `  <url>\n    <loc>${baseUrl}${u.loc}</loc>\n    <changefreq>${u.changefreq}</changefreq>\n    <priority>${u.priority}</priority>\n  </url>`).join("\n")}
+${allUrls.map(u => `  <url>
+    <loc>${baseUrl}${u.loc}</loc>
+    <lastmod>${u.lastmod}</lastmod>
+    <changefreq>${u.changefreq}</changefreq>
+    <priority>${u.priority}</priority>
+  </url>`).join("\n")}
 </urlset>`;
-    res.set("Content-Type", "application/xml");
-    res.send(xml);
+      res.set("Content-Type", "application/xml");
+      res.set("Cache-Control", "public, max-age=3600");
+      res.send(xml);
+    } catch (error) {
+      console.error("[Sitemap] Error generating sitemap:", error);
+      res.status(500).send("Error generating sitemap");
+    }
+  });
+
+  // robots.txt — allows crawlers, blocks admin, links to sitemap
+  app.get("/robots.txt", (_req, res) => {
+    const baseUrl = _req.headers["x-forwarded-host"]
+      ? `${_req.headers["x-forwarded-proto"] || "https"}://${_req.headers["x-forwarded-host"]}`
+      : `${_req.protocol}://${_req.get("host")}`;
+
+    const robotsTxt = `# BOTHUB.cz — AI chatboti, kteří prodávají za vás
+# https://bothub.cz
+
+User-agent: *
+Allow: /
+Allow: /blog
+Allow: /blog/
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /affiliate-dashboard
+Disallow: /api/
+Disallow: /activate
+
+# Sitemap
+Sitemap: ${baseUrl}/sitemap.xml
+`;
+    res.set("Content-Type", "text/plain");
+    res.set("Cache-Control", "public, max-age=86400");
+    res.send(robotsTxt);
   });
 
   // development mode uses Vite, production mode uses static files

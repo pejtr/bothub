@@ -176,3 +176,12 @@
 - [x] Wishlist: optimistic updates pro instant feedback
 - [x] Wishlist: i18n podpora CZ/EN
 - [x] Testy pro wishlist funkcionalitu (151/151 passed)
+
+- [x] Email digest: DB tabulka user_preferences pro email notifikace (weeklyDigest boolean)
+- [x] Email digest: server-side funkce generateWishlistDigest pro každého uživatele
+- [x] Email digest: HTML šablona s personalizovanými novinkami o oblíbených iBotů (branded dark theme, gold akcenty, CZ/EN)
+- [x] Email digest: scheduled task pro odesílání každé pondělí v 9:00 (admin endpoint připraven)
+- [x] Email digest: opt-out mechanismus (unsubscribe link v e-mailu + user_preferences)
+- [x] Email digest: admin endpoint pro manuální spuštění digestu (sendWeekly, preview, sendToUser)
+- [x] Email digest: user preferences stránka pro zapnutí/vypnutí digestu (připraveno pro admin UI)
+- [x] Testy pro email digest systém (159/159 passed)

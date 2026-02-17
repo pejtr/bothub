@@ -28,6 +28,7 @@ import { sendDailyReport, generateDailyReport, formatReportContent, sendWeeklyRe
 import { invokeLLM } from "./_core/llm";
 import { createCheckoutSession } from "./stripe";
 import { checkApiHealth, syncRegistration, getApiConfig } from "./botHubApi";
+import { sendWeeklyWishlistDigests, generateUserWishlistDigest, sendWishlistDigestEmail } from "./wishlistDigest";
 
 export const appRouter = router({
   system: systemRouter,
@@ -592,6 +593,26 @@ Nikdy nepřiznávej že jsi jen demo. Chovej se jako plnohodnotný iBot.`,
       .input(z.object({ slug: z.string() }))
       .query(async ({ input }) => {
         return getBlogPostBySlug(input.slug);
+      }),
+  }),
+
+  wishlistDigest: router({
+    sendWeekly: adminProcedure.mutation(async () => {
+      const result = await sendWeeklyWishlistDigests();
+      return result;
+    }),
+    preview: adminProcedure
+      .input(z.object({ userId: z.number() }))
+      .query(async ({ input }) => {
+        return generateUserWishlistDigest(input.userId);
+      }),
+    sendToUser: adminProcedure
+      .input(z.object({ userId: z.number(), locale: z.enum(["cs", "en"]).default("cs") }))
+      .mutation(async ({ input }) => {
+        const data = await generateUserWishlistDigest(input.userId);
+        if (!data) return { success: false, error: "No digest data generated" };
+        const success = await sendWishlistDigestEmail(data, input.locale);
+        return { success };
       }),
   }),
 

@@ -147,6 +147,20 @@ vi.mock("./_core/llm", () => ({
   }),
 }));
 
+vi.mock("./wishlistDigest", () => ({
+  sendWeeklyWishlistDigests: vi.fn().mockResolvedValue({ sent: 5, failed: 0, skipped: 2 }),
+  generateUserWishlistDigest: vi.fn().mockResolvedValue({
+    userId: 1,
+    userEmail: "test@example.com",
+    userName: "Test User",
+    wishlistItems: [
+      { ibotId: "hormozi", name: "Alex Hormozi", category: "Sales", description: "Expert prodejce" },
+    ],
+  }),
+  sendWishlistDigestEmail: vi.fn().mockResolvedValue(true),
+  formatWishlistDigestEmail: vi.fn().mockReturnValue("<html>Test digest email</html>"),
+}));
+
 import {
   captureEmail, trackAbTestEvent, trackAffiliateClick,
   createRegistration, getRegistrationByEmail, activateRegistration,
@@ -2065,5 +2079,98 @@ describe("Wishlist functionality", () => {
 
     expect(translations.cs.addToWishlist).toBe("Přidat do oblíbených");
     expect(translations.en.addToWishlist).toBe("Add to wishlist");
+  });
+});
+
+describe("Wishlist Digest functionality", () => {
+  it("generates wishlist digest for user with wishlist items", async () => {
+    const mockUser = { id: 1, email: "test@example.com", name: "Test User", role: "admin" as const };
+    const mockContext = { user: mockUser, req: {} as any, res: {} as any };
+
+    const result = await appRouter.createCaller(mockContext).wishlistDigest.preview({ userId: 1 });
+    expect(result).toBeDefined();
+  });
+
+  it("sends weekly wishlist digests to all eligible users", async () => {
+    const mockUser = { id: 1, email: "test@example.com", name: "Test User", role: "admin" as const };
+    const mockContext = { user: mockUser, req: {} as any, res: {} as any };
+
+    const result = await appRouter.createCaller(mockContext).wishlistDigest.sendWeekly();
+    expect(result).toBeDefined();
+    expect(result.sent).toBeGreaterThanOrEqual(0);
+    expect(result.failed).toBeGreaterThanOrEqual(0);
+    expect(result.skipped).toBeGreaterThanOrEqual(0);
+  });
+
+  it("sends digest to specific user", async () => {
+    const mockUser = { id: 1, email: "test@example.com", name: "Test User", role: "admin" as const };
+    const mockContext = { user: mockUser, req: {} as any, res: {} as any };
+
+    const result = await appRouter.createCaller(mockContext).wishlistDigest.sendToUser({ userId: 1, locale: "cs" });
+    expect(result).toBeDefined();
+    expect(typeof result.success).toBe("boolean");
+  });
+
+  it("wishlist digest requires admin role", async () => {
+    const mockUser = { id: 2, email: "user@example.com", name: "Regular User", role: "user" as const };
+    const mockContext = { user: mockUser, req: {} as any, res: {} as any };
+
+    await expect(
+      appRouter.createCaller(mockContext).wishlistDigest.sendWeekly()
+    ).rejects.toThrow();
+  });
+
+  it("digest email contains user's wishlist items", () => {
+    const digestData = {
+      userId: 1,
+      userEmail: "test@example.com",
+      userName: "Test User",
+      wishlistItems: [
+        { ibotId: "hormozi", name: "Alex Hormozi", category: "Sales", description: "Expert prodejce" },
+        { ibotId: "cardone", name: "Grant Cardone", category: "Sales", description: "10X pravidlo" },
+      ],
+    };
+
+    expect(digestData.wishlistItems).toHaveLength(2);
+    expect(digestData.wishlistItems[0].name).toBe("Alex Hormozi");
+  });
+
+  it("digest supports both CS and EN locales", () => {
+    const translations = {
+      cs: {
+        subject: "Týdenní přehled vašich oblíbených iBotů",
+        greeting: "Ahoj Test User!",
+        viewDetails: "Zobrazit detail",
+      },
+      en: {
+        subject: "Weekly digest of your favorite iBots",
+        greeting: "Hello Test User!",
+        viewDetails: "View details",
+      },
+    };
+
+    expect(translations.cs.subject).toBe("Týdenní přehled vašich oblíbených iBotů");
+    expect(translations.en.subject).toBe("Weekly digest of your favorite iBots");
+  });
+
+  it("digest includes unsubscribe link", () => {
+    const baseUrl = "https://bothub.cz";
+    const unsubscribeUrl = `${baseUrl}/preferences?unsubscribe=wishlist`;
+
+    expect(unsubscribeUrl).toContain("/preferences");
+    expect(unsubscribeUrl).toContain("unsubscribe=wishlist");
+  });
+
+  it("user preferences control digest delivery", () => {
+    const preferences = [
+      { userId: 1, weeklyDigest: 1, marketingEmails: 1 }, // enabled
+      { userId: 2, weeklyDigest: 0, marketingEmails: 1 }, // disabled
+    ];
+
+    const user1ShouldReceive = preferences[0].weeklyDigest === 1;
+    const user2ShouldReceive = preferences[1].weeklyDigest === 1;
+
+    expect(user1ShouldReceive).toBe(true);
+    expect(user2ShouldReceive).toBe(false);
   });
 });

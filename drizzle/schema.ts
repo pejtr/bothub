@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, decimal } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, decimal, tinyint } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -188,3 +188,20 @@ export const userWishlist = mysqlTable("user_wishlist", {
 
 export type UserWishlistItem = typeof userWishlist.$inferSelect;
 export type InsertUserWishlistItem = typeof userWishlist.$inferInsert;
+
+/**
+ * User preferences for email notifications and other settings.
+ */
+export const userPreferences = mysqlTable("user_preferences", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  /** Enable/disable weekly wishlist digest emails (0=disabled, 1=enabled) */
+  weeklyDigest: int("weeklyDigest").default(1).notNull(),
+  /** Enable/disable marketing emails (0=disabled, 1=enabled) */
+  marketingEmails: int("marketingEmails").default(1).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type UserPreferences = typeof userPreferences.$inferSelect;
+export type InsertUserPreferences = typeof userPreferences.$inferInsert;

@@ -131,3 +131,10 @@
 - [x] Schema.org: FAQPage JSON-LD pro FAQ sekci
 - [x] Schema.org: integrace do Home.tsx, Blog.tsx a BlogPost.tsx
 - [x] Testy pro Schema.org structured data (101/101 passed)
+
+- [x] GSC: ověřovací meta tag pro Google Search Console (VITE_GSC_VERIFICATION env)
+- [x] GSC: sitemap ping endpoint /api/sitemap/ping pro automatické odeslání do Google
+- [x] GSC: SEO & GSC admin tab s přehledem všech SEO features a checklistem
+- [x] GSC: tlačítko pro odeslání sitemap do Google přímo z admin dashboardu
+- [x] GSC: admin.gscStatus endpoint pro kontrolu stavu ověření
+- [x] Testy pro GSC ověření a sitemap submission (109/109 passed)

@@ -341,6 +341,16 @@ export const appRouter = router({
         recommendations,
       };
     }),
+
+    /** GSC verification status */
+    gscStatus: adminProcedure.query(async () => {
+      const code = process.env.VITE_GSC_VERIFICATION || "";
+      return {
+        isConfigured: !!code,
+        verificationCode: code ? `${code.substring(0, 8)}...` : null,
+        metaTag: code ? `<meta name="google-site-verification" content="${code}" />` : null,
+      };
+    }),
   }),
 
   // ===== STRIPE CHECKOUT =====

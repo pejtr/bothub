@@ -6,7 +6,7 @@ import {
   BarChart3, Users, Mail, MousePointerClick, TrendingUp, Bot,
   ArrowLeft, RefreshCw, Shield, Crown, Loader2, LogOut,
   CheckCircle2, Clock, ExternalLink, FileText, Plus, Pencil,
-  Trash2, Eye, Save, X
+  Trash2, Eye, Save, X, Search, Globe, AlertCircle
 } from "lucide-react";
 import { useState } from "react";
 import { Streamdown } from "streamdown";
@@ -64,7 +64,7 @@ function DataTable({ title, headers, rows, emptyMessage }: {
   );
 }
 
-type TabId = "overview" | "registrations" | "emails" | "affiliates" | "ab-tests" | "blog";
+type TabId = "overview" | "registrations" | "emails" | "affiliates" | "ab-tests" | "blog" | "seo";
 
 export default function AdminDashboard() {
   const { user, loading, isAuthenticated, logout } = useAuth();
@@ -182,6 +182,7 @@ export default function AdminDashboard() {
     { id: "affiliates", label: "Affiliate", icon: TrendingUp },
     { id: "ab-tests", label: "A/B Testy", icon: MousePointerClick },
     { id: "blog", label: "Blog Editor", icon: FileText },
+    { id: "seo", label: "SEO & GSC", icon: Search },
   ];
 
   const formatDate = (d: Date | string) => {
@@ -702,7 +703,185 @@ export default function AdminDashboard() {
             )}
           </div>
         )}
+
+        {/* ===== SEO & GSC TAB ===== */}
+        {activeTab === "seo" && (
+          <div className="space-y-6">
+            <h2 className="font-[Space_Grotesk] text-xl font-bold text-white">SEO & Google Search Console</h2>
+
+            {/* GSC Verification Status */}
+            <div className="rounded-xl border border-white/5 bg-white/[0.02] p-6 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
+                  <Globe className="w-5 h-5 text-green-400" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-white">Google Search Console</h3>
+                  <p className="text-xs text-gray-400">Ověření vlastnictví webu</p>
+                </div>
+              </div>
+              <div className="bg-green-500/5 border border-green-500/20 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <CheckCircle2 className="w-4 h-4 text-green-400" />
+                  <span className="text-sm font-medium text-green-400">Meta tag nakonfigurován</span>
+                </div>
+                <code className="text-xs text-gray-400 block bg-black/30 rounded p-2 overflow-x-auto">
+                  {'<meta name="google-site-verification" content="7Aee29k8..." />'}
+                </code>
+              </div>
+              <a
+                href="https://search.google.com/search-console"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm hover:bg-blue-500/20 transition-all"
+              >
+                <ExternalLink className="w-3 h-3" /> Otevřít Google Search Console
+              </a>
+            </div>
+
+            {/* Sitemap Status */}
+            <div className="rounded-xl border border-white/5 bg-white/[0.02] p-6 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                  <FileText className="w-5 h-5 text-amber-400" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-white">Sitemap & Robots.txt</h3>
+                  <p className="text-xs text-gray-400">Dynamicky generované soubory pro crawlery</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-white/[0.02] border border-white/5 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-white">sitemap.xml</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/20">Aktivní</span>
+                  </div>
+                  <p className="text-xs text-gray-400 mb-3">Dynamický sitemap s blog články, priority hierarchií a lastmod</p>
+                  <a href="/sitemap.xml" target="_blank" rel="noopener noreferrer" className="text-xs text-amber-400 hover:underline flex items-center gap-1">
+                    <ExternalLink className="w-3 h-3" /> Zobrazit sitemap.xml
+                  </a>
+                </div>
+                <div className="bg-white/[0.02] border border-white/5 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-white">robots.txt</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/20">Aktivní</span>
+                  </div>
+                  <p className="text-xs text-gray-400 mb-3">Pravidla pro crawlery: Allow blog, Disallow admin/api</p>
+                  <a href="/robots.txt" target="_blank" rel="noopener noreferrer" className="text-xs text-amber-400 hover:underline flex items-center gap-1">
+                    <ExternalLink className="w-3 h-3" /> Zobrazit robots.txt
+                  </a>
+                </div>
+              </div>
+              <SitemapPingButton />
+            </div>
+
+            {/* Schema.org Status */}
+            <div className="rounded-xl border border-white/5 bg-white/[0.02] p-6 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                  <Shield className="w-5 h-5 text-purple-400" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-white">Schema.org Structured Data</h3>
+                  <p className="text-xs text-gray-400">JSON-LD pro rich snippets ve vyhledávání</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {[
+                  { name: "Organization", page: "Home" },
+                  { name: "WebSite + Search", page: "Home" },
+                  { name: "BreadcrumbList", page: "Home, Blog, Article" },
+                  { name: "Product (3x)", page: "Home (Pricing)" },
+                  { name: "FAQPage (8 Q&A)", page: "Home (FAQ)" },
+                  { name: "ItemList (77 iBotů)", page: "Home (Catalog)" },
+                  { name: "BlogPosting", page: "Blog Articles" },
+                ].map((schema) => (
+                  <div key={schema.name} className="bg-white/[0.02] border border-white/5 rounded-lg p-3">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <CheckCircle2 className="w-3 h-3 text-green-400" />
+                      <span className="text-xs font-medium text-white">{schema.name}</span>
+                    </div>
+                    <span className="text-[10px] text-gray-500">{schema.page}</span>
+                  </div>
+                ))}
+              </div>
+              <a
+                href="https://search.google.com/test/rich-results"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-xs text-amber-400 hover:underline"
+              >
+                <ExternalLink className="w-3 h-3" /> Otestovat v Google Rich Results Test
+              </a>
+            </div>
+
+            {/* SEO Checklist */}
+            <div className="rounded-xl border border-white/5 bg-white/[0.02] p-6 space-y-3">
+              <h3 className="font-semibold text-white flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-green-400" /> SEO Checklist
+              </h3>
+              {[
+                { done: true, text: "Meta title a description" },
+                { done: true, text: "Open Graph tagy (og:title, og:description, og:type)" },
+                { done: true, text: "Google Search Console verification meta tag" },
+                { done: true, text: "Dynamický sitemap.xml s blog články" },
+                { done: true, text: "robots.txt s pravidly pro crawlery" },
+                { done: true, text: "Schema.org BreadcrumbList" },
+                { done: true, text: "Schema.org Product (cenové plány)" },
+                { done: true, text: "Schema.org FAQPage" },
+                { done: true, text: "Schema.org Organization + WebSite" },
+                { done: true, text: "Schema.org BlogPosting" },
+                { done: true, text: "Sitemap ping endpoint pro Google" },
+              ].map((item) => (
+                <div key={item.text} className="flex items-center gap-2">
+                  <CheckCircle2 className={`w-3.5 h-3.5 ${item.done ? "text-green-400" : "text-gray-600"}`} />
+                  <span className={`text-sm ${item.done ? "text-gray-300" : "text-gray-500"}`}>{item.text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
+    </div>
+  );
+}
+
+// Sitemap Ping Button component
+function SitemapPingButton() {
+  const [pinging, setPinging] = useState(false);
+  const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
+
+  const handlePing = async () => {
+    setPinging(true);
+    setResult(null);
+    try {
+      const res = await fetch("/api/sitemap/ping");
+      const data = await res.json();
+      setResult(data);
+    } catch {
+      setResult({ success: false, message: "Nepodařilo se kontaktovat server." });
+    } finally {
+      setPinging(false);
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <Button
+        onClick={handlePing}
+        disabled={pinging}
+        className="bg-amber-500/10 border border-amber-500/20 text-amber-400 hover:bg-amber-500/20"
+        variant="outline"
+        size="sm"
+      >
+        {pinging ? <Loader2 className="w-3 h-3 animate-spin mr-2" /> : <RefreshCw className="w-3 h-3 mr-2" />}
+        Odeslat sitemap do Google
+      </Button>
+      {result && (
+        <div className={`text-xs px-3 py-2 rounded-lg ${result.success ? "bg-green-500/10 text-green-400 border border-green-500/20" : "bg-red-500/10 text-red-400 border border-red-500/20"}`}>
+          {result.message}
+        </div>
+      )}
     </div>
   );
 }

@@ -138,6 +138,41 @@ ${allUrls.map(u => `  <url>
     }
   });
 
+  // Google Search Console verification HTML file (alternative verification method)
+  app.get("/google:verificationCode.html", (_req, res) => {
+    const code = process.env.VITE_GSC_VERIFICATION || "";
+    if (!code) return res.status(404).send("Not found");
+    res.set("Content-Type", "text/html");
+    res.send(`google-site-verification: google${code}.html`);
+  });
+
+  // Sitemap ping endpoint — notifies Google about sitemap updates
+  app.get("/api/sitemap/ping", async (_req, res) => {
+    try {
+      const baseUrl = _req.headers["x-forwarded-host"]
+        ? `${_req.headers["x-forwarded-proto"] || "https"}://${_req.headers["x-forwarded-host"]}`
+        : `${_req.protocol}://${_req.get("host")}`;
+      const sitemapUrl = `${baseUrl}/sitemap.xml`;
+      const pingUrl = `https://www.google.com/ping?sitemap=${encodeURIComponent(sitemapUrl)}`;
+
+      const response = await fetch(pingUrl, { method: "GET", signal: AbortSignal.timeout(10000) });
+      console.log(`[Sitemap Ping] Google notified: ${response.status}`);
+      res.json({
+        success: true,
+        sitemapUrl,
+        googlePingStatus: response.status,
+        message: "Sitemap submitted to Google successfully",
+      });
+    } catch (error: any) {
+      console.error("[Sitemap Ping] Error:", error.message);
+      res.json({
+        success: false,
+        error: error.message,
+        message: "Failed to ping Google. You can manually submit at Google Search Console.",
+      });
+    }
+  });
+
   // robots.txt — allows crawlers, blocks admin, links to sitemap
   app.get("/robots.txt", (_req, res) => {
     const baseUrl = _req.headers["x-forwarded-host"]

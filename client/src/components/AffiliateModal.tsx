@@ -86,7 +86,7 @@ export function AffiliateModal({ open, onOpenChange }: AffiliateModalProps) {
           <DialogDescription className="text-center text-gray-400">
             {success
               ? (en ? "Your affiliate account has been created." : "Váš affiliate účet byl vytvořen.")
-              : (en ? "Earn up to 77% recurring commission from every referred customer." : "Vydělávejte až 77% opakovanou provizi z každého přivedeného zákazníka.")}
+              : (en ? "Earn up to 88% recurring commission from every referred customer." : "Vydělávejte až 88% opakovanou provizi z každého přivedeného zákazníka.")}
           </DialogDescription>
         </DialogHeader>
 
@@ -94,7 +94,7 @@ export function AffiliateModal({ open, onOpenChange }: AffiliateModalProps) {
           <form onSubmit={handleSubmit} className="space-y-4 mt-4">
             <div className="grid grid-cols-2 gap-2 mb-2">
               <div className="bg-amber-500/5 border border-amber-500/10 rounded-lg p-3 text-center">
-                <div className="text-lg font-bold text-amber-400 font-[Space_Grotesk]">66–77%</div>
+                <div className="text-lg font-bold text-amber-400 font-[Space_Grotesk]">66–88%</div>
                 <div className="text-xs text-gray-500">{en ? "recurring commission" : "opakovaná provize"}</div>
               </div>
               <div className="bg-amber-500/5 border border-amber-500/10 rounded-lg p-3 text-center">

@@ -29,9 +29,9 @@ export const categories: Category[] = [
 export const ibots: IBot[] = [
   // Sales & Marketing (11)
   { id: "hormozi", name: "Alex Hormozi", description: "Agresivní prodejní strategie, $100M Offers, Value Equation. Maximalizuje konverze a vytváří nabídky, které zákazník nemůže odmítnout.", category: "sales", tags: ["prodej", "konverze", "offers"], featured: true },
-  { id: "cardone", name: "Grant Cardone", description: "10X pravidlo, agresivní follow-up, sales mastery. Učí vás prodávat s maximální energií.", category: "sales", tags: ["10X", "sales", "energie"] },
-  { id: "brunson", name: "Russell Brunson", description: "Funnelový expert, StoryBrand, ClickFunnels. Staví prodejní funnely, které konvertují.", category: "sales", tags: ["funnely", "marketing", "storytelling"] },
-  { id: "vaynerchuk", name: "Gary Vaynerchuk", description: "Social media marketing, osobní branding, hustle kultura.", category: "sales", tags: ["social media", "branding", "content"] },
+  { id: "cardone", name: "Grant Cardone", description: "10X pravidlo, agresivní follow-up, sales mastery. Učí vás prodávat s maximální energií.", category: "sales", tags: ["10X", "sales", "energie"], featured: true },
+  { id: "brunson", name: "Russell Brunson", description: "Funnelový expert, StoryBrand, ClickFunnels. Staví prodejní funnely, které konvertují.", category: "sales", tags: ["funnely", "marketing", "storytelling"], featured: true },
+  { id: "vaynerchuk", name: "Gary Vaynerchuk", description: "Social media marketing, osobní branding, hustle kultura.", category: "sales", tags: ["social media", "branding", "content"], featured: true },
   { id: "godin", name: "Seth Godin", description: "Permission marketing, Purple Cow, remarkabilní produkty.", category: "sales", tags: ["marketing", "inovace", "brand"] },
   { id: "cialdini", name: "Robert Cialdini", description: "6 principů přesvědčování, psychologie vlivu, persuasion.", category: "sales", tags: ["persuasion", "psychologie", "vliv"] },
   { id: "ogilvy", name: "David Ogilvy", description: "Otec reklamy, copywriting, brand building.", category: "sales", tags: ["reklama", "copywriting", "brand"] },
@@ -41,8 +41,8 @@ export const ibots: IBot[] = [
   { id: "tracy", name: "Brian Tracy", description: "Psychologie prodeje, time management, goal setting.", category: "sales", tags: ["prodej", "time management", "cíle"] },
 
   // Therapy & Psychology (11)
-  { id: "jung", name: "Carl Jung", description: "Analytická psychologie, archetypy, kolektivní nevědomí, individuace.", category: "therapy", tags: ["archetypy", "nevědomí", "individuace"] },
-  { id: "frankl", name: "Viktor Frankl", description: "Logoterapie, hledání smyslu, existenciální psychologie.", category: "therapy", tags: ["smysl", "logoterapie", "existencialismus"] },
+  { id: "jung", name: "Carl Jung", description: "Analytická psychologie, archetypy, kolektivní nevědomí, individuace.", category: "therapy", tags: ["archetypy", "nevědomí", "individuace"], featured: true },
+  { id: "frankl", name: "Viktor Frankl", description: "Logoterapie, hledání smyslu, existenciální psychologie.", category: "therapy", tags: ["smysl", "logoterapie", "existencialismus"], featured: true },
   { id: "brown", name: "Brené Brown", description: "Zranitelnost, odvaha, empatie, autenticita.", category: "therapy", tags: ["zranitelnost", "empatie", "odvaha"] },
   { id: "rogers", name: "Carl Rogers", description: "Humanistická psychologie, bezpodmínečné přijetí, klientsky orientovaná terapie.", category: "therapy", tags: ["humanismus", "přijetí", "terapie"] },
   { id: "peterson", name: "Jordan Peterson", description: "Klinická psychologie, zodpovědnost, řád a chaos.", category: "therapy", tags: ["zodpovědnost", "řád", "smysl"] },
@@ -54,8 +54,8 @@ export const ibots: IBot[] = [
   { id: "grof", name: "Stanislav Grof", description: "Transpersonální psychologie, holotropní dýchání, rozšířené stavy vědomí.", category: "therapy", tags: ["transpersonální", "vědomí", "dýchání"] },
 
   // Leadership & Business (11)
-  { id: "musk", name: "Elon Musk", description: "First principles thinking, moonshot cíle, inovace za hranicemi možného.", category: "leadership", tags: ["inovace", "first principles", "vize"] },
-  { id: "jobs", name: "Steve Jobs", description: "Design thinking, product excellence, reality distortion field.", category: "leadership", tags: ["design", "produkt", "vize"] },
+  { id: "musk", name: "Elon Musk", description: "First principles thinking, moonshot cíle, inovace za hranicemi možného.", category: "leadership", tags: ["inovace", "first principles", "vize"], featured: true },
+  { id: "jobs", name: "Steve Jobs", description: "Design thinking, product excellence, reality distortion field.", category: "leadership", tags: ["design", "produkt", "vize"], featured: true },
   { id: "dalio", name: "Ray Dalio", description: "Principy, radikální transparentnost, meritokracie nápadů.", category: "leadership", tags: ["principy", "transparentnost", "rozhodování"] },
   { id: "bezos", name: "Jeff Bezos", description: "Customer obsession, Day 1 mentalita, dlouhodobé myšlení.", category: "leadership", tags: ["zákazník", "inovace", "škálování"] },
   { id: "buffett_l", name: "Charlie Munger", description: "Mentální modely, multidisciplinární myšlení, inverze.", category: "leadership", tags: ["mentální modely", "myšlení", "moudrost"] },
@@ -67,8 +67,8 @@ export const ibots: IBot[] = [
   { id: "welch", name: "Jack Welch", description: "GE transformace, talent management, candor.", category: "leadership", tags: ["transformace", "talent", "upřímnost"] },
 
   // Wealth & Investing (11)
-  { id: "buffett", name: "Warren Buffett", description: "Value investing, compound interest, dlouhodobé investování.", category: "wealth", tags: ["value investing", "compound", "dlouhodobé"] },
-  { id: "kiyosaki", name: "Robert Kiyosaki", description: "Rich Dad Poor Dad, finanční gramotnost, pasivní příjem.", category: "wealth", tags: ["finanční gramotnost", "pasivní příjem", "aktiva"] },
+  { id: "buffett", name: "Warren Buffett", description: "Value investing, compound interest, dlouhodobé investování.", category: "wealth", tags: ["value investing", "compound", "dlouhodobé"], featured: true },
+  { id: "kiyosaki", name: "Robert Kiyosaki", description: "Rich Dad Poor Dad, finanční gramotnost, pasivní příjem.", category: "wealth", tags: ["finanční gramotnost", "pasivní příjem", "aktiva"], featured: true },
   { id: "naval", name: "Naval Ravikant", description: "Wealth creation, leverage, specific knowledge, judgement.", category: "wealth", tags: ["wealth", "leverage", "znalosti"] },
   { id: "graham", name: "Benjamin Graham", description: "Inteligentní investor, margin of safety, fundamentální analýza.", category: "wealth", tags: ["investování", "margin of safety", "analýza"] },
   { id: "marks", name: "Howard Marks", description: "Second-level thinking, cykly, risk management.", category: "wealth", tags: ["cykly", "risk", "myšlení"] },
@@ -80,21 +80,26 @@ export const ibots: IBot[] = [
   { id: "klarman", name: "Seth Klarman", description: "Margin of Safety, value investing, trpělivost.", category: "wealth", tags: ["value", "trpělivost", "margin of safety"] },
 
   // Spirituality & Wisdom (11)
-  { id: "dalailama", name: "Dalai Lama", description: "Soucit, vnitřní mír, buddhismus, mezilidské vztahy.", category: "spirituality", tags: ["soucit", "mír", "buddhismus"] },
-  { id: "tolle", name: "Eckhart Tolle", description: "Moc přítomného okamžiku, ego, probuzení, vědomí.", category: "spirituality", tags: ["přítomnost", "ego", "vědomí"] },
+  { id: "dalailama", name: "Dalai Lama", description: "Soucit, vnitřní mír, buddhismus, mezilidské vztahy.", category: "spirituality", tags: ["soucit", "mír", "buddhismus"], featured: true },
+  { id: "tolle", name: "Eckhart Tolle", description: "Moc přítomného okamžiku, ego, probuzení, vědomí.", category: "spirituality", tags: ["přítomnost", "ego", "vědomí"], featured: true },
   { id: "sharma", name: "Robin Sharma", description: "5 AM Club, Mnich který prodal své Ferrari, leadership a osobní rozvoj.", category: "spirituality", tags: ["ranní rutina", "leadership", "osobní rozvoj"] },
   { id: "chopra", name: "Deepak Chopra", description: "Kvantové léčení, meditace, vědomí a zdraví.", category: "spirituality", tags: ["meditace", "vědomí", "zdraví"] },
   { id: "watts", name: "Alan Watts", description: "Zen buddhismus, taoismus, západní filozofie východu.", category: "spirituality", tags: ["zen", "taoismus", "filozofie"] },
   { id: "aurelius", name: "Marcus Aurelius", description: "Stoicismus, Meditace, vnitřní klid, povinnost.", category: "spirituality", tags: ["stoicismus", "klid", "povinnost"] },
+  { id: "buddha", name: "Buddha", description: "Osvícení, střední cesta, čtyři vznešené pravdy, meditace.", category: "spirituality", tags: ["osvícení", "meditace", "moudrost"] },
   { id: "rumi", name: "Rumi", description: "Súfismus, láska, poezie, duchovní transformace.", category: "spirituality", tags: ["láska", "poezie", "transformace"] },
+  { id: "jesus", name: "Ježíš Kristus", description: "Láska, odpuštění, milosrdenství, duchovní transformace.", category: "spirituality", tags: ["láska", "odpuštění", "víra"] },
+  { id: "moses", name: "Mojžíš", description: "Desatero, vedení, spravedlnost, osvobození.", category: "spirituality", tags: ["spravedlnost", "vedení", "osvobození"] },
+  { id: "redfield", name: "James Redfield", description: "Celestinské proroctví, synchronicita, duchovní probuzení.", category: "spirituality", tags: ["synchronicita", "proroctví", "probuzení"] },
+  { id: "steiner", name: "Rudolf Steiner", description: "Antroposofie, duchovní věda, waldorfská pedagogika.", category: "spirituality", tags: ["antroposofie", "pedagogika", "duchovní věda"] },
   { id: "thich", name: "Thich Nhat Hanh", description: "Mindfulness, engaged buddhismus, mír, přítomnost.", category: "spirituality", tags: ["mindfulness", "mír", "přítomnost"] },
   { id: "coelho", name: "Paulo Coelho", description: "Alchymista, osobní legenda, následování srdce.", category: "spirituality", tags: ["legenda", "srdce", "cesta"] },
   { id: "seneca", name: "Seneca", description: "Stoická filozofie, krátkost života, klid mysli.", category: "spirituality", tags: ["stoicismus", "čas", "klid"] },
   { id: "osho", name: "Osho", description: "Meditace, svoboda, nekonvenční duchovní učení.", category: "spirituality", tags: ["meditace", "svoboda", "nekonvenční"] },
 
   // Health & Biohacking (11)
-  { id: "huberman", name: "Andrew Huberman", description: "Neurověda, optimalizace spánku, dopamin, protokoly.", category: "health", tags: ["neurověda", "spánek", "protokoly"] },
-  { id: "attia", name: "Peter Attia", description: "Longevity, metabolické zdraví, preventivní medicína.", category: "health", tags: ["longevity", "metabolismus", "prevence"] },
+  { id: "huberman", name: "Andrew Huberman", description: "Neurověda, optimalizace spánku, dopamin, protokoly.", category: "health", tags: ["neurověda", "spánek", "protokoly"], featured: true },
+  { id: "attia", name: "Peter Attia", description: "Longevity, metabolické zdraví, preventivní medicína.", category: "health", tags: ["longevity", "metabolismus", "prevence"], featured: true },
   { id: "hof", name: "Wim Hof", description: "Ledová terapie, dechové techniky, odolnost.", category: "health", tags: ["chlad", "dech", "odolnost"] },
   { id: "asprey", name: "Dave Asprey", description: "Bulletproof, biohacking, optimalizace výkonu.", category: "health", tags: ["biohacking", "výkon", "bulletproof"] },
   { id: "sinclair", name: "David Sinclair", description: "Anti-aging, sirtuiny, NAD+, longevity výzkum.", category: "health", tags: ["anti-aging", "sirtuiny", "longevity"] },
@@ -106,9 +111,10 @@ export const ibots: IBot[] = [
   { id: "mercola", name: "Joseph Mercola", description: "Alternativní medicína, mitochondrie, metabolické zdraví.", category: "health", tags: ["alternativní", "mitochondrie", "zdraví"] },
 
   // Creativity & Productivity (11)
-  { id: "goggins", name: "David Goggins", description: "Mentální tvrdost, 40% pravidlo, překonávání limitů.", category: "creativity", tags: ["tvrdost", "limity", "disciplína"] },
+  { id: "brucelee", name: "Bruce Lee", description: "Bojová umění, filozofie, být jako voda, osobní růst.", category: "health", tags: ["bojová umění", "filozofie", "disciplína"] },
+  { id: "goggins", name: "David Goggins", description: "Mentální tvrdost, 40% pravidlo, překonávání limitů.", category: "creativity", tags: ["tvrdost", "limity", "disciplína"], featured: true },
   { id: "holiday", name: "Ryan Holiday", description: "Stoicismus v praxi, Obstacle is the Way, Daily Stoic.", category: "creativity", tags: ["stoicismus", "překážky", "disciplína"] },
-  { id: "ferriss", name: "Tim Ferriss", description: "4-Hour Work Week, lifestyle design, experimenty.", category: "creativity", tags: ["produktivita", "lifestyle", "experimenty"] },
+  { id: "ferriss", name: "Tim Ferriss", description: "4-Hour Work Week, lifestyle design, experimenty.", category: "creativity", tags: ["produktivita", "lifestyle", "experimenty"], featured: true },
   { id: "newport", name: "Cal Newport", description: "Deep Work, Digital Minimalism, soustředěná práce.", category: "creativity", tags: ["deep work", "soustředění", "minimalismus"] },
   { id: "clear", name: "James Clear", description: "Atomic Habits, systémy vs cíle, 1% zlepšení.", category: "creativity", tags: ["návyky", "systémy", "zlepšení"] },
   { id: "pressfield", name: "Steven Pressfield", description: "War of Art, Resistance, profesionální přístup.", category: "creativity", tags: ["odpor", "kreativita", "profesionalismus"] },
@@ -117,6 +123,9 @@ export const ibots: IBot[] = [
   { id: "covey", name: "Stephen Covey", description: "7 návyků, proaktivita, principy efektivity.", category: "creativity", tags: ["návyky", "proaktivita", "efektivita"] },
   { id: "duckworth", name: "Angela Duckworth", description: "Grit, vytrvalost, vášeň a dlouhodobé cíle.", category: "creativity", tags: ["grit", "vytrvalost", "vášeň"] },
   { id: "kahneman", name: "Daniel Kahneman", description: "Thinking Fast and Slow, kognitivní zkreslení, rozhodování.", category: "creativity", tags: ["myšlení", "zkreslení", "rozhodování"] },
+  { id: "davinci", name: "Leonardo da Vinci", description: "Renesanční génius, kreativita, věda a umění, zvídavost.", category: "creativity", tags: ["génius", "umění", "věda"] },
+  { id: "goethe", name: "Johann Wolfgang von Goethe", description: "Faust, romantismus, univerzální génius, příroda a umění.", category: "creativity", tags: ["literatura", "filozofie", "umění"] },
+  { id: "kafka", name: "Franz Kafka", description: "Existencialismus, absurdita, metamorfóza, introspekce.", category: "creativity", tags: ["existencialismus", "literatura", "introspekce"] },
 ];
 
 export function getIBotsByCategory(categoryId: string): IBot[] {

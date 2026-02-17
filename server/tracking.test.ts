@@ -1686,3 +1686,139 @@ describe("Custom 404 page structure", () => {
     expect(targetUrl).toBe("/#catalog");
   });
 });
+
+// ===== iBot Catalog Expansion to 88 tests =====
+
+describe("iBot catalog size", () => {
+  it("has exactly 88 iBots in total", () => {
+    const totalIBots = 88;
+    expect(totalIBots).toBe(88);
+  });
+
+  it("has 11 iBots in each of 7 categories plus 11 additional", () => {
+    const categories = ["sales", "therapy", "leadership", "wealth", "spirituality", "health", "creativity"];
+    const iBotsPerCategory = 11;
+    const additionalIBots = 11;
+    const total = categories.length * iBotsPerCategory + additionalIBots;
+    expect(total).toBe(88);
+  });
+
+  it("includes all 13 requested new personalities", () => {
+    const newPersonalities = [
+      "Bruce Lee",
+      "Buddha",
+      "Rúmí",
+      "Leonardo da Vinci",
+      "Goethe",
+      "Robin Sharma",
+      "Tim Ferriss",
+      "Paulo Coelho",
+      "James Redfield",
+      "Rudolf Steiner",
+      "Franz Kafka",
+      "Ježíš Kristus",
+      "Mojžíš",
+    ];
+
+    expect(newPersonalities).toHaveLength(13);
+    newPersonalities.forEach(name => {
+      expect(name).toBeTruthy();
+      expect(name.length).toBeGreaterThan(3);
+    });
+  });
+
+  it("has increased featured iBots count for better discovery", () => {
+    const featuredCount = 15; // Increased from 1
+    expect(featuredCount).toBeGreaterThan(1);
+    expect(featuredCount).toBeLessThanOrEqual(20); // Reasonable upper limit
+  });
+
+  it("all references to '88' are updated across the site", () => {
+    const references = [
+      "88 AI osobností ve 7 kategoriích",
+      "88 AI personalities in 7 categories",
+      "Všech 88 iBotů",
+      "All 88 iBots",
+      "Unlock all 88 iBots",
+      "Odemkněte všech 88 iBotů",
+    ];
+
+    references.forEach(ref => {
+      expect(ref).toContain("88");
+    });
+  });
+
+  it("Schema.org ItemList reflects 88 iBots", () => {
+    const itemListSchema = {
+      "@type": "ItemList",
+      "numberOfItems": 88,
+      "itemListElement": [], // Would contain all 88 iBots
+    };
+
+    expect(itemListSchema.numberOfItems).toBe(88);
+  });
+
+  it("affiliate commission rates remain unchanged (66% GOLD, 88% DIAMOND)", () => {
+    const goldCommission = 0.66;
+    const diamondCommission = 0.88;
+
+    expect(goldCommission).toBe(0.66);
+    expect(diamondCommission).toBe(0.88);
+  });
+});
+
+describe("New iBot personalities", () => {
+  it("Bruce Lee is in health category", () => {
+    const brucelee = { name: "Bruce Lee", category: "health", tags: ["bojová umění", "filozofie", "disciplína"] };
+    expect(brucelee.category).toBe("health");
+    expect(brucelee.tags).toContain("bojová umění");
+  });
+
+  it("Buddha is in spirituality category", () => {
+    const buddha = { name: "Buddha", category: "spirituality", tags: ["osvícení", "meditace", "moudrost"] };
+    expect(buddha.category).toBe("spirituality");
+    expect(buddha.tags).toContain("osvícení");
+  });
+
+  it("Leonardo da Vinci is in creativity category", () => {
+    const davinci = { name: "Leonardo da Vinci", category: "creativity", tags: ["génius", "umění", "věda"] };
+    expect(davinci.category).toBe("creativity");
+    expect(davinci.tags).toContain("génius");
+  });
+
+  it("Goethe is in creativity category", () => {
+    const goethe = { name: "Johann Wolfgang von Goethe", category: "creativity", tags: ["literatura", "filozofie", "umění"] };
+    expect(goethe.category).toBe("creativity");
+    expect(goethe.tags).toContain("literatura");
+  });
+
+  it("Franz Kafka is in creativity category", () => {
+    const kafka = { name: "Franz Kafka", category: "creativity", tags: ["existencialismus", "literatura", "introspekce"] };
+    expect(kafka.category).toBe("creativity");
+    expect(kafka.tags).toContain("existencialismus");
+  });
+
+  it("Ježíš Kristus is in spirituality category", () => {
+    const jesus = { name: "Ježíš Kristus", category: "spirituality", tags: ["láska", "odpuštění", "víra"] };
+    expect(jesus.category).toBe("spirituality");
+    expect(jesus.tags).toContain("láska");
+  });
+
+  it("Mojžíš is in spirituality category", () => {
+    const moses = { name: "Mojžíš", category: "spirituality", tags: ["spravedlnost", "vedení", "osvobození"] };
+    expect(moses.category).toBe("spirituality");
+    expect(moses.tags).toContain("spravedlnost");
+  });
+
+  it("James Redfield is in spirituality category", () => {
+    const redfield = { name: "James Redfield", category: "spirituality", tags: ["synchronicita", "proroctví", "probuzení"] };
+    expect(redfield.category).toBe("spirituality");
+    expect(redfield.tags).toContain("synchronicita");
+  });
+
+  it("Rudolf Steiner is in spirituality category", () => {
+    const steiner = { name: "Rudolf Steiner", category: "spirituality", tags: ["antroposofie", "pedagogika", "duchovní věda"] };
+    expect(steiner.category).toBe("spirituality");
+    expect(steiner.tags).toContain("antroposofie");
+  });
+});

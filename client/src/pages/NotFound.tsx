@@ -22,7 +22,7 @@ export default function NotFound() {
     {
       icon: Sparkles,
       label: locale === "cs" ? "Katalog iBotů" : "iBot Catalog",
-      desc: locale === "cs" ? "77 AI osobností ve 7 kategoriích" : "77 AI personalities in 7 categories",
+      desc: locale === "cs" ? "88 AI osobností ve 7 kategoriích" : "88 AI personalities in 7 categories",
       href: "/#catalog",
       color: "from-amber-500/20 to-amber-600/10 border-amber-500/20 hover:border-amber-500/40",
       iconColor: "text-amber-400",
@@ -46,7 +46,7 @@ export default function NotFound() {
     {
       icon: Users,
       label: locale === "cs" ? "Affiliate program" : "Affiliate Program",
-      desc: locale === "cs" ? "Až 77% provize z každého prodeje" : "Up to 77% commission per sale",
+      desc: locale === "cs" ? "Až 88% provize z každého prodeje" : "Up to 88% commission per sale",
       href: "/#affiliate",
       color: "from-green-500/20 to-green-600/10 border-green-500/20 hover:border-green-500/40",
       iconColor: "text-green-400",

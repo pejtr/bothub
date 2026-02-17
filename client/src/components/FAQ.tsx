@@ -32,8 +32,8 @@ export const faqItems: FAQItem[] = [
   {
     questionCs: "Jak funguje affiliate program?",
     questionEn: "How does the affiliate program work?",
-    answerCs: "Náš affiliate program nabízí až 77 % opakovaných provizí z každé platby vašich doporučených zákazníků. Získáte unikátní referral kód, marketingové materiály a přístup k affiliate dashboardu se statistikami v reálném čase. Provize se vyplácejí měsíčně. GOLD plán = 66 % provize, DIAMOND = 77 %.",
-    answerEn: "Our affiliate program offers up to 77% recurring commissions from every payment of your referred customers. You get a unique referral code, marketing materials, and access to an affiliate dashboard with real-time statistics. Commissions are paid monthly. GOLD plan = 66% commission, DIAMOND = 77%.",
+    answerCs: "Náš affiliate program nabízí až 88 % opakovaných provizí z každé platby vašich doporučených zákazníků. Získáte unikátní referral kód, marketingové materiály a přístup k affiliate dashboardu se statistikami v reálném čase. Provize se vyplácejí měsíčně. GOLD plán = 66 % provize, DIAMOND = 88 %.",
+    answerEn: "Our affiliate program offers up to 88% recurring commissions from every payment of your referred customers. You get a unique referral code, marketing materials, and access to an affiliate dashboard with real-time statistics. Commissions are paid monthly. GOLD plan = 66% commission, DIAMOND = 88%.",
   },
   {
     questionCs: "Mohu si iBota přizpůsobit vlastním potřebám?",

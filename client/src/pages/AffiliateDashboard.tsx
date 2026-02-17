@@ -101,8 +101,8 @@ export default function AffiliateDashboard() {
       titleEn: "Email Template",
       descCs: "Připravená e-mailová šablona pro oslovení potenciálních zákazníků",
       descEn: "Ready-made email template for reaching potential customers",
-      contentCs: `Předmět: AI chatbot, který prodává za vás — 327% ROI\n\nDobrý den,\n\nchtěl bych vám představit iBoty — AI chatboty s osobností, kteří prodávají za vás 24/7.\n\n✅ +42% konverze\n✅ 5minutové nasazení\n✅ 77 AI osobností na výběr\n\nVyzkoušejte zdarma: ${referralUrl}\n\nS pozdravem`,
-      contentEn: `Subject: AI chatbot that sells for you — 327% ROI\n\nHello,\n\nI'd like to introduce you to iBots — AI chatbots with personality that sell for you 24/7.\n\n✅ +42% conversions\n✅ 5-minute deployment\n✅ 77 AI personalities to choose from\n\nTry for free: ${referralUrl}\n\nBest regards`,
+      contentCs: `Předmět: AI chatbot, který prodává za vás — 327% ROI\n\nDobrý den,\n\nchtěl bych vám představit iBoty — AI chatboty s osobností, kteří prodávají za vás 24/7.\n\n✅ +42% konverze\n✅ 5minutové nasazení\n✅ 88 AI osobností na výběr\n\nVyzkoušejte zdarma: ${referralUrl}\n\nS pozdravem`,
+      contentEn: `Subject: AI chatbot that sells for you — 327% ROI\n\nHello,\n\nI'd like to introduce you to iBots — AI chatbots with personality that sell for you 24/7.\n\n✅ +42% conversions\n✅ 5-minute deployment\n✅ 88 AI personalities to choose from\n\nTry for free: ${referralUrl}\n\nBest regards`,
     },
     {
       icon: <Share2 className="w-5 h-5" />,
@@ -119,8 +119,8 @@ export default function AffiliateDashboard() {
       titleEn: "Web Banner Text",
       descCs: "Textový banner pro váš web nebo blog",
       descEn: "Text banner for your website or blog",
-      contentCs: `[DOPORUČUJI] AI chatboti, kteří prodávají za vás — 77 osobností, +327% ROI. Vyzkoušejte zdarma na ${referralUrl}`,
-      contentEn: `[RECOMMENDED] AI chatbots that sell for you — 77 personalities, +327% ROI. Try free at ${referralUrl}`,
+      contentCs: `[DOPORUČUJI] AI chatboti, kteří prodávají za vás — 88 osobností, +327% ROI. Vyzkoušejte zdarma na ${referralUrl}`,
+      contentEn: `[RECOMMENDED] AI chatbots that sell for you — 88 personalities, +327% ROI. Try free at ${referralUrl}`,
     },
   ];
 
@@ -240,9 +240,9 @@ export default function AffiliateDashboard() {
             </div>
             <div className="flex items-baseline gap-2 mb-2">
               <span className="text-4xl font-bold text-purple-400">{stats?.diamondReferrals ?? 0}</span>
-              <span className="text-gray-400">× 77% = {t ? `${(stats?.diamondReferrals ?? 0) * 1917} Kč/měs` : `$${(stats?.diamondReferrals ?? 0) * 76}/mo`}</span>
+              <span className="text-gray-400">× 88% = {t ? `${(stats?.diamondReferrals ?? 0) * 1917} Kč/měs` : `$${(stats?.diamondReferrals ?? 0) * 76}/mo`}</span>
             </div>
-            <p className="text-sm text-gray-500">{t ? "2 490 Kč × 77% = 1 917 Kč provize za každý DIAMOND plán" : "$99 × 77% = $76 commission per DIAMOND plan"}</p>
+            <p className="text-sm text-gray-500">{t ? "2 490 Kč × 88% = 1 917 Kč provize za každý DIAMOND plán" : "$99 × 88% = $76 commission per DIAMOND plan"}</p>
           </div>
         </div>
 

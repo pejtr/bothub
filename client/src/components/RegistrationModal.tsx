@@ -24,13 +24,13 @@ interface RegistrationModalProps {
 const planDetailsCs: Record<Plan, { name: string; price: string; color: string; icon: React.ReactNode; features: string[] }> = {
   free: { name: "FREE", price: "0 Kč", color: "text-gray-300", icon: <Bot className="w-5 h-5" />, features: ["3 iBoti", "100 konverzací/měsíc", "Základní analytics"] },
   gold: { name: "GOLD", price: "990 Kč/měsíc", color: "text-amber-400", icon: <Sparkles className="w-5 h-5 text-amber-400" />, features: ["Neomezení iBoti", "Neomezené konverzace", "66% affiliate provize", "API přístup"] },
-  diamond: { name: "DIAMOND", price: "2 490 Kč/měsíc", color: "text-purple-400", icon: <Crown className="w-5 h-5 text-purple-400" />, features: ["Vše z GOLD", "White-label", "Custom persony", "77% affiliate provize"] },
+  diamond: { name: "DIAMOND", price: "2 490 Kč/měsíc", color: "text-purple-400", icon: <Crown className="w-5 h-5 text-purple-400" />, features: ["Vše z GOLD", "White-label", "Custom persony", "88% affiliate provize"] },
 };
 
 const planDetailsEn: Record<Plan, { name: string; price: string; color: string; icon: React.ReactNode; features: string[] }> = {
   free: { name: "FREE", price: "$0", color: "text-gray-300", icon: <Bot className="w-5 h-5" />, features: ["3 iBots", "100 conversations/mo", "Basic analytics"] },
   gold: { name: "GOLD", price: "$39/month", color: "text-amber-400", icon: <Sparkles className="w-5 h-5 text-amber-400" />, features: ["Unlimited iBots", "Unlimited conversations", "66% affiliate commission", "API access"] },
-  diamond: { name: "DIAMOND", price: "$99/month", color: "text-purple-400", icon: <Crown className="w-5 h-5 text-purple-400" />, features: ["Everything in GOLD", "White-label", "Custom personas", "77% affiliate commission"] },
+  diamond: { name: "DIAMOND", price: "$99/month", color: "text-purple-400", icon: <Crown className="w-5 h-5 text-purple-400" />, features: ["Everything in GOLD", "White-label", "Custom personas", "88% affiliate commission"] },
 };
 
 export function RegistrationModal({ open, onOpenChange, initialPlan = "free", source = "hero_cta" }: RegistrationModalProps) {

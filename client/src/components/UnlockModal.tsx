@@ -71,7 +71,7 @@ export function UnlockModal({ open, onOpenChange, onUnlock }: UnlockModalProps) 
               </span>
             ) : (
               <span className="text-gradient-gold">
-                {locale === "en" ? "Unlock all 77 iBots" : "Odemkněte všech 77 iBotů"}
+                {locale === "en" ? "Unlock all 88 iBots" : "Odemkněte všech 88 iBotů"}
               </span>
             )}
           </DialogTitle>
@@ -87,7 +87,7 @@ export function UnlockModal({ open, onOpenChange, onUnlock }: UnlockModalProps) 
             <div className="space-y-3 my-4">
               <div className="flex items-center gap-3 text-sm">
                 <Sparkles className="w-5 h-5 text-amber-400 shrink-0" />
-                <span>{locale === "en" ? "Access to all 77 AI personalities in 7 categories" : "Přístup ke všem 77 AI osobnostem ve 7 kategoriích"}</span>
+                <span>{locale === "en" ? "Access to all 88 AI personalities in 7 categories" : "Přístup ke všem 88 AI osobnostem ve 7 kategoriích"}</span>
               </div>
               <div className="flex items-center gap-3 text-sm">
                 <Zap className="w-5 h-5 text-amber-400 shrink-0" />

@@ -50,7 +50,7 @@ iBoti nikdy nespí. **67 % online nákupů** probíhá mimo pracovní dobu. S iB
 ## Jak začít
 
 Nasazení iBota trvá pouhých **5 minut**:
-1. Vyberte si iBota z katalogu 77 osobností
+1. Vyberte si iBota z katalogu 88 osobností
 2. Přizpůsobte ho vašemu brandu
 3. Integrujte přes web widget, Telegram, Discord nebo API
 
@@ -71,8 +71,8 @@ AI chatboti s unikátními osobnostmi nejsou budoucnost — jsou přítomnost. F
     metaDescription: "Zjistěte, jak AI chatboti s unikátními osobnostmi zvyšují konverze o 42 %. Reálná data z 500+ firem, případové studie a praktické tipy pro nasazení.",
   },
   {
-    slug: "affiliate-marketing-s-ai-chatboty-77-procent-provize",
-    title: "Affiliate marketing s AI chatboty: Jak vydělávat 77 % provize",
+    slug: "affiliate-marketing-s-ai-chatboty-88-procent-provize",
+    title: "Affiliate marketing s AI chatboty: Jak vydělávat 88 % provize",
     excerpt: "Kompletní průvodce affiliate programem BOTHUB. Jak začít, kolik můžete vydělat a proč je to nejlepší příležitost v AI segmentu.",
     content: `## Proč affiliate marketing s AI chatboty?
 
@@ -84,10 +84,10 @@ BOTHUB nabízí jeden z **nejštědřejších affiliate programů** v AI segment
 
 ### Provizní struktura
 - **FREE plán**: 66 % provize z budoucích upgradů
-- **GOLD plán (990 Kč/měs)**: 77 % provize = **762 Kč měsíčně** za každého zákazníka
-- **DIAMOND plán (2 490 Kč/měs)**: 77 % provize = **1 917 Kč měsíčně** za každého zákazníka
+- **GOLD plán (990 Kč/měs)**: 88 % provize = **762 Kč měsíčně** za každého zákazníka
+- **DIAMOND plán (2 490 Kč/měs)**: 88 % provize = **1 917 Kč měsíčně** za každého zákazníka
 
-### Proč 77 %?
+### Proč 88 %?
 
 Vycházíme z Hormozi principu: **„Dej partnerům tak dobrou nabídku, že by byli blázni, kdyby odmítli."** Vysoká provize zajišťuje, že naši affiliate partneři jsou maximálně motivovaní a loajální.
 
@@ -96,8 +96,8 @@ Vycházíme z Hormozi principu: **„Dej partnerům tak dobrou nabídku, že by 
 Pojďme si spočítat konzervativní scénář:
 
 ### Scénář: 20 zákazníků za měsíc
-- 10× GOLD (990 Kč × 77 % = 762 Kč) = **7 620 Kč/měs**
-- 5× DIAMOND (2 490 Kč × 77 % = 1 917 Kč) = **9 585 Kč/měs**
+- 10× GOLD (990 Kč × 88 % = 762 Kč) = **7 620 Kč/měs**
+- 5× DIAMOND (2 490 Kč × 88 % = 1 917 Kč) = **9 585 Kč/měs**
 - 5× FREE (budoucí upgrady) = potenciální bonus
 
 **Celkem: 17 205 Kč měsíčně** — a to je konzervativní odhad.
@@ -138,16 +138,16 @@ Nechte potenciální zákazníky vyzkoušet iBota v akci. Live demo na BOTHUB.cz
     readTime: 7,
     category: "Affiliate",
     tags: ["affiliate", "provize", "pasivní příjem", "marketing"],
-    metaTitle: "Affiliate marketing s AI chatboty: 77 % provize | BOTHUB.cz",
-    metaDescription: "Kompletní průvodce affiliate programem BOTHUB. Vydělávejte až 77 % rekurentní provize z každého zákazníka. Začněte za 5 minut.",
+    metaTitle: "Affiliate marketing s AI chatboty: 88 % provize | BOTHUB.cz",
+    metaDescription: "Kompletní průvodce affiliate programem BOTHUB. Vydělávejte až 88 % rekurentní provize z každého zákazníka. Začněte za 5 minut.",
   },
   {
     slug: "7-kategorii-ai-chatbotu-ktery-je-pro-vas",
     title: "7 kategorií AI chatbotů: Který je pro vás ten pravý?",
-    excerpt: "Průvodce 77 iBoty ve 7 kategoriích. Od prodeje přes zákaznickou podporu až po osobní rozvoj — najděte svého ideálního AI asistenta.",
-    content: `## 77 iBotů, 7 kategorií, nekonečné možnosti
+    excerpt: "Průvodce 88 iBoty ve 7 kategoriích. Od prodeje přes zákaznickou podporu až po osobní rozvoj — najděte svého ideálního AI asistenta.",
+    content: `## 88 iBotů, 7 kategorií, nekonečné možnosti
 
-BOTHUB nabízí **77 unikátních AI osobností** — iBotů — rozdělených do 7 specializovaných kategorií. Každý iBot má svůj vlastní styl, odbornost a přístup. Pojďme se podívat na každou kategorii.
+BOTHUB nabízí **88 unikátních AI osobností** — iBotů — rozdělených do 7 specializovaných kategorií. Každý iBot má svůj vlastní styl, odbornost a přístup. Pojďme se podívat na každou kategorii.
 
 ## 1. Prodej & Marketing (15 iBotů)
 
@@ -221,11 +221,11 @@ Kombinujte **Business & Finance** iBoty pro strategii s **Zákaznická podpora**
 **Osobní rozvoj** a **Kreativita** iBoti vám pomohou být produktivnější a kreativnější.
 
 ### Pro agentury
-Využijte **affiliate program** a nabídněte iBoty svým klientům s 77% provizí.
+Využijte **affiliate program** a nabídněte iBoty svým klientům s 88% provizí.
 
 ## Začněte zdarma
 
-**FREE plán** vám dá přístup ke 3 iBotům zdarma. Vyzkoušejte je, a když uvidíte výsledky, upgradujte na GOLD (990 Kč/měs) nebo DIAMOND (2 490 Kč/měs) pro plný přístup ke všem 77 iBotům.
+**FREE plán** vám dá přístup ke 3 iBotům zdarma. Vyzkoušejte je, a když uvidíte výsledky, upgradujte na GOLD (990 Kč/měs) nebo DIAMOND (2 490 Kč/měs) pro plný přístup ke všem 88 iBotům.
 
 > „Správný iBot pro správný úkol — to je klíč k maximálnímu ROI." — BOTHUB tým`,
     author: "BOTHUB tým",
@@ -234,8 +234,8 @@ Využijte **affiliate program** a nabídněte iBoty svým klientům s 77% proviz
     readTime: 8,
     category: "Průvodce",
     tags: ["iBoti", "kategorie", "průvodce", "AI chatboti"],
-    metaTitle: "7 kategorií AI chatbotů: Průvodce 77 iBoty | BOTHUB.cz",
-    metaDescription: "Kompletní průvodce 77 AI chatboty ve 7 kategoriích. Od prodeje přes zákaznickou podporu až po osobní rozvoj. Najděte svého ideálního iBota.",
+    metaTitle: "7 kategorií AI chatbotů: Průvodce 88 iBoty | BOTHUB.cz",
+    metaDescription: "Kompletní průvodce 88 AI chatboty ve 7 kategoriích. Od prodeje přes zákaznickou podporu až po osobní rozvoj. Najděte svého ideálního iBota.",
   },
 ];
 

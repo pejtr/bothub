@@ -239,7 +239,7 @@ export default function UserDashboard() {
               <div className="rounded-xl border border-white/5 bg-white/[0.02] p-6 hover:border-amber-500/30 transition-all cursor-pointer group">
                 <Bot className="w-8 h-8 text-amber-400 mb-3 group-hover:scale-110 transition-transform" />
                 <h3 className="font-semibold text-white mb-1">{t ? "Katalog iBotů" : "iBot Catalog"}</h3>
-                <p className="text-sm text-gray-500">{t ? "Prohlédněte si 77 AI osobností" : "Browse 77 AI personalities"}</p>
+                <p className="text-sm text-gray-500">{t ? "Prohlédněte si 88 AI osobností" : "Browse 88 AI personalities"}</p>
               </div>
             </Link>
             <Link href="/#pricing">
@@ -253,7 +253,7 @@ export default function UserDashboard() {
               <div className="rounded-xl border border-white/5 bg-white/[0.02] p-6 hover:border-green-500/30 transition-all cursor-pointer group">
                 <Settings className="w-8 h-8 text-green-400 mb-3 group-hover:scale-110 transition-transform" />
                 <h3 className="font-semibold text-white mb-1">{t ? "Affiliate program" : "Affiliate Program"}</h3>
-                <p className="text-sm text-gray-500">{t ? "Vydělávejte až 77 % provizí" : "Earn up to 77% commissions"}</p>
+                <p className="text-sm text-gray-500">{t ? "Vydělávejte až 88 % provizí" : "Earn up to 88% commissions"}</p>
               </div>
             </Link>
           </div>

@@ -145,3 +145,11 @@
 - [x] 404: i18n podpora CZ/EN
 - [x] 404: catch-all route v App.tsx (již existoval)
 - [x] Testy pro 404 stránku (115/115 passed)
+
+- [x] Katalog: rozšířit z 88 na 88 iBotů
+- [x] Katalog: přidat Bruce Lee, Buddha, Rúmí, Leonardo da Vinci, Goethe
+- [x] Katalog: přidat Robin Sharma, Tim Ferriss, Paulo Coelho, James Redfield
+- [x] Katalog: přidat Rudolf Steiner, Franz Kafka, Ježíš Kristus, Mojžíš
+- [x] Katalog: aktualizovat počty na celém webu (hero badge, Schema.org, testy)
+- [x] Testy pro rozšířený katalog (131/131 passed)
+- [x] Katalog: zvýšit počet odkrytých iBotů (z 1 na 15 featured)

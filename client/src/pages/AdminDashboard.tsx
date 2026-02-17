@@ -793,7 +793,7 @@ export default function AdminDashboard() {
                   { name: "BreadcrumbList", page: "Home, Blog, Article" },
                   { name: "Product (3x)", page: "Home (Pricing)" },
                   { name: "FAQPage (8 Q&A)", page: "Home (FAQ)" },
-                  { name: "ItemList (77 iBotů)", page: "Home (Catalog)" },
+                  { name: "ItemList (88 iBotů)", page: "Home (Catalog)" },
                   { name: "BlogPosting", page: "Blog Articles" },
                 ].map((schema) => (
                   <div key={schema.name} className="bg-white/[0.02] border border-white/5 rounded-lg p-3">

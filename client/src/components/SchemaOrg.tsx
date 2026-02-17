@@ -17,7 +17,7 @@ export function OrganizationSchema() {
     url: baseUrl,
     logo: `${baseUrl}/logo.png`,
     description:
-      "BOTHUB.cz — platforma AI chatbotů (iBotů) pro automatizaci prodeje, zákaznické podpory a osobního rozvoje. 77 AI osobností ve 7 kategoriích.",
+      "BOTHUB.cz — platforma AI chatbotů (iBotů) pro automatizaci prodeje, zákaznické podpory a osobního rozvoje. 88 AI osobností ve 7 kategoriích.",
     foundingDate: "2024",
     contactPoint: {
       "@type": "ContactPoint",
@@ -47,7 +47,7 @@ export function WebSiteSchema() {
     name: "BOTHUB",
     url: baseUrl,
     description:
-      "AI chatboti, kteří prodávají za vás. 77 AI osobností ve 7 kategoriích.",
+      "AI chatboti, kteří prodávají za vás. 88 AI osobností ve 7 kategoriích.",
     inLanguage: ["cs", "en"],
     potentialAction: {
       "@type": "SearchAction",
@@ -193,7 +193,7 @@ export function IBotCatalogSchema() {
     "@context": "https://schema.org",
     "@type": "ItemList",
     name: "BOTHUB iBot Katalog",
-    description: "77 AI osobností ve 7 kategoriích pro automatizaci prodeje a osobního rozvoje",
+    description: "88 AI osobností ve 7 kategoriích pro automatizaci prodeje a osobního rozvoje",
     numberOfItems: ibots.length,
     url: `${baseUrl}/#catalog`,
     itemListElement: categories.map((cat, catIndex) => ({

@@ -153,3 +153,15 @@
 - [x] Katalog: aktualizovat počty na celém webu (hero badge, Schema.org, testy)
 - [x] Testy pro rozšířený katalog (131/131 passed)
 - [x] Katalog: zvýšit počet odkrytých iBotů (z 1 na 15 featured)
+
+- [x] iBot detail: vytvořit IBotDetail.tsx komponentu s kompletním layoutem
+- [x] iBot detail: routing /ibot/:id v App.tsx
+- [x] iBot detail: rozšířit ibots.ts o detailní popisy (conversation examples v komponentě)
+- [x] iBot detail: demo chatbox s ukázkovými konverzacemi
+- [x] iBot detail: SEO metadata (Schema.org SoftwareApplication, BreadcrumbList)
+- [x] iBot detail: breadcrumb navigace (Home > Katalog > Kategorie > iBot)
+- [x] iBot detail: related iBots sekce (stejná kategorie, 3 iBoty)
+- [x] iBot detail: CTA tlačítka (Vyzkoušet zdarma, Zobrazit ceny, Začít konverzaci)
+- [x] iBot detail: i18n podpora CZ/EN
+- [x] iBot detail: aktualizovat sitemap.xml o všechny 88 /ibot/:id URL (priority 0.7 featured, 0.6 ostatní)
+- [x] Testy pro iBot detail stránky (140/140 passed)

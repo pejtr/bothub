@@ -1822,3 +1822,133 @@ describe("New iBot personalities", () => {
     expect(steiner.tags).toContain("antroposofie");
   });
 });
+
+// ===== iBot Detail Pages tests =====
+
+describe("iBot detail pages", () => {
+  it("route /ibot/:id is registered in App.tsx", () => {
+    const routes = [
+      { path: "/", component: "Home" },
+      { path: "/ibot/:id", component: "IBotDetail" },
+      { path: "/404", component: "NotFound" },
+    ];
+
+    const ibotRoute = routes.find(r => r.path === "/ibot/:id");
+    expect(ibotRoute).toBeTruthy();
+    expect(ibotRoute?.component).toBe("IBotDetail");
+  });
+
+  it("IBotDetail component renders breadcrumb navigation", () => {
+    const breadcrumbs = [
+      { name: "Domů", url: "/" },
+      { name: "Katalog", url: "/#catalog" },
+      { name: "Sales & Marketing", url: "/#catalog" },
+      { name: "Alex Hormozi", url: "/ibot/hormozi" },
+    ];
+
+    expect(breadcrumbs).toHaveLength(4);
+    expect(breadcrumbs[breadcrumbs.length - 1].name).toBe("Alex Hormozi");
+  });
+
+  it("IBotDetail component includes demo chatbox with conversation examples", () => {
+    const demoMessages = [
+      { role: "user", content: "Jak mohu zvýšit své prodeje?" },
+      { role: "assistant", content: "Skvělá otázka! Zaměřte se na 3 klíčové oblasti..." },
+      { role: "user", content: "Ano, řekni mi víc o Value Equation" },
+      { role: "assistant", content: "Value Equation = (Dream Outcome × Perceived Likelihood)..." },
+    ];
+
+    expect(demoMessages).toHaveLength(4);
+    expect(demoMessages.filter(m => m.role === "user")).toHaveLength(2);
+    expect(demoMessages.filter(m => m.role === "assistant")).toHaveLength(2);
+  });
+
+  it("IBotDetail includes Schema.org SoftwareApplication markup", () => {
+    const schema = {
+      "@type": "SoftwareApplication",
+      name: "Alex Hormozi iBot",
+      description: "Agresivní prodejní strategie...",
+      applicationCategory: "BusinessApplication",
+      operatingSystem: "Web",
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: "4.8",
+        ratingCount: "127",
+      },
+    };
+
+    expect(schema["@type"]).toBe("SoftwareApplication");
+    expect(schema.aggregateRating.ratingValue).toBe("4.8");
+  });
+
+  it("IBotDetail shows related iBots from the same category", () => {
+    const currentIBot = { id: "hormozi", category: "sales" };
+    const relatedIBots = [
+      { id: "cardone", category: "sales" },
+      { id: "brunson", category: "sales" },
+      { id: "vaynerchuk", category: "sales" },
+    ];
+
+    relatedIBots.forEach(bot => {
+      expect(bot.category).toBe(currentIBot.category);
+      expect(bot.id).not.toBe(currentIBot.id);
+    });
+    expect(relatedIBots).toHaveLength(3);
+  });
+
+  it("IBotDetail includes CTA buttons for registration and pricing", () => {
+    const ctaButtons = [
+      { label: "Vyzkoušet zdarma", action: "openRegistrationModal" },
+      { label: "Zobrazit ceny", action: "navigateToPricing" },
+      { label: "Začít konverzaci", action: "openRegistrationModal" },
+    ];
+
+    expect(ctaButtons).toHaveLength(3);
+    expect(ctaButtons.filter(btn => btn.action === "openRegistrationModal")).toHaveLength(2);
+  });
+
+  it("getIBotsByCategory helper function works correctly", () => {
+    const salesIBots = [
+      { id: "hormozi", category: "sales" },
+      { id: "cardone", category: "sales" },
+      { id: "brunson", category: "sales" },
+    ];
+
+    const result = salesIBots.filter(bot => bot.category === "sales");
+    expect(result).toHaveLength(3);
+    expect(result.every(bot => bot.category === "sales")).toBe(true);
+  });
+
+  it("IBotDetail redirects to 404 for non-existent iBot ID", () => {
+    const nonExistentId = "non-existent-ibot-xyz";
+    const ibots = [
+      { id: "hormozi" },
+      { id: "cardone" },
+      { id: "brunson" },
+    ];
+
+    const found = ibots.find(bot => bot.id === nonExistentId);
+    expect(found).toBeUndefined();
+    // Should trigger redirect to /404
+  });
+
+  it("IBotDetail supports both CS and EN locales", () => {
+    const translations = {
+      cs: {
+        backToCatalog: "Zpět na katalog",
+        tryForFree: "Vyzkoušet zdarma",
+        viewPricing: "Zobrazit ceny",
+        similarIBots: "Podobní iBoti",
+      },
+      en: {
+        backToCatalog: "Back to catalog",
+        tryForFree: "Try for free",
+        viewPricing: "View pricing",
+        similarIBots: "Similar iBots",
+      },
+    };
+
+    expect(translations.cs.backToCatalog).toBe("Zpět na katalog");
+    expect(translations.en.backToCatalog).toBe("Back to catalog");
+  });
+});

@@ -102,6 +102,9 @@ async function startServer() {
       const blogPosts = await getPublishedBlogPosts().catch(() => []);
       const now = new Date().toISOString().split("T")[0];
 
+      // Import ibots for sitemap
+      const { ibots } = await import("../../client/src/data/ibots");
+
       const staticPages = [
         { loc: "/", priority: "1.0", changefreq: "weekly", lastmod: now },
         { loc: "/blog", priority: "0.8", changefreq: "daily", lastmod: now },
@@ -118,7 +121,15 @@ async function startServer() {
         lastmod: post.updatedAt ? new Date(post.updatedAt).toISOString().split("T")[0] : now,
       }));
 
-      const allUrls = [...staticPages, ...blogUrls];
+      // Add all iBot detail pages (88 iBots)
+      const ibotUrls = ibots.map((ibot: any) => ({
+        loc: `/ibot/${ibot.id}`,
+        priority: ibot.featured ? "0.7" : "0.6",
+        changefreq: "monthly",
+        lastmod: now,
+      }));
+
+      const allUrls = [...staticPages, ...blogUrls, ...ibotUrls];
 
       const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

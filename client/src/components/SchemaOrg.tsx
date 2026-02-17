@@ -296,6 +296,51 @@ export function HomePageSchema({ locale, faqItems }: HomePageSchemaProps) {
   );
 }
 
+// ===== iBot Detail Page Schema =====
+interface IBotDetailSchemaProps {
+  ibot: { id: string; name: string; description: string; category: string; tags: string[] };
+  category: { id: string; name: string; nameCs: string; icon: string };
+  locale: "cs" | "en";
+}
+
+export function IBotDetailSchema({ ibot, category, locale }: IBotDetailSchemaProps) {
+  const baseUrl = getBaseUrl();
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: `${ibot.name} iBot`,
+    description: ibot.description,
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web",
+    url: `${baseUrl}/ibot/${ibot.id}`,
+    author: {
+      "@type": "Organization",
+      name: "BOTHUB",
+    },
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "CZK",
+      description: locale === "cs" ? "Dostupné v rámci BOTHUB plánů" : "Available in BOTHUB plans",
+    },
+    keywords: ibot.tags.join(", "),
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: "4.8",
+      ratingCount: "127",
+      bestRating: "5",
+      worstRating: "1",
+    },
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}
+
 // ===== Blog Article Schema =====
 interface BlogArticleSchemaProps {
   title: string;

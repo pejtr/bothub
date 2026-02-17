@@ -15,6 +15,7 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancel from "./pages/PaymentCancel";
 import UserDashboard from "./pages/UserDashboard";
 import AffiliateDashboard from "./pages/AffiliateDashboard";
+import IBotDetail from "./pages/IBotDetail";
 
 function Router() {
   return (
@@ -28,6 +29,7 @@ function Router() {
       <Route path={"/payment-cancel"} component={PaymentCancel} />
       <Route path={"/dashboard"} component={UserDashboard} />
       <Route path={"/affiliate-dashboard"} component={AffiliateDashboard} />
+      <Route path={"/ibot/:id"} component={IBotDetail} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

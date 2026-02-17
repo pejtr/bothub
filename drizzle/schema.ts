@@ -175,3 +175,16 @@ export const blogPosts = mysqlTable("blog_posts", {
 
 export type BlogPost = typeof blogPosts.$inferSelect;
 export type InsertBlogPost = typeof blogPosts.$inferInsert;
+
+/**
+ * User wishlist for saving favorite iBots.
+ */
+export const userWishlist = mysqlTable("user_wishlist", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  ibotId: varchar("ibotId", { length: 100 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type UserWishlistItem = typeof userWishlist.$inferSelect;
+export type InsertUserWishlistItem = typeof userWishlist.$inferInsert;

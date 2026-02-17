@@ -19,6 +19,8 @@ import {
   // Blog CRUD
   createBlogPost, updateBlogPost, deleteBlogPost,
   getBlogPostById, getBlogPostBySlug, getAllBlogPosts, getPublishedBlogPosts,
+  // Wishlist
+  addToWishlist, removeFromWishlist, getUserWishlist, isInWishlist, getWishlistCount,
 } from "./db";
 import { notifyOwner } from "./_core/notification";
 import { sendConfirmationEmail, sendPlanActivatedEmail, sendNewReferralEmail, sendAffiliateMilestoneEmail } from "./email";
@@ -591,6 +593,31 @@ Nikdy nepřiznávej že jsi jen demo. Chovej se jako plnohodnotný iBot.`,
       .query(async ({ input }) => {
         return getBlogPostBySlug(input.slug);
       }),
+  }),
+
+  wishlist: router({
+    add: protectedProcedure
+      .input(z.object({ ibotId: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        return addToWishlist(ctx.user.id, input.ibotId);
+      }),
+    remove: protectedProcedure
+      .input(z.object({ ibotId: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        await removeFromWishlist(ctx.user.id, input.ibotId);
+        return { success: true };
+      }),
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return getUserWishlist(ctx.user.id);
+    }),
+    isInWishlist: protectedProcedure
+      .input(z.object({ ibotId: z.string() }))
+      .query(async ({ ctx, input }) => {
+        return isInWishlist(ctx.user.id, input.ibotId);
+      }),
+    count: protectedProcedure.query(async ({ ctx }) => {
+      return getWishlistCount(ctx.user.id);
+    }),
   }),
 });
 

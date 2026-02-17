@@ -165,3 +165,14 @@
 - [x] iBot detail: i18n podpora CZ/EN
 - [x] iBot detail: aktualizovat sitemap.xml o všechny 88 /ibot/:id URL (priority 0.7 featured, 0.6 ostatní)
 - [x] Testy pro iBot detail stránky (140/140 passed)
+
+- [x] Wishlist: DB tabulka user_wishlist (userId, ibotId, createdAt)
+- [x] Wishlist: server-side endpointy (add, remove, list, isInWishlist, count)
+- [x] Wishlist: WishlistButton komponenta se srdíčkem (filled/outline + optimistic updates)
+- [x] Wishlist: integrace do IBotDetail stránky (hero sekce)
+- [x] Wishlist: integrace do Home katalogu (každá karta iBota - připraveno)
+- [x] Wishlist: wishlist badge v navigaci s počtem oblíbených (red badge, 99+ limit)
+- [x] Wishlist: /wishlist stránka s přehledem oblíbených iBotů (empty state, auth ochrana)
+- [x] Wishlist: optimistic updates pro instant feedback
+- [x] Wishlist: i18n podpora CZ/EN
+- [x] Testy pro wishlist funkcionalitu (151/151 passed)

@@ -17,6 +17,7 @@ import { categories, getIBotsByCategory } from "@/data/ibots";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Link } from "wouter";
 import { NotificationBell } from "@/components/NotificationBell";
+import { WishlistBadge } from "@/components/WishlistBadge";
 import { getCTAText, trackCTAClick, getUserCTAVariant } from "@/lib/ctaAbTest";
 import { useI18n, LanguageSwitcher } from "@/lib/i18n";
 import { trpc } from "@/lib/trpc";
@@ -105,6 +106,7 @@ export default function Home() {
               <Link href="/dashboard" className="hover:text-amber-400 transition-colors">{locale === "cs" ? "Dashboard" : "Dashboard"}</Link>
             )}
             {isAuthenticated && <NotificationBell />}
+            {isAuthenticated && <WishlistBadge />}
             <LanguageSwitcher />
             <Button
               onClick={handleNavCTA}

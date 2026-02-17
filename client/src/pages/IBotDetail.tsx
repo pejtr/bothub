@@ -6,6 +6,7 @@ import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { IBotDetailSchema, BreadcrumbSchema } from "../components/SchemaOrg";
+import { WishlistButton } from "../components/WishlistButton";
 import { ArrowLeft, MessageCircle, Sparkles, Crown, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -137,6 +138,7 @@ export default function IBotDetail() {
                 <MessageCircle className="w-5 h-5" />
                 {locale === "cs" ? "Zobrazit ceny" : "View pricing"}
               </Button>
+              <WishlistButton ibotId={ibot.id} ibotName={ibot.name} variant="icon" />
             </div>
           </motion.div>
 

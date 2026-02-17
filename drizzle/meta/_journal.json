@@ -36,6 +36,13 @@
       "when": 1770519563560,
       "tag": "0004_curly_sentinels",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1771319110987,
+      "tag": "0005_powerful_chat",
+      "breakpoints": true
     }
   ]
 }

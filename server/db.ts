@@ -2,12 +2,12 @@ import { eq, sql, desc, and, isNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   InsertUser, users, emailCaptures, abTestResults, affiliateClicks,
-  registrations, affiliateRegistrations, userNotifications, blogPosts
+  registrations, affiliateRegistrations, userNotifications, blogPosts, userWishlist
 } from "../drizzle/schema";
 import type {
   InsertEmailCapture, InsertAbTestResult, InsertAffiliateClick,
   InsertRegistration, InsertAffiliateRegistration, InsertUserNotification,
-  InsertBlogPost
+  InsertBlogPost, InsertUserWishlistItem
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -470,4 +470,57 @@ export async function getRegistrationById(id: number) {
   const result = await db.select().from(registrations)
     .where(eq(registrations.id, id)).limit(1);
   return result[0];
+}
+
+
+// ===== Wishlist functions =====
+
+export async function addToWishlist(userId: number, ibotId: string) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  // Check if already in wishlist
+  const existing = await db.select().from(userWishlist).where(
+    and(eq(userWishlist.userId, userId), eq(userWishlist.ibotId, ibotId))
+  );
+  
+  if (existing.length > 0) return existing[0];
+  
+  const result = await db.insert(userWishlist).values({ userId, ibotId });
+  return { id: Number(result[0].insertId), userId, ibotId, createdAt: new Date() };
+}
+
+export async function removeFromWishlist(userId: number, ibotId: string) {
+  const db = await getDb();
+  if (!db) return false;
+  
+  await db.delete(userWishlist).where(
+    and(eq(userWishlist.userId, userId), eq(userWishlist.ibotId, ibotId))
+  );
+  return true;
+}
+
+export async function getUserWishlist(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db.select().from(userWishlist).where(eq(userWishlist.userId, userId)).orderBy(desc(userWishlist.createdAt));
+}
+
+export async function isInWishlist(userId: number, ibotId: string) {
+  const db = await getDb();
+  if (!db) return false;
+  
+  const result = await db.select().from(userWishlist).where(
+    and(eq(userWishlist.userId, userId), eq(userWishlist.ibotId, ibotId))
+  );
+  return result.length > 0;
+}
+
+export async function getWishlistCount(userId: number) {
+  const db = await getDb();
+  if (!db) return 0;
+  
+  const result = await db.select({ count: sql<number>`count(*)` }).from(userWishlist).where(eq(userWishlist.userId, userId));
+  return result[0]?.count || 0;
 }

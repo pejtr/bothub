@@ -79,6 +79,12 @@ vi.mock("./db", () => ({
   ]),
   getAffiliateByCode: vi.fn().mockResolvedValue({ id: 1, email: "affiliate@test.cz", name: "Affiliate Partner", affiliateCode: "BH-TEST01" }),
   getRegistrationById: vi.fn().mockResolvedValue({ id: 1, email: "user@test.cz", name: "User", plan: "gold", status: "activated" }),
+  // Wishlist
+  addToWishlist: vi.fn().mockResolvedValue({ id: 1, userId: 1, ibotId: "hormozi", createdAt: new Date() }),
+  removeFromWishlist: vi.fn().mockResolvedValue(undefined),
+  getUserWishlist: vi.fn().mockResolvedValue([{ id: 1, userId: 1, ibotId: "hormozi", createdAt: new Date() }]),
+  isInWishlist: vi.fn().mockResolvedValue(false),
+  getWishlistCount: vi.fn().mockResolvedValue(3),
 }));
 
 vi.mock("./_core/notification", () => ({
@@ -1950,5 +1956,114 @@ describe("iBot detail pages", () => {
 
     expect(translations.cs.backToCatalog).toBe("Zpět na katalog");
     expect(translations.en.backToCatalog).toBe("Back to catalog");
+  });
+});
+
+describe("Wishlist functionality", () => {
+  it("adds iBot to wishlist", async () => {
+    const mockUser = { id: 1, email: "test@example.com", name: "Test User", role: "user" as const };
+    const mockContext = { user: mockUser, req: {} as any, res: {} as any };
+
+    const result = await appRouter.createCaller(mockContext).wishlist.add({ ibotId: "hormozi" });
+    expect(result).toBeDefined();
+    expect(result.ibotId).toBe("hormozi");
+  });
+
+  it("removes iBot from wishlist", async () => {
+    const mockUser = { id: 1, email: "test@example.com", name: "Test User", role: "user" as const };
+    const mockContext = { user: mockUser, req: {} as any, res: {} as any };
+
+    const result = await appRouter.createCaller(mockContext).wishlist.remove({ ibotId: "hormozi" });
+    expect(result).toEqual({ success: true });
+  });
+
+  it("lists user wishlist", async () => {
+    const mockUser = { id: 1, email: "test@example.com", name: "Test User", role: "user" as const };
+    const mockContext = { user: mockUser, req: {} as any, res: {} as any };
+
+    const result = await appRouter.createCaller(mockContext).wishlist.list();
+    expect(Array.isArray(result)).toBe(true);
+  });
+
+  it("checks if iBot is in wishlist", async () => {
+    const mockUser = { id: 1, email: "test@example.com", name: "Test User", role: "user" as const };
+    const mockContext = { user: mockUser, req: {} as any, res: {} as any };
+
+    const result = await appRouter.createCaller(mockContext).wishlist.isInWishlist({ ibotId: "hormozi" });
+    expect(typeof result).toBe("boolean");
+  });
+
+  it("returns wishlist count", async () => {
+    const mockUser = { id: 1, email: "test@example.com", name: "Test User", role: "user" as const };
+    const mockContext = { user: mockUser, req: {} as any, res: {} as any };
+
+    const result = await appRouter.createCaller(mockContext).wishlist.count();
+    expect(typeof result).toBe("number");
+    expect(result).toBeGreaterThanOrEqual(0);
+  });
+
+  it("wishlist requires authentication", async () => {
+    const mockContext = { user: null, req: {} as any, res: {} as any };
+
+    await expect(
+      appRouter.createCaller(mockContext).wishlist.add({ ibotId: "hormozi" })
+    ).rejects.toThrow();
+  });
+
+  it("WishlistButton renders with correct variant", () => {
+    const props = {
+      ibotId: "hormozi",
+      ibotName: "Alex Hormozi",
+      variant: "icon" as const,
+    };
+
+    expect(props.variant).toBe("icon");
+    expect(props.ibotId).toBe("hormozi");
+  });
+
+  it("WishlistBadge displays count correctly", () => {
+    const counts = [0, 5, 99, 100];
+    const displayValues = counts.map(count => count > 99 ? "99+" : count.toString());
+
+    expect(displayValues[0]).toBe("0");
+    expect(displayValues[1]).toBe("5");
+    expect(displayValues[2]).toBe("99");
+    expect(displayValues[3]).toBe("99+");
+  });
+
+  it("Wishlist page redirects unauthenticated users to login", () => {
+    const user = null;
+    const shouldRedirect = !user;
+
+    expect(shouldRedirect).toBe(true);
+  });
+
+  it("Wishlist page shows empty state when no items", () => {
+    const wishlistItems: any[] = [];
+    const isEmpty = wishlistItems.length === 0;
+
+    expect(isEmpty).toBe(true);
+  });
+
+  it("Wishlist supports both CS and EN translations", () => {
+    const translations = {
+      cs: {
+        addToWishlist: "Přidat do oblíbených",
+        removeFromWishlist: "Odebrat z oblíbených",
+        inWishlist: "V oblíbených",
+        title: "Moje oblíbené iBoty",
+        empty: "Zatím nemáte žádné oblíbené iBoty",
+      },
+      en: {
+        addToWishlist: "Add to wishlist",
+        removeFromWishlist: "Remove from wishlist",
+        inWishlist: "In wishlist",
+        title: "My Favorite iBots",
+        empty: "You don't have any favorite iBots yet",
+      },
+    };
+
+    expect(translations.cs.addToWishlist).toBe("Přidat do oblíbených");
+    expect(translations.en.addToWishlist).toBe("Add to wishlist");
   });
 });

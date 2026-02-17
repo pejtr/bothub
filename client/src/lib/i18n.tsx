@@ -402,6 +402,19 @@ const translations: Record<Locale, TranslationDict> = {
     "video.subtitle": "Real demos of how AI chatbots sell, support customers, and generate revenue — automatically and non-stop.",
     "video.note": "Videos are simulations of real conversations with iBots. Actual results may vary.",
     "video.coming": "Video demo coming soon",
+
+    // Wishlist
+    "wishlist.addToWishlist": "Add to wishlist",
+    "wishlist.removeFromWishlist": "Remove from wishlist",
+    "wishlist.inWishlist": "In wishlist",
+    "wishlist.added": "{name} added to wishlist",
+    "wishlist.removed": "{name} removed from wishlist",
+    "wishlist.addError": "Failed to add to wishlist",
+    "wishlist.removeError": "Failed to remove from wishlist",
+    "wishlist.title": "My Favorite iBots",
+    "wishlist.empty": "You don't have any favorite iBots yet",
+    "wishlist.emptyDesc": "Start adding iBots to your wishlist by clicking the heart icon",
+    "wishlist.browseCatalog": "Browse catalog",
   },
 };
 

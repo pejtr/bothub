@@ -16,6 +16,7 @@ import PaymentCancel from "./pages/PaymentCancel";
 import UserDashboard from "./pages/UserDashboard";
 import AffiliateDashboard from "./pages/AffiliateDashboard";
 import IBotDetail from "./pages/IBotDetail";
+import Wishlist from "./pages/Wishlist";
 
 function Router() {
   return (
@@ -30,6 +31,7 @@ function Router() {
       <Route path={"/dashboard"} component={UserDashboard} />
       <Route path={"/affiliate-dashboard"} component={AffiliateDashboard} />
       <Route path={"/ibot/:id"} component={IBotDetail} />
+      <Route path={"/wishlist"} component={Wishlist} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

@@ -85,6 +85,9 @@ vi.mock("./db", () => ({
   getUserWishlist: vi.fn().mockResolvedValue([{ id: 1, userId: 1, ibotId: "hormozi", createdAt: new Date() }]),
   isInWishlist: vi.fn().mockResolvedValue(false),
   getWishlistCount: vi.fn().mockResolvedValue(3),
+  // Preferences
+  getUserPreferences: vi.fn().mockResolvedValue({ id: 1, userId: 1, weeklyDigest: 1, marketingEmails: 1, createdAt: new Date(), updatedAt: new Date() }),
+  updateUserPreferences: vi.fn().mockResolvedValue(true),
 }));
 
 vi.mock("./_core/notification", () => ({
@@ -2172,5 +2175,40 @@ describe("Wishlist Digest functionality", () => {
 
     expect(user1ShouldReceive).toBe(true);
     expect(user2ShouldReceive).toBe(false);
+  });
+});
+
+// ============================================================================
+// Preferences Tests
+// ============================================================================
+
+describe("preferences.get", () => {
+  it("should return user preferences", async () => {
+    const mockUser = { id: 1, email: "test@example.com", name: "Test User", role: "user" as const };
+    const caller = appRouter.createCaller(createUserContext());
+    const result = await caller.preferences.get();
+    expect(result).toBeDefined();
+    expect(result).toHaveProperty("weeklyDigest");
+    expect(result).toHaveProperty("marketingEmails");
+  });
+});
+
+describe("preferences.update", () => {
+  it("should update weekly digest preference", async () => {
+    const caller = appRouter.createCaller(createUserContext());
+    const result = await caller.preferences.update({ weeklyDigest: 0 });
+    expect(result).toEqual({ success: true });
+  });
+
+  it("should update marketing emails preference", async () => {
+    const caller = appRouter.createCaller(createUserContext());
+    const result = await caller.preferences.update({ marketingEmails: 0 });
+    expect(result).toEqual({ success: true });
+  });
+
+  it("should update both preferences at once", async () => {
+    const caller = appRouter.createCaller(createUserContext());
+    const result = await caller.preferences.update({ weeklyDigest: 1, marketingEmails: 1 });
+    expect(result).toEqual({ success: true });
   });
 });

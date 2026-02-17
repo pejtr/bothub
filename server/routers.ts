@@ -21,6 +21,8 @@ import {
   getBlogPostById, getBlogPostBySlug, getAllBlogPosts, getPublishedBlogPosts,
   // Wishlist
   addToWishlist, removeFromWishlist, getUserWishlist, isInWishlist, getWishlistCount,
+  // Preferences
+  getUserPreferences, updateUserPreferences
 } from "./db";
 import { notifyOwner } from "./_core/notification";
 import { sendConfirmationEmail, sendPlanActivatedEmail, sendNewReferralEmail, sendAffiliateMilestoneEmail } from "./email";
@@ -612,6 +614,21 @@ Nikdy nepřiznávej že jsi jen demo. Chovej se jako plnohodnotný iBot.`,
         const data = await generateUserWishlistDigest(input.userId);
         if (!data) return { success: false, error: "No digest data generated" };
         const success = await sendWishlistDigestEmail(data, input.locale);
+        return { success };
+      }),
+  }),
+
+  preferences: router({
+    get: protectedProcedure.query(async ({ ctx }) => {
+      return getUserPreferences(ctx.user.id);
+    }),
+    update: protectedProcedure
+      .input(z.object({
+        weeklyDigest: z.number().min(0).max(1).optional(),
+        marketingEmails: z.number().min(0).max(1).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const success = await updateUserPreferences(ctx.user.id, input);
         return { success };
       }),
   }),

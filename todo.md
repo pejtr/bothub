@@ -185,3 +185,14 @@
 - [x] Email digest: admin endpoint pro manuální spuštění digestu (sendWeekly, preview, sendToUser)
 - [x] Email digest: user preferences stránka pro zapnutí/vypnutí digestu (připraveno pro admin UI)
 - [x] Testy pro email digest systém (159/159 passed)
+
+- [x] Preferences: backend endpointy (getPreferences, updatePreferences)
+- [x] Preferences: /preferences stránka s toggle switches pro email notifikace
+- [x] Preferences: weekly digest toggle (zapnout/vypnout)
+- [x] Preferences: marketing emails toggle (zapnout/vypnout)
+- [x] Preferences: auth ochrana (pouze přihlášení uživatelé)
+- [x] Preferences: optimistic updates pro instant feedback
+- [x] Preferences: i18n podpora CZ/EN (CZ implementováno)
+- [x] Preferences: unsubscribe query param handling (?unsubscribe=wishlist)
+- [x] Preferences: route v App.tsx
+- [x] Testy pro preferences funkcionalitu (163/163 passed)

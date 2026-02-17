@@ -2,12 +2,12 @@ import { eq, sql, desc, and, isNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   InsertUser, users, emailCaptures, abTestResults, affiliateClicks,
-  registrations, affiliateRegistrations, userNotifications, blogPosts, userWishlist
+  registrations, affiliateRegistrations, userNotifications, blogPosts, userWishlist, userPreferences
 } from "../drizzle/schema";
 import type {
   InsertEmailCapture, InsertAbTestResult, InsertAffiliateClick,
   InsertRegistration, InsertAffiliateRegistration, InsertUserNotification,
-  InsertBlogPost, InsertUserWishlistItem
+  InsertBlogPost, InsertUserWishlistItem, InsertUserPreferences, UserPreferences
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -523,4 +523,40 @@ export async function getWishlistCount(userId: number) {
   
   const result = await db.select({ count: sql<number>`count(*)` }).from(userWishlist).where(eq(userWishlist.userId, userId));
   return result[0]?.count || 0;
+}
+
+/**
+ * Get user preferences (creates default if not exists)
+ */
+export async function getUserPreferences(userId: number): Promise<UserPreferences | null> {
+  const db = await getDb();
+  if (!db) return null;
+  
+  let [prefs] = await db.select().from(userPreferences).where(eq(userPreferences.userId, userId)).limit(1);
+  
+  // Create default preferences if not exists
+  if (!prefs) {
+    const result = await db.insert(userPreferences).values({
+      userId,
+      weeklyDigest: 1,
+      marketingEmails: 1,
+    });
+    [prefs] = await db.select().from(userPreferences).where(eq(userPreferences.userId, userId)).limit(1);
+  }
+  
+  return prefs || null;
+}
+
+/**
+ * Update user preferences
+ */
+export async function updateUserPreferences(userId: number, data: Partial<InsertUserPreferences>): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  
+  // Ensure preferences exist
+  await getUserPreferences(userId);
+  
+  await db.update(userPreferences).set(data).where(eq(userPreferences.userId, userId));
+  return true;
 }

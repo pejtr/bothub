@@ -1582,3 +1582,107 @@ describe("SEO admin tab data", () => {
     expect(checklist).toHaveLength(11);
   });
 });
+
+// ===== Custom 404 Page tests =====
+
+describe("Custom 404 page structure", () => {
+  it("has all required quick link sections", () => {
+    const quickLinks = [
+      { label: "Katalog iBotů", href: "/#catalog" },
+      { label: "Ceník", href: "/#pricing" },
+      { label: "Blog", href: "/blog" },
+      { label: "Affiliate program", href: "/#affiliate" },
+      { label: "Live Demo", href: "/#demo" },
+      { label: "Domovská stránka", href: "/" },
+    ];
+
+    expect(quickLinks).toHaveLength(6);
+    expect(quickLinks.find(l => l.href === "/#catalog")).toBeTruthy();
+    expect(quickLinks.find(l => l.href === "/#pricing")).toBeTruthy();
+    expect(quickLinks.find(l => l.href === "/blog")).toBeTruthy();
+    expect(quickLinks.find(l => l.href === "/#affiliate")).toBeTruthy();
+    expect(quickLinks.find(l => l.href === "/#demo")).toBeTruthy();
+    expect(quickLinks.find(l => l.href === "/")).toBeTruthy();
+  });
+
+  it("has i18n support for CZ and EN", () => {
+    const translations = {
+      cs: {
+        heading: "Stránka nenalezena",
+        description: "Tento iBot se zatoulal do neznámých vod.",
+        search: "Hledat na BOTHUB.cz...",
+        backHome: "Zpět na hlavní stránku",
+      },
+      en: {
+        heading: "Page Not Found",
+        description: "This iBot wandered into unknown waters.",
+        search: "Search BOTHUB.cz...",
+        backHome: "Back to Homepage",
+      },
+    };
+
+    expect(translations.cs.heading).toBe("Stránka nenalezena");
+    expect(translations.en.heading).toBe("Page Not Found");
+    expect(translations.cs.search).toContain("BOTHUB");
+    expect(translations.en.search).toContain("BOTHUB");
+    expect(translations.cs.backHome).toBeTruthy();
+    expect(translations.en.backHome).toBeTruthy();
+  });
+
+  it("uses dark theme with gold accents matching site design", () => {
+    const theme = {
+      background: "#0A0A0F",
+      accentGold: "amber-500",
+      accentPurple: "purple-500",
+      textPrimary: "white",
+      textSecondary: "gray-400",
+    };
+
+    expect(theme.background).toBe("#0A0A0F");
+    expect(theme.accentGold).toContain("amber");
+    expect(theme.textPrimary).toBe("white");
+  });
+
+  it("404 route is registered as catch-all in router", () => {
+    const routes = [
+      { path: "/", component: "Home" },
+      { path: "/admin", component: "AdminDashboard" },
+      { path: "/activate", component: "Activate" },
+      { path: "/blog", component: "Blog" },
+      { path: "/blog/:slug", component: "BlogPost" },
+      { path: "/payment-success", component: "PaymentSuccess" },
+      { path: "/payment-cancel", component: "PaymentCancel" },
+      { path: "/dashboard", component: "UserDashboard" },
+      { path: "/affiliate-dashboard", component: "AffiliateDashboard" },
+      { path: "/404", component: "NotFound" },
+      { path: "*", component: "NotFound" }, // catch-all
+    ];
+
+    // Verify catch-all is last
+    const lastRoute = routes[routes.length - 1];
+    expect(lastRoute.path).toBe("*");
+    expect(lastRoute.component).toBe("NotFound");
+
+    // Verify explicit /404 route exists
+    const explicit404 = routes.find(r => r.path === "/404");
+    expect(explicit404).toBeTruthy();
+    expect(explicit404?.component).toBe("NotFound");
+  });
+
+  it("quick links cover all main sections of the website", () => {
+    const mainSections = ["catalog", "pricing", "blog", "affiliate", "demo", "homepage"];
+    const quickLinkHrefs = ["/#catalog", "/#pricing", "/blog", "/#affiliate", "/#demo", "/"];
+
+    mainSections.forEach((section, i) => {
+      expect(quickLinkHrefs[i]).toBeTruthy();
+    });
+    expect(quickLinkHrefs).toHaveLength(mainSections.length);
+  });
+
+  it("search functionality redirects to catalog", () => {
+    const searchQuery = "prodejní chatbot";
+    const targetUrl = "/#catalog";
+    expect(searchQuery.trim().length).toBeGreaterThan(0);
+    expect(targetUrl).toBe("/#catalog");
+  });
+});

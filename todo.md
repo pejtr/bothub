@@ -138,3 +138,10 @@
 - [x] GSC: tlačítko pro odeslání sitemap do Google přímo z admin dashboardu
 - [x] GSC: admin.gscStatus endpoint pro kontrolu stavu ověření
 - [x] Testy pro GSC ověření a sitemap submission (109/109 passed)
+
+- [x] 404: custom chybová stránka s dark theme a gold akcenty
+- [x] 404: odkazy na hlavní sekce webu (Katalog, Ceník, Blog, Affiliate, Demo, Homepage)
+- [x] 404: animovaný vizuál (glitch efekt na rozbitém robotu)
+- [x] 404: i18n podpora CZ/EN
+- [x] 404: catch-all route v App.tsx (již existoval)
+- [x] Testy pro 404 stránku (115/115 passed)

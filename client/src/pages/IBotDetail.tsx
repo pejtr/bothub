@@ -92,7 +92,13 @@ export default function IBotDetail() {
             transition={{ duration: 0.5 }}
           >
             <div className="flex items-center gap-3 mb-4">
-              <span className="text-4xl">{category.icon}</span>
+              {ibot.imageUrl ? (
+                <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-amber-500/30">
+                  <img src={ibot.imageUrl} alt={ibot.name} className="w-full h-full object-cover" />
+                </div>
+              ) : (
+                <span className="text-4xl">{category.icon}</span>
+              )}
               <Badge style={{ backgroundColor: category.color }} className="text-white">
                 {locale === "cs" ? category.nameCs : category.name}
               </Badge>

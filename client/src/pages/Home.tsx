@@ -312,10 +312,14 @@ export default function Home() {
                       <span className="text-xs text-amber-400/60 font-medium">{t("catalog.locked")}</span>
                     </div>
                   )}
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-3 ${
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-3 overflow-hidden ${
                     isFeatured ? "bg-amber-500/20 text-amber-400" : "bg-white/5 text-gray-400"
                   }`}>
-                    <Bot className="w-6 h-6" />
+                    {bot.imageUrl ? (
+                      <img src={bot.imageUrl} alt={bot.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <Bot className="w-6 h-6" />
+                    )}
                   </div>
                   <h3 className={`font-[Space_Grotesk] font-bold text-base mb-1 ${isFeatured ? "text-amber-400" : "text-white"}`}>
                     {bot.name}

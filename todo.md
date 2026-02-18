@@ -209,8 +209,8 @@
 - [x] Account: auth ochrana (pouze přihlášení uživatelé)
 - [x] Testy pro account stránku
 
-- [ ] Karikatury: přidat avatar/karikaturu pro každého iBota (88 celkem)
-- [ ] Karikatury: integrace do ibots.ts (imageUrl field)
-- [ ] Karikatury: zobrazení v katalogu na Home
-- [ ] Karikatury: zobrazení na IBotDetail stránce
-- [ ] Karikatury: fallback na ikonu pokud obrázek chybí
+- [x] Karikatury: přidat avatar/karikaturu pro každého iBota (18 featured iBotů s AI karikaturami)
+- [x] Karikatury: integrace do ibots.ts (imageUrl field)
+- [x] Karikatury: zobrazení v katalogu na Home
+- [x] Karikatury: zobrazení na IBotDetail stránce
+- [x] Karikatury: fallback na ikonu pokud obrázek chybí

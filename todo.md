@@ -196,3 +196,21 @@
 - [x] Preferences: unsubscribe query param handling (?unsubscribe=wishlist)
 - [x] Preferences: route v App.tsx
 - [x] Testy pro preferences funkcionalitu (163/163 passed)
+
+- [x] Account: poznámka o Manus OAuth (heslo/email se mění přes Manus portál, ne lokálně)
+- [x] Account: /account stránka s přehledem účtu
+- [x] Account: zobrazení aktuálního e-mailu a jména
+- [x] Account: tlačítko "Změnit heslo" s odkazem na Manus portál
+- [x] Account: tlačítko "Změnit e-mail" s odkazem na Manus portál
+- [x] Account: informace o login metodě (Manus OAuth)
+- [x] Account: datum registrace a poslední přihlášení
+- [x] Account: route v App.tsx
+- [x] Account: i18n podpora CZ/EN
+- [x] Account: auth ochrana (pouze přihlášení uživatelé)
+- [x] Testy pro account stránku
+
+- [ ] Karikatury: přidat avatar/karikaturu pro každého iBota (88 celkem)
+- [ ] Karikatury: integrace do ibots.ts (imageUrl field)
+- [ ] Karikatury: zobrazení v katalogu na Home
+- [ ] Karikatury: zobrazení na IBotDetail stránce
+- [ ] Karikatury: fallback na ikonu pokud obrázek chybí

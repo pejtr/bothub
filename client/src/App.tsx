@@ -18,6 +18,7 @@ import AffiliateDashboard from "./pages/AffiliateDashboard";
 import IBotDetail from "./pages/IBotDetail";
 import Wishlist from "./pages/Wishlist";
 import Preferences from "./pages/Preferences";
+import Account from "./pages/Account";
 
 function Router() {
   return (
@@ -34,6 +35,7 @@ function Router() {
       <Route path={"/ibot/:id"} component={IBotDetail} />
       <Route path={"/wishlist"} component={Wishlist} />
       <Route path={"/preferences"} component={Preferences} />
+      <Route path={"/account"} component={Account} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

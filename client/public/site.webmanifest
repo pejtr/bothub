@@ -1,0 +1,14 @@
+{
+  "name": "BOTHUB.cz — AI chatboti",
+  "short_name": "BOTHUB",
+  "description": "88 AI osobností, které prodávají za vás",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0A0A0F",
+  "theme_color": "#F59E0B",
+  "icons": [
+    { "src": "/favicon-16x16.png", "sizes": "16x16", "type": "image/png" },
+    { "src": "/favicon-32x32.png", "sizes": "32x32", "type": "image/png" },
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}

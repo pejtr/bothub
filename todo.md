@@ -214,3 +214,37 @@
 - [x] Karikatury: zobrazení v katalogu na Home
 - [x] Karikatury: zobrazení na IBotDetail stránce
 - [x] Karikatury: fallback na ikonu pokud obrázek chybí
+
+## Optimalizace (Syntéza)
+
+### Výkon
+- [x] Lazy loading: React.lazy + Suspense pro všechny stránky kromě Home
+- [x] Code splitting: oddělení AdminDashboard (48KB) a ComponentShowcase (58KB)
+- [x] Vite build: rollupOptions pro manuální chunky (vendor, admin, pages)
+- [x] Image lazy loading: loading="lazy" pro všechny avatary iBotů
+- [x] Font preload: přidat preload link pro kritické fonty
+- [x] HTML: opravit meta description (stále 77 místo 88 iBotů)
+
+### Konverze
+- [x] Hero sekce: přidat sticky progress bar s počtem registrací (social proof)
+- [x] CTA hierarchy: zvýraznit primární CTA tlačítko (větší, více kontrastu)
+- [x] Pricing: přidat "Nejpopulárnější" badge na GOLD plán
+- [x] Urgency: přidat "Zbývá X míst" counter vedle pricing CTA
+- [x] Mobile CTA: přidat sticky bottom CTA bar pro mobilní uživatele
+- [x] Catalog: přidat search/filter bar pro 88 iBotů
+
+### SEO
+- [x] HTML meta: opravit title a description (88 iBotů, aktuální texty)
+- [x] OG image: přidat og:image meta tag s preview obrázkem
+- [x] Canonical URL: přidat canonical link tag
+- [x] Favicon: přidat favicon.ico a apple-touch-icon
+- [x] Structured data: přidat SoftwareApplication schema pro hlavní produkt
+- [x] Performance: přidat resource hints (dns-prefetch pro CDN)
+
+### UX
+- [x] Mobile nav: přidat persistent bottom navigation bar pro mobil
+- [x] Scroll indicator: přidat reading progress bar v horní části stránky
+- [x] Catalog: přidat "Zobrazit vše" / "Zobrazit méně" pro kategorie
+- [x] iBot karty: zvětšit avatar z 48px na 64px pro lepší vizuální dopad
+- [x] Animace: optimalizovat AnimatedSection pro redukci layout shift
+- [x] Error states: přidat lepší error handling pro failed API calls

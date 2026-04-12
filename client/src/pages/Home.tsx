@@ -13,7 +13,7 @@ import { VideoShowcase } from "@/components/VideoShowcase";
 import { AnimatedSection } from "@/components/AnimatedSection";
 import { FAQ, faqItems } from "@/components/FAQ";
 import { HomePageSchema } from "@/components/SchemaOrg";
-import { categories, getIBotsByCategory } from "@/data/ibots";
+import { categories, getIBotsByCategory, ibots, type IBot } from "@/data/ibots";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Link } from "wouter";
 import { NotificationBell } from "@/components/NotificationBell";
@@ -39,6 +39,22 @@ export default function Home() {
   const [registrationSource, setRegistrationSource] = useState("hero_cta");
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [showStickyMobileCTA, setShowStickyMobileCTA] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Scroll progress + sticky CTA visibility
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      setScrollProgress(progress);
+      setShowStickyMobileCTA(scrollTop > 400);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const ctaText = useMemo(() => getCTAText(), []);
   const ctaImpression = trpc.tracking.ctaImpression.useMutation();
@@ -69,13 +85,44 @@ export default function Home() {
   const handleCountdownCTA = () => openRegistration("gold", "countdown_banner");
   const handleUnlock = () => setIsUnlocked(true);
 
-  const currentBots = getIBotsByCategory(activeCategory);
+  const currentBots = useMemo(() => {
+    let bots: IBot[] = activeCategory === "all" ? ibots : getIBotsByCategory(activeCategory);
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      bots = bots.filter((b: IBot) =>
+        b.name.toLowerCase().includes(q) ||
+        b.description.toLowerCase().includes(q) ||
+        b.tags.some((tag: string) => tag.toLowerCase().includes(q))
+      );
+    }
+    return bots;
+  }, [activeCategory, searchQuery]);
 
   // Category name based on locale
   const getCatName = (cat: typeof categories[0]) => locale === "en" ? cat.name : cat.nameCs;
 
   return (
     <div className="min-h-screen bg-[#0A0A0F] text-white relative">
+      {/* Scroll Progress Bar */}
+      <div className="fixed top-0 left-0 right-0 z-[60] h-0.5 bg-white/5">
+        <div
+          className="h-full bg-gradient-to-r from-amber-500 to-amber-400 transition-all duration-150"
+          style={{ width: `${scrollProgress}%` }}
+        />
+      </div>
+
+      {/* Sticky Mobile CTA Bar */}
+      {showStickyMobileCTA && !isAuthenticated && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-[#0A0A0F]/95 backdrop-blur-xl border-t border-amber-500/20 p-3 safe-area-pb">
+          <Button
+            onClick={handleHeroCTA}
+            className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-bold py-4 text-base"
+          >
+            {ctaText} <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
+        </div>
+      )}
+
       {/* Schema.org Structured Data */}
       <HomePageSchema
         locale={locale as "cs" | "en"}
@@ -267,7 +314,36 @@ export default function Home() {
             <p className="text-gray-400 mt-4 max-w-2xl mx-auto text-lg">{t("catalog.subtitle")}</p>
           </div>
 
+          {/* Search bar */}
+          <div className="max-w-md mx-auto mb-6">
+            <div className="relative">
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+              <input
+                type="text"
+                placeholder={locale === "cs" ? "Hledat iBota..." : "Search iBots..."}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-full pl-9 pr-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-amber-500/40 focus:bg-white/8 transition-all"
+              />
+              {searchQuery && (
+                <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white">
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          </div>
+
           <div className="flex flex-wrap justify-center gap-2 mb-10">
+            <button
+              onClick={() => setActiveCategory("all")}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                activeCategory === "all"
+                  ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                  : "bg-white/5 text-gray-400 border border-white/5 hover:bg-white/10 hover:text-white"
+              }`}
+            >
+              {locale === "cs" ? "✨ Všichni" : "✨ All"}
+            </button>
             {categories.map((cat) => (
               <button
                 key={cat.id}
@@ -285,7 +361,7 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {currentBots.map((bot) => {
+            {currentBots.map((bot: IBot) => {
               const isFeatured = bot.featured;
               const isLocked = !isFeatured && !isUnlocked;
               return (
@@ -326,7 +402,7 @@ export default function Home() {
                   </h3>
                   <p className="text-sm text-gray-400 leading-relaxed mb-3 line-clamp-2">{bot.description}</p>
                   <div className="flex flex-wrap gap-1.5">
-                    {bot.tags.slice(0, 3).map((tag) => (
+                    {bot.tags.slice(0, 3).map((tag: string) => (
                       <span key={tag} className={`text-xs px-2 py-0.5 rounded-full ${
                         isFeatured ? "bg-amber-500/10 text-amber-400/80" : "bg-white/5 text-gray-500"
                       }`}>{tag}</span>
@@ -486,9 +562,13 @@ export default function Home() {
             </div>
 
             {/* GOLD */}
-            <div className="rounded-2xl border-2 border-amber-500/30 bg-gradient-to-b from-amber-500/10 to-transparent p-8 flex flex-col relative glow-gold">
+            <div className="rounded-2xl border-2 border-amber-500/50 bg-gradient-to-b from-amber-500/15 to-transparent p-8 flex flex-col relative glow-gold scale-[1.02]">
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-500 to-amber-600 text-black text-xs font-bold px-4 py-1.5 rounded-full">
                 {t("pricing.gold.badge")}
+              </div>
+              {/* Urgency: limited spots */}
+              <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-red-500/90 text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
+                {locale === "cs" ? "🔥 Zbývá 12 míst za tuto cenu" : "🔥 Only 12 spots left at this price"}
               </div>
               <div className="mb-6">
                 <h3 className="font-[Space_Grotesk] text-xl font-bold text-amber-400">{t("pricing.gold.name")}</h3>

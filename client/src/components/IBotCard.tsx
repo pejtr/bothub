@@ -9,6 +9,7 @@ import { ChevronRight, MessageSquare } from "lucide-react";
 import { motion } from "framer-motion";
 import type { IBot } from "@/data/ibots";
 import { categories } from "@/data/ibots";
+import { BotAvatar } from "@/components/BotAvatar";
 
 interface IBotCardProps {
   bot: IBot;
@@ -30,14 +31,14 @@ export default function IBotCard({ bot, onClick }: IBotCardProps) {
       >
         <div className="flex items-start gap-4">
           {/* Avatar */}
-          <div 
-            className="w-14 h-14 rounded-xl flex items-center justify-center text-2xl shrink-0 transition-all duration-300 group-hover:scale-110"
-            style={{ 
+          <div
+            className="w-14 h-14 rounded-xl flex items-center justify-center text-2xl shrink-0 overflow-hidden transition-all duration-300 group-hover:scale-110"
+            style={{
               backgroundColor: `${categoryColor}15`,
               border: `1px solid ${categoryColor}30`
             }}
           >
-            {bot.avatar}
+            <BotAvatar name={bot.name} emoji={bot.avatar} />
           </div>
           
           {/* Content */}

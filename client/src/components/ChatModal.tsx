@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { trpc } from "@/lib/trpc";
 import type { IBot } from "@/data/ibots";
+import { BotAvatar } from "@/components/BotAvatar";
 
 interface Message {
   id: string;
@@ -303,8 +304,8 @@ export default function ChatModal({ bot, isOpen, onClose }: ChatModalProps) {
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-[#2A2A2F]">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#D4AF37] to-[#8B7355] flex items-center justify-center text-xl">
-                      {bot.avatar}
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#D4AF37] to-[#8B7355] flex items-center justify-center text-xl overflow-hidden">
+                      <BotAvatar name={bot.name} emoji={bot.avatar} />
                     </div>
                     <div>
                       <h3 className="font-semibold text-white">{bot.name}</h3>

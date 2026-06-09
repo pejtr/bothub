@@ -357,8 +357,7 @@ export default function Home() {
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#D4AF37] to-[#8B7355] flex items-center justify-center">
               <Brain className="w-6 h-6 text-[#0A0A0F]" />
             </div>
-            <span className="text-xl font-bold text-gold-gradient">iBots</span>
-            <BotHubBadge variant="nav" className="hidden lg:flex" />
+            <span className="text-xl font-bold text-gold-gradient">BOTHUB</span>
           </div>
           
           <div className="hidden md:flex items-center gap-8">
@@ -1162,7 +1161,7 @@ export default function Home() {
                   name: "Petr Vlček",
                   role: "Zakladatel & CEO",
                   desc: "10+ let v performance marketingu. Vytvořil systémy, které generovaly 100M+ Kč v obratu.",
-                  contact: "petr@ibots.cz",
+                  contact: "petr@bothub.cz",
                   color: "from-[#D4AF37] to-[#8B7355]",
                 },
                 {

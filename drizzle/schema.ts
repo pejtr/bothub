@@ -195,3 +195,73 @@ export const dailyReports = mysqlTable("daily_reports", {
 
 export type DailyReport = typeof dailyReports.$inferSelect;
 export type InsertDailyReport = typeof dailyReports.$inferInsert;
+
+// ─── Ported from BOTHUB: blog, wishlist, preferences, notifications, email capture ─
+
+export const emailCaptures = mysqlTable("email_captures", {
+  id: int("id").autoincrement().primaryKey(),
+  email: varchar("email", { length: 320 }).notNull(),
+  source: varchar("source", { length: 50 }).default("unlock_modal"),
+  variant: varchar("variant", { length: 50 }),
+  gdprConsent: int("gdprConsent").default(0).notNull(),
+  capturedAt: timestamp("capturedAt").defaultNow().notNull(),
+});
+export type EmailCapture = typeof emailCaptures.$inferSelect;
+export type InsertEmailCapture = typeof emailCaptures.$inferInsert;
+
+export const userNotifications = mysqlTable("user_notifications", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  type: mysqlEnum("type", ["registration", "affiliate", "milestone", "system", "payment"]).default("system").notNull(),
+  title: varchar("title", { length: 200 }).notNull(),
+  message: text("message").notNull(),
+  isRead: int("isRead").default(0).notNull(),
+  actionUrl: varchar("actionUrl", { length: 500 }),
+  metadata: text("metadata"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type UserNotification = typeof userNotifications.$inferSelect;
+export type InsertUserNotification = typeof userNotifications.$inferInsert;
+
+export const blogPosts = mysqlTable("blog_posts", {
+  id: int("id").autoincrement().primaryKey(),
+  slug: varchar("slug", { length: 200 }).notNull().unique(),
+  titleCs: varchar("titleCs", { length: 300 }).notNull(),
+  titleEn: varchar("titleEn", { length: 300 }),
+  contentCs: text("contentCs").notNull(),
+  contentEn: text("contentEn"),
+  excerptCs: text("excerptCs"),
+  excerptEn: text("excerptEn"),
+  metaDescriptionCs: varchar("metaDescriptionCs", { length: 300 }),
+  metaDescriptionEn: varchar("metaDescriptionEn", { length: 300 }),
+  category: varchar("category", { length: 100 }),
+  coverImage: varchar("coverImage", { length: 500 }),
+  author: varchar("author", { length: 200 }).default("BOTHUB Team"),
+  status: mysqlEnum("blogStatus", ["draft", "published"]).default("draft").notNull(),
+  readingTime: int("readingTime").default(5),
+  publishedAt: timestamp("publishedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type BlogPost = typeof blogPosts.$inferSelect;
+export type InsertBlogPost = typeof blogPosts.$inferInsert;
+
+export const userWishlist = mysqlTable("user_wishlist", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  ibotId: varchar("ibotId", { length: 100 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type WishlistItem = typeof userWishlist.$inferSelect;
+export type InsertWishlistItem = typeof userWishlist.$inferInsert;
+
+export const userPreferences = mysqlTable("user_preferences", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  weeklyDigest: int("weeklyDigest").default(1).notNull(),
+  marketingEmails: int("marketingEmails").default(1).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type UserPreferences = typeof userPreferences.$inferSelect;
+export type InsertUserPreferences = typeof userPreferences.$inferInsert;

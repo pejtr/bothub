@@ -1,7 +1,7 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
+import { publicProcedure, protectedProcedure, adminProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import { createCheckoutSession, getCheckoutSession, createBillingPortalSession } from "./stripe/stripe";
 import { PLANS } from "./stripe/products";
@@ -10,8 +10,15 @@ import { generateSSOToken, buildSSORedirectUrl } from "./sso/sso";
 import { getSequenceSummary, getSequenceStatus, processWelcomeSequence } from "./email/scheduler";
 import { WELCOME_SEQUENCE } from "./email/welcome-sequence";
 import { getDb } from "./db";
-import { 
-  subscriptions, 
+import {
+  getUserNotifications, getUnreadNotificationCount, markNotificationRead, markAllNotificationsRead,
+  getAllBlogPosts, getBlogPostById, createBlogPost, updateBlogPost, deleteBlogPost,
+  getPublishedBlogPosts, getBlogPostBySlug,
+  getUserPreferences, updateUserPreferences,
+  addToWishlist, removeFromWishlist, getUserWishlist, isInWishlist, getWishlistCount,
+} from "./db";
+import {
+  subscriptions,
   emailSubscribers, 
   affiliatePartners, 
   affiliateClicks, 
@@ -1515,6 +1522,126 @@ export const appRouter = router({
         }),
       };
     }),
+  }),
+
+  // ─── Ported from BOTHUB: notifications, blog, preferences, wishlist ──────────────
+  notifications: router({
+    list: protectedProcedure
+      .input(z.object({ limit: z.number().min(1).max(50).default(20) }).optional())
+      .query(async ({ ctx, input }) => getUserNotifications(ctx.user.id, input?.limit ?? 20)),
+    unreadCount: protectedProcedure.query(async ({ ctx }) => ({
+      count: await getUnreadNotificationCount(ctx.user.id),
+    })),
+    markRead: protectedProcedure
+      .input(z.object({ notificationId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        await markNotificationRead(input.notificationId, ctx.user.id);
+        return { success: true };
+      }),
+    markAllRead: protectedProcedure.mutation(async ({ ctx }) => {
+      await markAllNotificationsRead(ctx.user.id);
+      return { success: true };
+    }),
+  }),
+
+  blogAdmin: router({
+    list: adminProcedure.query(async () => getAllBlogPosts()),
+    getById: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => getBlogPostById(input.id)),
+    create: adminProcedure
+      .input(z.object({
+        slug: z.string().min(1).max(200),
+        titleCs: z.string().min(1).max(300),
+        titleEn: z.string().max(300).optional(),
+        contentCs: z.string().min(1),
+        contentEn: z.string().optional(),
+        excerptCs: z.string().optional(),
+        excerptEn: z.string().optional(),
+        metaDescriptionCs: z.string().max(300).optional(),
+        metaDescriptionEn: z.string().max(300).optional(),
+        category: z.string().max(100).optional(),
+        coverImage: z.string().max(500).optional(),
+        author: z.string().max(200).optional(),
+        status: z.enum(["draft", "published"]).default("draft"),
+        readingTime: z.number().min(1).max(60).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const publishedAt = input.status === "published" ? new Date() : undefined;
+        const result = await createBlogPost({ ...input, publishedAt });
+        return { success: true, id: result.id };
+      }),
+    update: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        slug: z.string().min(1).max(200).optional(),
+        titleCs: z.string().min(1).max(300).optional(),
+        titleEn: z.string().max(300).optional(),
+        contentCs: z.string().optional(),
+        contentEn: z.string().optional(),
+        excerptCs: z.string().optional(),
+        excerptEn: z.string().optional(),
+        metaDescriptionCs: z.string().max(300).optional(),
+        metaDescriptionEn: z.string().max(300).optional(),
+        category: z.string().max(100).optional(),
+        coverImage: z.string().max(500).optional(),
+        author: z.string().max(200).optional(),
+        status: z.enum(["draft", "published"]).optional(),
+        readingTime: z.number().min(1).max(60).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, ...data } = input;
+        if (data.status === "published") {
+          const existing = await getBlogPostById(id);
+          if (existing && !existing.publishedAt) {
+            (data as any).publishedAt = new Date();
+          }
+        }
+        await updateBlogPost(id, data);
+        return { success: true };
+      }),
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await deleteBlogPost(input.id);
+        return { success: true };
+      }),
+  }),
+
+  blogPublic: router({
+    published: publicProcedure.query(async () => getPublishedBlogPosts()),
+    bySlug: publicProcedure
+      .input(z.object({ slug: z.string() }))
+      .query(async ({ input }) => getBlogPostBySlug(input.slug)),
+  }),
+
+  preferences: router({
+    get: protectedProcedure.query(async ({ ctx }) => getUserPreferences(ctx.user.id)),
+    update: protectedProcedure
+      .input(z.object({
+        weeklyDigest: z.number().min(0).max(1).optional(),
+        marketingEmails: z.number().min(0).max(1).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => ({
+        success: await updateUserPreferences(ctx.user.id, input),
+      })),
+  }),
+
+  wishlist: router({
+    add: protectedProcedure
+      .input(z.object({ ibotId: z.string() }))
+      .mutation(async ({ ctx, input }) => addToWishlist(ctx.user.id, input.ibotId)),
+    remove: protectedProcedure
+      .input(z.object({ ibotId: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        await removeFromWishlist(ctx.user.id, input.ibotId);
+        return { success: true };
+      }),
+    list: protectedProcedure.query(async ({ ctx }) => getUserWishlist(ctx.user.id)),
+    isInWishlist: protectedProcedure
+      .input(z.object({ ibotId: z.string() }))
+      .query(async ({ ctx, input }) => isInWishlist(ctx.user.id, input.ibotId)),
+    count: protectedProcedure.query(async ({ ctx }) => getWishlistCount(ctx.user.id)),
   }),
 });
 

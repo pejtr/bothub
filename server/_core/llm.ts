@@ -209,14 +209,13 @@ const normalizeToolChoice = (
   return toolChoice;
 };
 
+// Google Gemini — OpenAI-compatible endpoint (model: gemini-2.5-flash)
 const resolveApiUrl = () =>
-  ENV.forgeApiUrl && ENV.forgeApiUrl.trim().length > 0
-    ? `${ENV.forgeApiUrl.replace(/\/$/, "")}/v1/chat/completions`
-    : "https://forge.manus.im/v1/chat/completions";
+  "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
 
 const assertApiKey = () => {
-  if (!ENV.forgeApiKey) {
-    throw new Error("OPENAI_API_KEY is not configured");
+  if (!ENV.googleAiApiKey) {
+    throw new Error("GOOGLE_AI_API_KEY is not configured. Get a free key at ai.google.dev");
   }
 };
 
@@ -316,7 +315,7 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     method: "POST",
     headers: {
       "content-type": "application/json",
-      authorization: `Bearer ${ENV.forgeApiKey}`,
+      authorization: `Bearer ${ENV.googleAiApiKey}`,
     },
     body: JSON.stringify(payload),
   });

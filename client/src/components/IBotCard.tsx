@@ -10,6 +10,7 @@ import { motion } from "framer-motion";
 import type { IBot } from "@/data/ibots";
 import { categories } from "@/data/ibots";
 import { BotAvatar } from "@/components/BotAvatar";
+import { WishlistButton } from "@/components/WishlistButton";
 
 interface IBotCardProps {
   bot: IBot;
@@ -25,10 +26,14 @@ export default function IBotCard({ bot, onClick }: IBotCardProps) {
       whileHover={{ y: -4 }}
       transition={{ duration: 0.2 }}
     >
-      <Card 
-        className="bg-[#1A1A1F]/80 border-[#2A2A2F] hover:border-[#D4AF37]/50 transition-all duration-300 p-5 cursor-pointer group h-full"
+      <Card
+        className="relative bg-[#1A1A1F]/80 border-[#2A2A2F] hover:border-[#D4AF37]/50 transition-all duration-300 p-5 cursor-pointer group h-full"
         onClick={onClick}
       >
+        {/* Wishlist heart (hidden for guests) */}
+        <div className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+          <WishlistButton ibotId={bot.id} />
+        </div>
         <div className="flex items-start gap-4">
           {/* Avatar */}
           <div

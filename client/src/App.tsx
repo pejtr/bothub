@@ -10,6 +10,8 @@ import AffiliateDashboard from "./pages/AffiliateDashboard";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancel from "./pages/PaymentCancel";
 import AdminDashboard from "./pages/AdminDashboard";
+import Wishlist from "./pages/Wishlist";
+import Preferences from "./pages/Preferences";
 
 function Router() {
   return (
@@ -20,6 +22,8 @@ function Router() {
       <Route path={"/payment/success"} component={PaymentSuccess} />
       <Route path={"/payment/cancel"} component={PaymentCancel} />
       <Route path={"/admin"} component={AdminDashboard} />
+      <Route path={"/wishlist"} component={Wishlist} />
+      <Route path={"/preferences"} component={Preferences} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

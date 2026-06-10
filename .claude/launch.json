@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "BOTHUB Dev (Express + Vite)",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["dev:preview"],
+      "port": 3000
+    }
+  ]
+}

@@ -1,299 +1,410 @@
+/**
+ * Affiliate Dashboard - Protected page for affiliate partners
+ * Features: Stats overview, conversions table, CSV export, tracking links
+ */
+
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
-import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
-import { getLoginUrl } from "@/const";
-import {
-  ArrowLeft, Bot, Users, DollarSign, MousePointerClick, Crown,
-  Shield, Copy, CheckCircle2, ExternalLink, Loader2, TrendingUp,
-  FileText, Image, Link2, Share2
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Download, 
+  TrendingUp, 
+  Users, 
+  Coins, 
+  Link as LinkIcon,
+  Copy,
+  ExternalLink,
+  BarChart3,
+  ArrowLeft,
+  Loader2,
+  Calendar,
+  CheckCircle,
+  Globe
 } from "lucide-react";
-import { Link } from "wouter";
-import { useState } from "react";
+import { generateAffiliateLink } from "@/hooks/useCrossPlatformTracking";
+import { useState, useMemo, useCallback } from "react";
 import { toast } from "sonner";
+import { Link } from "wouter";
+import { getLoginUrl } from "@/const";
+import AffiliateLeaderboard from "@/components/AffiliateLeaderboard";
 
 export default function AffiliateDashboard() {
-  const { user, loading: authLoading, isAuthenticated } = useAuth();
-  const { locale } = useI18n();
-  const t = locale === "cs";
-  const [copiedField, setCopiedField] = useState<string | null>(null);
+  const { user, loading, isAuthenticated } = useAuth();
+  const [dateRange, setDateRange] = useState<"7d" | "30d" | "90d" | "all">("30d");
 
-  const { data: partnerInfo, isLoading: partnerLoading } = trpc.affiliateDashboard.myPartnerInfo.useQuery(
+  // Fetch affiliate data
+  const { data: affiliateData, isLoading: affiliateLoading } = trpc.affiliate.getMyStats.useQuery(
     undefined,
     { enabled: isAuthenticated }
   );
 
-  const affiliateCode = partnerInfo?.affiliateCode ?? "";
-
-  const { data: stats, isLoading: statsLoading } = trpc.affiliateDashboard.myStats.useQuery(
-    { affiliateCode },
-    { enabled: isAuthenticated && !!affiliateCode }
+  const { data: conversions, isLoading: conversionsLoading } = trpc.affiliate.getConversions.useQuery(
+    { range: dateRange },
+    { enabled: isAuthenticated }
   );
 
-  const { data: referrals } = trpc.affiliateDashboard.myReferrals.useQuery(
-    { affiliateCode },
-    { enabled: isAuthenticated && !!affiliateCode }
+  const { data: clicks, isLoading: clicksLoading } = trpc.affiliate.getClicks.useQuery(
+    { range: dateRange },
+    { enabled: isAuthenticated }
   );
 
-  const copyToClipboard = (text: string, field: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedField(field);
-    toast.success(t ? "Zkopírováno!" : "Copied!");
-    setTimeout(() => setCopiedField(null), 2000);
-  };
+  const { data: crossPlatformStats } = trpc.affiliate.getCrossPlatformStats.useQuery(
+    undefined,
+    { enabled: isAuthenticated && !!affiliateData }
+  );
 
-  if (authLoading || partnerLoading) {
+  // CSV Export function
+  const exportToCSV = useCallback(() => {
+    if (!conversions || conversions.length === 0) {
+      toast.error("Žádná data k exportu");
+      return;
+    }
+
+    const headers = ["Datum", "Plán", "Částka prodeje (Kč)", "Provize (%)", "Provize (Kč)", "Status"];
+    const rows = conversions.map(c => [
+      new Date(c.createdAt).toLocaleDateString("cs-CZ"),
+      c.planId.toUpperCase(),
+      (c.saleAmount / 100).toFixed(2),
+      c.commissionRate.toString(),
+      (c.commissionAmount / 100).toFixed(2),
+      c.status,
+    ]);
+
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(row => row.join(","))
+    ].join("\n");
+
+    // Add BOM for Czech characters in Excel
+    const bom = "\uFEFF";
+    const blob = new Blob([bom + csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `ibots-affiliate-export-${new Date().toISOString().split("T")[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast.success("CSV exportováno", {
+      description: `${conversions.length} záznamů exportováno`,
+    });
+  }, [conversions]);
+
+  // Copy affiliate link
+  const copyAffiliateLink = useCallback((platform: "ibots" | "bothub" = "ibots") => {
+    if (!affiliateData?.affiliateCode) return;
+    const link = platform === "bothub"
+      ? generateAffiliateLink(affiliateData.affiliateCode, "bothub")
+      : `${window.location.origin}/?ref=${affiliateData.affiliateCode}`;
+    navigator.clipboard.writeText(link);
+    toast.success(`${platform === "bothub" ? "BotHub" : "iBots"} odkaz zkopírován!`, {
+      description: "Váš affiliate odkaz byl zkopírován do schránky",
+    });
+  }, [affiliateData]);
+
+  // Computed stats
+  const stats = useMemo(() => {
+    if (!affiliateData) return null;
+    return {
+      totalEarnings: (affiliateData.totalEarnings / 100).toLocaleString("cs-CZ"),
+      totalPaidOut: (affiliateData.totalPaidOut / 100).toLocaleString("cs-CZ"),
+      pendingBalance: ((affiliateData.totalEarnings - affiliateData.totalPaidOut) / 100).toLocaleString("cs-CZ"),
+      totalClicks: clicks?.length || 0,
+      totalConversions: conversions?.length || 0,
+      conversionRate: clicks && clicks.length > 0 
+        ? ((conversions?.length || 0) / clicks.length * 100).toFixed(1)
+        : "0.0",
+    };
+  }, [affiliateData, clicks, conversions]);
+
+  // Loading state
+  if (loading || affiliateLoading) {
     return (
       <div className="min-h-screen bg-[#0A0A0F] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-amber-400 animate-spin" />
+        <Loader2 className="w-8 h-8 animate-spin text-[#D4AF37]" />
       </div>
     );
   }
 
+  // Not authenticated
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-[#0A0A0F] flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto px-4">
-          <Share2 className="w-16 h-16 text-amber-400 mx-auto mb-6" />
-          <h1 className="font-[Space_Grotesk] text-2xl font-bold text-white mb-4">
-            {t ? "Přihlaste se" : "Sign In"}
-          </h1>
-          <p className="text-gray-400 mb-8">
-            {t ? "Pro přístup k affiliate dashboardu se musíte přihlásit." : "You need to sign in to access the affiliate dashboard."}
-          </p>
+      <div className="min-h-screen bg-[#0A0A0F] flex items-center justify-center text-white">
+        <Card className="bg-[#1A1A1F] border-[#2A2A2F] p-8 max-w-md text-center">
+          <h2 className="text-2xl font-bold mb-4">Přihlášení vyžadováno</h2>
+          <p className="text-gray-400 mb-6">Pro přístup k affiliate dashboardu se musíte přihlásit.</p>
           <a href={getLoginUrl()}>
-            <Button className="bg-gradient-to-r from-amber-500 to-amber-600 text-black font-bold px-8 py-3">
-              {t ? "Přihlásit se" : "Sign In"}
-            </Button>
+            <Button className="btn-gold w-full">Přihlásit se</Button>
           </a>
-        </div>
+        </Card>
       </div>
     );
   }
 
-  if (!partnerInfo) {
+  // Not an affiliate partner yet
+  if (!affiliateData) {
     return (
-      <div className="min-h-screen bg-[#0A0A0F] flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto px-4">
-          <Share2 className="w-16 h-16 text-gray-600 mx-auto mb-6" />
-          <h1 className="font-[Space_Grotesk] text-2xl font-bold text-white mb-4">
-            {t ? "Nejste affiliate partner" : "Not an Affiliate Partner"}
-          </h1>
-          <p className="text-gray-400 mb-8">
-            {t ? "Zaregistrujte se do affiliate programu na hlavní stránce." : "Register for the affiliate program on the main page."}
-          </p>
-          <Link href="/#affiliate">
-            <Button className="bg-gradient-to-r from-amber-500 to-amber-600 text-black font-bold px-8 py-3">
-              {t ? "Registrovat se" : "Register Now"}
-            </Button>
+      <div className="min-h-screen bg-[#0A0A0F] flex items-center justify-center text-white">
+        <Card className="bg-[#1A1A1F] border-[#2A2A2F] p-8 max-w-md text-center">
+          <h2 className="text-2xl font-bold mb-4">Affiliate program</h2>
+          <p className="text-gray-400 mb-6">Zatím nejste registrovaní jako affiliate partner.</p>
+          <Link href="/affiliate">
+            <Button className="btn-gold w-full">Registrovat se do programu</Button>
           </Link>
-        </div>
+        </Card>
       </div>
     );
   }
-
-  const referralUrl = `${window.location.origin}?ref=${affiliateCode}`;
-
-  const marketingMaterials = [
-    {
-      icon: <FileText className="w-5 h-5" />,
-      titleCs: "E-mailová šablona",
-      titleEn: "Email Template",
-      descCs: "Připravená e-mailová šablona pro oslovení potenciálních zákazníků",
-      descEn: "Ready-made email template for reaching potential customers",
-      contentCs: `Předmět: AI chatbot, který prodává za vás — 327% ROI\n\nDobrý den,\n\nchtěl bych vám představit iBoty — AI chatboty s osobností, kteří prodávají za vás 24/7.\n\n✅ +42% konverze\n✅ 5minutové nasazení\n✅ 88 AI osobností na výběr\n\nVyzkoušejte zdarma: ${referralUrl}\n\nS pozdravem`,
-      contentEn: `Subject: AI chatbot that sells for you — 327% ROI\n\nHello,\n\nI'd like to introduce you to iBots — AI chatbots with personality that sell for you 24/7.\n\n✅ +42% conversions\n✅ 5-minute deployment\n✅ 88 AI personalities to choose from\n\nTry for free: ${referralUrl}\n\nBest regards`,
-    },
-    {
-      icon: <Share2 className="w-5 h-5" />,
-      titleCs: "Social media post",
-      titleEn: "Social Media Post",
-      descCs: "Připravený post pro Facebook, LinkedIn nebo Twitter",
-      descEn: "Ready-made post for Facebook, LinkedIn, or Twitter",
-      contentCs: `🤖 Právě jsem objevil iBoty — AI chatboty, kteří PRODÁVAJÍ za vás!\n\n📈 +327% ROI\n💬 +42% konverze\n⚡ 5 minut nasazení\n\n77 AI osobností včetně Alexe Hormoziho, Tonyho Robbinse a dalších.\n\nVyzkoušejte ZDARMA 👉 ${referralUrl}\n\n#AI #chatbot #marketing #sales`,
-      contentEn: `🤖 Just discovered iBots — AI chatbots that SELL for you!\n\n📈 +327% ROI\n💬 +42% conversions\n⚡ 5-minute deployment\n\n77 AI personalities including Alex Hormozi, Tony Robbins, and more.\n\nTry for FREE 👉 ${referralUrl}\n\n#AI #chatbot #marketing #sales`,
-    },
-    {
-      icon: <Link2 className="w-5 h-5" />,
-      titleCs: "Banner text pro web",
-      titleEn: "Web Banner Text",
-      descCs: "Textový banner pro váš web nebo blog",
-      descEn: "Text banner for your website or blog",
-      contentCs: `[DOPORUČUJI] AI chatboti, kteří prodávají za vás — 88 osobností, +327% ROI. Vyzkoušejte zdarma na ${referralUrl}`,
-      contentEn: `[RECOMMENDED] AI chatbots that sell for you — 88 personalities, +327% ROI. Try free at ${referralUrl}`,
-    },
-  ];
 
   return (
     <div className="min-h-screen bg-[#0A0A0F] text-white">
-      {/* Header */}
-      <header className="border-b border-white/5 bg-[#0A0A0F]/80 backdrop-blur-xl sticky top-0 z-50">
-        <div className="container flex items-center justify-between h-16">
+      {/* Top Nav */}
+      <nav className="bg-[#0A0A0F]/80 backdrop-blur-lg border-b border-[#2A2A2F] sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link href="/">
-              <button className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
-                <ArrowLeft className="w-4 h-4" />
-                <Bot className="w-6 h-6 text-amber-400" />
-                <span className="font-[Space_Grotesk] font-bold">
-                  <span className="text-amber-400">BOT</span>HUB
-                </span>
-              </button>
+              <a className="text-gray-400 hover:text-[#D4AF37] transition-colors">
+                <ArrowLeft className="w-5 h-5" />
+              </a>
             </Link>
-            <span className="text-gray-600">|</span>
-            <span className="text-sm text-gray-400">{t ? "Affiliate Dashboard" : "Affiliate Dashboard"}</span>
+            <h1 className="text-xl font-bold">
+              <span className="text-gold-gradient">Affiliate</span> Dashboard
+            </h1>
+            <Badge className={`${
+              affiliateData.status === "active" 
+                ? "bg-green-500/20 text-green-400 border-green-500/30" 
+                : "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
+            }`}>
+              {affiliateData.status === "active" ? "Aktivní" : "Čeká na schválení"}
+            </Badge>
           </div>
-          <Link href="/dashboard">
-            <Button variant="outline" size="sm" className="border-white/10 text-gray-300 hover:text-white">
-              {t ? "Můj Dashboard" : "My Dashboard"}
+          <Button onClick={exportToCSV} className="btn-gold-outline gap-2">
+            <Download className="w-4 h-4" />
+            Export CSV
+          </Button>
+        </div>
+      </nav>
+
+      <div className="container mx-auto px-4 py-8 space-y-8">
+        {/* Affiliate Links - Cross Platform */}
+        <Card className="bg-gradient-to-r from-[#D4AF37]/10 to-[#8B7355]/10 border-[#D4AF37]/30 p-6">
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <LinkIcon className="w-5 h-5 text-[#D4AF37]" />
+            Vaše affiliate odkazy
+          </h3>
+          <div className="space-y-3">
+            {/* iBots link */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <Badge className="bg-[#D4AF37]/20 text-[#D4AF37] border-[#D4AF37]/30">iBots</Badge>
+                <span className="text-sm text-gray-400">Landing page</span>
+              </div>
+              <div className="flex items-center gap-2 bg-[#0A0A0F] rounded-lg px-4 py-2 border border-[#2A2A2F] w-full sm:w-auto">
+                <code className="text-[#D4AF37] text-sm truncate flex-1">
+                  {window.location.origin}/?ref={affiliateData.affiliateCode}
+                </code>
+                <Button size="sm" variant="ghost" onClick={() => copyAffiliateLink("ibots")} className="text-gray-400 hover:text-[#D4AF37]">
+                  <Copy className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+            {/* BotHub link */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
+                  <Globe className="w-3 h-3 mr-1" />
+                  BotHub
+                </Badge>
+                <span className="text-sm text-gray-400">Hlavní platforma</span>
+              </div>
+              <div className="flex items-center gap-2 bg-[#0A0A0F] rounded-lg px-4 py-2 border border-[#2A2A2F] w-full sm:w-auto">
+                <code className="text-blue-400 text-sm truncate flex-1">
+                  bothub.cz/?ref={affiliateData.affiliateCode}
+                </code>
+                <Button size="sm" variant="ghost" onClick={() => copyAffiliateLink("bothub")} className="text-gray-400 hover:text-blue-400">
+                  <Copy className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+          <p className="text-xs text-gray-500 mt-3">Provize se počítají ze všech platforem — sdílejte odkaz, který nejlépe sedí vašemu publiku.</p>
+        </Card>
+
+        {/* Cross-Platform Stats */}
+        {crossPlatformStats && (
+          <Card className="bg-[#1A1A1F] border-[#2A2A2F] p-6">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <Globe className="w-5 h-5 text-[#D4AF37]" />
+              Cross-Platform Přehled
+            </h3>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-[#0A0A0F] rounded-xl p-4 border border-[#2A2A2F]">
+                <div className="text-xs text-gray-500 mb-1">iBots kliky</div>
+                <div className="text-xl font-bold text-[#D4AF37]">{crossPlatformStats.clicks.ibots}</div>
+              </div>
+              <div className="bg-[#0A0A0F] rounded-xl p-4 border border-[#2A2A2F]">
+                <div className="text-xs text-gray-500 mb-1">BotHub kliky</div>
+                <div className="text-xl font-bold text-blue-400">{crossPlatformStats.clicks.bothub}</div>
+              </div>
+              <div className="bg-[#0A0A0F] rounded-xl p-4 border border-[#2A2A2F]">
+                <div className="text-xs text-gray-500 mb-1">iBots provize</div>
+                <div className="text-xl font-bold text-[#D4AF37]">
+                  {((crossPlatformStats.conversions.ibots.amount || 0) / 100).toLocaleString("cs-CZ")} Kč
+                </div>
+                <div className="text-xs text-gray-600">{crossPlatformStats.conversions.ibots.count} konverzí</div>
+              </div>
+              <div className="bg-[#0A0A0F] rounded-xl p-4 border border-[#2A2A2F]">
+                <div className="text-xs text-gray-500 mb-1">BotHub provize</div>
+                <div className="text-xl font-bold text-blue-400">
+                  {((crossPlatformStats.conversions.bothub.amount || 0) / 100).toLocaleString("cs-CZ")} Kč
+                </div>
+                <div className="text-xs text-gray-600">{crossPlatformStats.conversions.bothub.count} konverzí</div>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="bg-[#1A1A1F] border-[#2A2A2F] p-5">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-[#D4AF37]/20 flex items-center justify-center">
+                <Coins className="w-5 h-5 text-[#D4AF37]" />
+              </div>
+              <span className="text-sm text-gray-400">Celkové výdělky</span>
+            </div>
+            <div className="text-2xl font-bold text-gold-gradient">{stats?.totalEarnings || "0"} Kč</div>
+          </Card>
+
+          <Card className="bg-[#1A1A1F] border-[#2A2A2F] p-5">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center">
+                <CheckCircle className="w-5 h-5 text-green-400" />
+              </div>
+              <span className="text-sm text-gray-400">Vyplaceno</span>
+            </div>
+            <div className="text-2xl font-bold text-green-400">{stats?.totalPaidOut || "0"} Kč</div>
+          </Card>
+
+          <Card className="bg-[#1A1A1F] border-[#2A2A2F] p-5">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
+                <Users className="w-5 h-5 text-blue-400" />
+              </div>
+              <span className="text-sm text-gray-400">Kliknutí</span>
+            </div>
+            <div className="text-2xl font-bold text-blue-400">{stats?.totalClicks || 0}</div>
+          </Card>
+
+          <Card className="bg-[#1A1A1F] border-[#2A2A2F] p-5">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
+                <TrendingUp className="w-5 h-5 text-purple-400" />
+              </div>
+              <span className="text-sm text-gray-400">Konverze</span>
+            </div>
+            <div className="text-2xl font-bold text-purple-400">
+              {stats?.totalConversions || 0}
+              <span className="text-sm text-gray-500 font-normal ml-2">({stats?.conversionRate}%)</span>
+            </div>
+          </Card>
+        </div>
+
+        {/* Date Range Filter */}
+        <div className="flex items-center gap-2">
+          <Calendar className="w-4 h-4 text-gray-500" />
+          <span className="text-sm text-gray-400 mr-2">Období:</span>
+          {(["7d", "30d", "90d", "all"] as const).map((range) => (
+            <Button
+              key={range}
+              size="sm"
+              variant={dateRange === range ? "default" : "outline"}
+              className={dateRange === range 
+                ? "bg-[#D4AF37] text-[#0A0A0F] hover:bg-[#D4AF37]/90" 
+                : "border-[#2A2A2F] text-gray-400 hover:text-[#D4AF37] hover:border-[#D4AF37]"
+              }
+              onClick={() => setDateRange(range)}
+            >
+              {range === "7d" ? "7 dní" : range === "30d" ? "30 dní" : range === "90d" ? "90 dní" : "Vše"}
             </Button>
-          </Link>
-        </div>
-      </header>
-
-      <main className="container py-10">
-        {/* Partner Info */}
-        <div className="mb-10">
-          <h1 className="font-[Space_Grotesk] text-3xl font-bold mb-2">
-            {t ? "Affiliate Dashboard" : "Affiliate Dashboard"}
-          </h1>
-          <div className="flex flex-wrap items-center gap-4 mt-4">
-            <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20">
-              <span className="text-sm text-gray-400">{t ? "Váš kód:" : "Your code:"}</span>
-              <span className="font-mono font-bold text-amber-400">{affiliateCode}</span>
-              <button onClick={() => copyToClipboard(affiliateCode, "code")} className="ml-1">
-                {copiedField === "code" ? <CheckCircle2 className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4 text-gray-400 hover:text-white" />}
-              </button>
-            </div>
-            <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/10">
-              <span className="text-sm text-gray-400">{t ? "Referral URL:" : "Referral URL:"}</span>
-              <span className="text-sm text-white font-mono truncate max-w-[200px]">{referralUrl}</span>
-              <button onClick={() => copyToClipboard(referralUrl, "url")} className="ml-1">
-                {copiedField === "url" ? <CheckCircle2 className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4 text-gray-400 hover:text-white" />}
-              </button>
-            </div>
-          </div>
+          ))}
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10">
-          <div className="rounded-xl border border-white/5 bg-white/[0.02] p-6">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-blue-500/10">
-                <MousePointerClick className="w-5 h-5 text-blue-400" />
-              </div>
-              <span className="text-sm text-gray-400">{t ? "Celkem kliků" : "Total Clicks"}</span>
-            </div>
-            <p className="text-3xl font-bold text-white">{stats?.totalClicks ?? 0}</p>
+        {/* Conversions Table */}
+        <Card className="bg-[#1A1A1F] border-[#2A2A2F] overflow-hidden">
+          <div className="p-4 border-b border-[#2A2A2F] flex items-center justify-between">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-[#D4AF37]" />
+              Konverze
+            </h3>
+            <span className="text-sm text-gray-400">
+              {conversions?.length || 0} záznamů
+            </span>
           </div>
-          <div className="rounded-xl border border-white/5 bg-white/[0.02] p-6">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-green-500/10">
-                <Users className="w-5 h-5 text-green-400" />
-              </div>
-              <span className="text-sm text-gray-400">{t ? "Referraly" : "Referrals"}</span>
-            </div>
-            <p className="text-3xl font-bold text-white">{stats?.totalReferrals ?? 0}</p>
-          </div>
-          <div className="rounded-xl border border-white/5 bg-white/[0.02] p-6">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-amber-500/10">
-                <TrendingUp className="w-5 h-5 text-amber-400" />
-              </div>
-              <span className="text-sm text-gray-400">{t ? "Konverzní poměr" : "Conversion Rate"}</span>
-            </div>
-            <p className="text-3xl font-bold text-white">
-              {stats && stats.totalClicks > 0
-                ? `${((stats.totalReferrals / stats.totalClicks) * 100).toFixed(1)}%`
-                : "0%"}
-            </p>
-          </div>
-          <div className="rounded-xl border border-white/5 bg-white/[0.02] p-6">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-purple-500/10">
-                <DollarSign className="w-5 h-5 text-purple-400" />
-              </div>
-              <span className="text-sm text-gray-400">{t ? "Provize (čeká)" : "Commission (pending)"}</span>
-            </div>
-            <p className="text-3xl font-bold text-amber-400">
-              {t ? `${stats?.pendingCommission ?? 0} Kč` : `$${Math.round((stats?.pendingCommission ?? 0) / 25)}`}
-            </p>
-          </div>
-        </div>
 
-        {/* Commission Breakdown */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
-          <div className="rounded-xl border border-amber-500/20 bg-amber-500/[0.03] p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <Crown className="w-6 h-6 text-amber-400" />
-              <h3 className="font-semibold text-white">GOLD {t ? "referraly" : "Referrals"}</h3>
+          {conversionsLoading ? (
+            <div className="p-8 text-center">
+              <Loader2 className="w-6 h-6 animate-spin text-[#D4AF37] mx-auto" />
             </div>
-            <div className="flex items-baseline gap-2 mb-2">
-              <span className="text-4xl font-bold text-amber-400">{stats?.goldReferrals ?? 0}</span>
-              <span className="text-gray-400">× 66% = {t ? `${(stats?.goldReferrals ?? 0) * 653} Kč/měs` : `$${(stats?.goldReferrals ?? 0) * 26}/mo`}</span>
-            </div>
-            <p className="text-sm text-gray-500">{t ? "990 Kč × 66% = 653 Kč provize za každý GOLD plán" : "$39 × 66% = $26 commission per GOLD plan"}</p>
-          </div>
-          <div className="rounded-xl border border-purple-500/20 bg-purple-500/[0.03] p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <Shield className="w-6 h-6 text-purple-400" />
-              <h3 className="font-semibold text-white">DIAMOND {t ? "referraly" : "Referrals"}</h3>
-            </div>
-            <div className="flex items-baseline gap-2 mb-2">
-              <span className="text-4xl font-bold text-purple-400">{stats?.diamondReferrals ?? 0}</span>
-              <span className="text-gray-400">× 88% = {t ? `${(stats?.diamondReferrals ?? 0) * 1917} Kč/měs` : `$${(stats?.diamondReferrals ?? 0) * 76}/mo`}</span>
-            </div>
-            <p className="text-sm text-gray-500">{t ? "2 490 Kč × 88% = 1 917 Kč provize za každý DIAMOND plán" : "$99 × 88% = $76 commission per DIAMOND plan"}</p>
-          </div>
-        </div>
-
-        {/* Recent Referrals */}
-        <div className="mb-10">
-          <h2 className="font-[Space_Grotesk] text-xl font-bold mb-6">
-            {t ? "Poslední referraly" : "Recent Referrals"}
-          </h2>
-          {!referrals || referrals.length === 0 ? (
-            <div className="rounded-xl border border-white/5 bg-white/[0.02] p-12 text-center">
-              <Users className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-300 mb-2">
-                {t ? "Zatím žádné referraly" : "No referrals yet"}
-              </h3>
-              <p className="text-gray-500">
-                {t ? "Sdílejte svůj referral odkaz a začněte vydělávat!" : "Share your referral link and start earning!"}
-              </p>
+          ) : !conversions || conversions.length === 0 ? (
+            <div className="p-8 text-center text-gray-500">
+              <TrendingUp className="w-12 h-12 mx-auto mb-3 text-gray-600" />
+              <p>Zatím žádné konverze v tomto období</p>
+              <p className="text-sm mt-1">Sdílejte svůj affiliate odkaz pro získání provizí</p>
             </div>
           ) : (
-            <div className="rounded-xl border border-white/5 overflow-hidden">
+            <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-white/5 bg-white/[0.02]">
-                    <th className="text-left text-sm text-gray-400 font-medium p-4">{t ? "E-mail" : "Email"}</th>
-                    <th className="text-left text-sm text-gray-400 font-medium p-4">{t ? "Plán" : "Plan"}</th>
-                    <th className="text-left text-sm text-gray-400 font-medium p-4">{t ? "Stav" : "Status"}</th>
-                    <th className="text-left text-sm text-gray-400 font-medium p-4">{t ? "Datum" : "Date"}</th>
+                  <tr className="border-b border-[#2A2A2F] text-left">
+                    <th className="px-4 py-3 text-sm font-medium text-gray-400">Datum</th>
+                    <th className="px-4 py-3 text-sm font-medium text-gray-400">Plán</th>
+                    <th className="px-4 py-3 text-sm font-medium text-gray-400">Prodej</th>
+                    <th className="px-4 py-3 text-sm font-medium text-gray-400">Provize</th>
+                    <th className="px-4 py-3 text-sm font-medium text-gray-400">Výdělek</th>
+                    <th className="px-4 py-3 text-sm font-medium text-gray-400">Status</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {referrals.map((ref) => (
-                    <tr key={ref.id} className="border-b border-white/5 hover:bg-white/[0.02]">
-                      <td className="p-4 text-sm text-gray-300">{ref.email}</td>
-                      <td className="p-4">
-                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                          ref.plan === "diamond" ? "bg-purple-500/10 text-purple-400" :
-                          ref.plan === "gold" ? "bg-amber-500/10 text-amber-400" :
-                          "bg-gray-500/10 text-gray-400"
-                        }`}>
-                          {ref.plan.toUpperCase()}
-                        </span>
+                  {conversions.map((conversion) => (
+                    <tr key={conversion.id} className="border-b border-[#2A2A2F]/50 hover:bg-[#2A2A2F]/20">
+                      <td className="px-4 py-3 text-sm">
+                        {new Date(conversion.createdAt).toLocaleDateString("cs-CZ")}
                       </td>
-                      <td className="p-4">
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          ref.status === "activated" ? "bg-green-500/10 text-green-400" : "bg-yellow-500/10 text-yellow-400"
+                      <td className="px-4 py-3">
+                        <Badge className={`${
+                          conversion.planId === "diamond" 
+                            ? "bg-blue-500/20 text-blue-400 border-blue-500/30"
+                            : "bg-[#D4AF37]/20 text-[#D4AF37] border-[#D4AF37]/30"
                         }`}>
-                          {ref.status === "activated" ? (t ? "Aktivní" : "Active") : (t ? "Čeká" : "Pending")}
-                        </span>
+                          {conversion.planId.toUpperCase()}
+                        </Badge>
                       </td>
-                      <td className="p-4 text-sm text-gray-400">
-                        {new Date(ref.createdAt).toLocaleDateString(locale === "cs" ? "cs-CZ" : "en-US")}
+                      <td className="px-4 py-3 text-sm">
+                        {(conversion.saleAmount / 100).toLocaleString("cs-CZ")} Kč
+                      </td>
+                      <td className="px-4 py-3 text-sm text-[#D4AF37]">
+                        {conversion.commissionRate}%
+                      </td>
+                      <td className="px-4 py-3 text-sm font-semibold text-green-400">
+                        {(conversion.commissionAmount / 100).toLocaleString("cs-CZ")} Kč
+                      </td>
+                      <td className="px-4 py-3">
+                        <Badge className={`text-xs ${
+                          conversion.status === "paid" 
+                            ? "bg-green-500/20 text-green-400"
+                            : conversion.status === "confirmed"
+                            ? "bg-blue-500/20 text-blue-400"
+                            : "bg-yellow-500/20 text-yellow-400"
+                        }`}>
+                          {conversion.status === "paid" ? "Vyplaceno" 
+                            : conversion.status === "confirmed" ? "Potvrzeno" 
+                            : "Čeká"}
+                        </Badge>
                       </td>
                     </tr>
                   ))}
@@ -301,51 +412,45 @@ export default function AffiliateDashboard() {
               </table>
             </div>
           )}
-        </div>
+        </Card>
 
-        {/* Marketing Materials */}
-        <div>
-          <h2 className="font-[Space_Grotesk] text-xl font-bold mb-6">
-            {t ? "Propagační materiály" : "Marketing Materials"}
-          </h2>
-          <div className="space-y-4">
-            {marketingMaterials.map((material, index) => (
-              <div key={index} className="rounded-xl border border-white/5 bg-white/[0.02] p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400">
-                      {material.icon}
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-white">
-                        {t ? material.titleCs : material.titleEn}
-                      </h3>
-                      <p className="text-sm text-gray-500">
-                        {t ? material.descCs : material.descEn}
-                      </p>
-                    </div>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-amber-500/30 text-amber-400 hover:bg-amber-500/10"
-                    onClick={() => copyToClipboard(t ? material.contentCs : material.contentEn, `material-${index}`)}
-                  >
-                    {copiedField === `material-${index}` ? (
-                      <><CheckCircle2 className="w-4 h-4 mr-1" /> {t ? "Zkopírováno" : "Copied"}</>
-                    ) : (
-                      <><Copy className="w-4 h-4 mr-1" /> {t ? "Kopírovat" : "Copy"}</>
-                    )}
-                  </Button>
-                </div>
-                <pre className="text-sm text-gray-400 bg-black/30 rounded-lg p-4 overflow-x-auto whitespace-pre-wrap font-mono">
-                  {t ? material.contentCs : material.contentEn}
-                </pre>
+        {/* Leaderboard */}
+        <AffiliateLeaderboard />
+
+        {/* Quick Tips */}
+        <Card className="bg-[#1A1A1F]/50 border-[#2A2A2F] p-6">
+          <h3 className="text-lg font-semibold mb-4">Tipy pro vyšší konverze</h3>
+          <div className="grid md:grid-cols-3 gap-4">
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-[#D4AF37]/20 flex items-center justify-center shrink-0">
+                <span className="text-[#D4AF37] font-bold text-sm">1</span>
               </div>
-            ))}
+              <div>
+                <p className="text-sm font-medium text-white">Sdílejte osobní zkušenost</p>
+                <p className="text-xs text-gray-500">Autentické příběhy konvertují 3x lépe</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-[#D4AF37]/20 flex items-center justify-center shrink-0">
+                <span className="text-[#D4AF37] font-bold text-sm">2</span>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-white">Cílte na specifické iBoty</p>
+                <p className="text-xs text-gray-500">Doporučujte konkrétní boty pro konkrétní problémy</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-[#D4AF37]/20 flex items-center justify-center shrink-0">
+                <span className="text-[#D4AF37] font-bold text-sm">3</span>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-white">Využijte video obsah</p>
+                <p className="text-xs text-gray-500">Video recenze mají 5x vyšší engagement</p>
+              </div>
+            </div>
           </div>
-        </div>
-      </main>
+        </Card>
+      </div>
     </div>
   );
 }

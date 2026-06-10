@@ -1,11 +1,11 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "8cbcfa9e-d790-456c-b71f-a94c7bafeed3",
-  "prevId": "476bf263-ed91-46c8-a475-07c0985aa52c",
+  "id": "aafb061a-a8b5-4426-8177-aa6887829948",
+  "prevId": "9c987c1c-259f-4909-b935-9df4ecaed7a1",
   "tables": {
-    "ab_test_results": {
-      "name": "ab_test_results",
+    "ab_test_assignments": {
+      "name": "ab_test_assignments",
       "columns": {
         "id": {
           "name": "id",
@@ -16,41 +16,47 @@
         },
         "testName": {
           "name": "testName",
-          "type": "varchar(100)",
+          "type": "varchar(64)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "variant": {
           "name": "variant",
-          "type": "varchar(50)",
+          "type": "varchar(32)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "impressions": {
-          "name": "impressions",
-          "type": "int",
+        "visitorId": {
+          "name": "visitorId",
+          "type": "varchar(64)",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "default": 0
+          "autoincrement": false
         },
-        "clicks": {
-          "name": "clicks",
-          "type": "int",
+        "converted": {
+          "name": "converted",
+          "type": "boolean",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": 0
+          "default": false
         },
-        "conversions": {
-          "name": "conversions",
-          "type": "int",
+        "conversionValue": {
+          "name": "conversionValue",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": 0
+          "default": "(now())"
         },
         "updatedAt": {
           "name": "updatedAt",
@@ -65,8 +71,8 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {
-        "ab_test_results_id": {
-          "name": "ab_test_results_id",
+        "ab_test_assignments_id": {
+          "name": "ab_test_assignments_id",
           "columns": [
             "id"
           ]
@@ -85,29 +91,44 @@
           "notNull": true,
           "autoincrement": true
         },
-        "partner": {
-          "name": "partner",
-          "type": "varchar(50)",
+        "affiliateId": {
+          "name": "affiliateId",
+          "type": "int",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "plan": {
-          "name": "plan",
-          "type": "varchar(50)",
+        "referrerUrl": {
+          "name": "referrerUrl",
+          "type": "text",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
-        "referrer": {
-          "name": "referrer",
-          "type": "varchar(500)",
+        "userAgent": {
+          "name": "userAgent",
+          "type": "text",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
-        "clickedAt": {
-          "name": "clickedAt",
+        "ipHash": {
+          "name": "ipHash",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "source": {
+          "name": "source",
+          "type": "varchar(32)",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "'ibots'"
+        },
+        "createdAt": {
+          "name": "createdAt",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
@@ -128,8 +149,8 @@
       "uniqueConstraints": {},
       "checkConstraint": {}
     },
-    "affiliate_registrations": {
-      "name": "affiliate_registrations",
+    "affiliate_conversions": {
+      "name": "affiliate_conversions",
       "columns": {
         "id": {
           "name": "id",
@@ -138,52 +159,152 @@
           "notNull": true,
           "autoincrement": true
         },
-        "email": {
-          "name": "email",
-          "type": "varchar(320)",
+        "affiliateId": {
+          "name": "affiliateId",
+          "type": "int",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "name": {
-          "name": "name",
-          "type": "varchar(200)",
+        "referredUserId": {
+          "name": "referredUserId",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "planId": {
+          "name": "planId",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "saleAmount": {
+          "name": "saleAmount",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "commissionRate": {
+          "name": "commissionRate",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "commissionAmount": {
+          "name": "commissionAmount",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "conversionStatus": {
+          "name": "conversionStatus",
+          "type": "enum('pending','confirmed','paid','refunded')",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'pending'"
+        },
+        "stripePaymentIntentId": {
+          "name": "stripePaymentIntentId",
+          "type": "varchar(128)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
-        "company": {
-          "name": "company",
-          "type": "varchar(200)",
+        "conversionSource": {
+          "name": "conversionSource",
+          "type": "varchar(32)",
           "primaryKey": false,
           "notNull": false,
-          "autoincrement": false
+          "autoincrement": false,
+          "default": "'ibots'"
         },
-        "website": {
-          "name": "website",
-          "type": "varchar(500)",
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(now())"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "onUpdate": true,
+          "default": "(now())"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "affiliate_conversions_id": {
+          "name": "affiliate_conversions_id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraint": {}
+    },
+    "affiliate_partners": {
+      "name": "affiliate_partners",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "userId": {
+          "name": "userId",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
           "autoincrement": false
         },
         "affiliateCode": {
           "name": "affiliateCode",
-          "type": "varchar(100)",
+          "type": "varchar(32)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "status": {
           "name": "status",
-          "type": "enum('pending','approved','active')",
+          "type": "enum('pending','active','suspended')",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
           "default": "'pending'"
         },
-        "gdprConsent": {
-          "name": "gdprConsent",
-          "type": "int",
+        "paymentEmail": {
+          "name": "paymentEmail",
+          "type": "varchar(320)",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "totalEarnings": {
+          "name": "totalEarnings",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "totalPaidOut": {
+          "name": "totalPaidOut",
+          "type": "bigint",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
@@ -210,14 +331,21 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {
-        "affiliate_registrations_id": {
-          "name": "affiliate_registrations_id",
+        "affiliate_partners_id": {
+          "name": "affiliate_partners_id",
           "columns": [
             "id"
           ]
         }
       },
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "affiliate_partners_affiliateCode_unique": {
+          "name": "affiliate_partners_affiliateCode_unique",
+          "columns": [
+            "affiliateCode"
+          ]
+        }
+      },
       "checkConstraint": {}
     },
     "blog_posts": {
@@ -376,6 +504,304 @@
       },
       "checkConstraint": {}
     },
+    "chat_trigger_events": {
+      "name": "chat_trigger_events",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "visitorId": {
+          "name": "visitorId",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "eventType": {
+          "name": "eventType",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "eventData": {
+          "name": "eventData",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "pageUrl": {
+          "name": "pageUrl",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "botTriggered": {
+          "name": "botTriggered",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "interacted": {
+          "name": "interacted",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(now())"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "chat_trigger_events_id": {
+          "name": "chat_trigger_events_id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraint": {}
+    },
+    "conversation_logs": {
+      "name": "conversation_logs",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "sessionId": {
+          "name": "sessionId",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "botId": {
+          "name": "botId",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "userId": {
+          "name": "userId",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "visitorId": {
+          "name": "visitorId",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "messageCount": {
+          "name": "messageCount",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "firstMessage": {
+          "name": "firstMessage",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "topicsJson": {
+          "name": "topicsJson",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "durationSeconds": {
+          "name": "durationSeconds",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": 0
+        },
+        "planAtTime": {
+          "name": "planAtTime",
+          "type": "varchar(32)",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "'free'"
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(now())"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "onUpdate": true,
+          "default": "(now())"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "conversation_logs_id": {
+          "name": "conversation_logs_id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraint": {}
+    },
+    "daily_reports": {
+      "name": "daily_reports",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "reportDate": {
+          "name": "reportDate",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "reportType": {
+          "name": "reportType",
+          "type": "enum('daily','weekly')",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'daily'"
+        },
+        "newUsers": {
+          "name": "newUsers",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "activeUsers": {
+          "name": "activeUsers",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "newSubscriptions": {
+          "name": "newSubscriptions",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "revenue": {
+          "name": "revenue",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "chatSessions": {
+          "name": "chatSessions",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "avgRating": {
+          "name": "avgRating",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": 0
+        },
+        "topBotsJson": {
+          "name": "topBotsJson",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "aiSummary": {
+          "name": "aiSummary",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "strategicRecommendations": {
+          "name": "strategicRecommendations",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(now())"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "daily_reports_id": {
+          "name": "daily_reports_id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraint": {}
+    },
     "email_captures": {
       "name": "email_captures",
       "columns": {
@@ -438,8 +864,8 @@
       "uniqueConstraints": {},
       "checkConstraint": {}
     },
-    "registrations": {
-      "name": "registrations",
+    "email_subscribers": {
+      "name": "email_subscribers",
       "columns": {
         "id": {
           "name": "id",
@@ -457,77 +883,93 @@
         },
         "name": {
           "name": "name",
-          "type": "varchar(200)",
+          "type": "text",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
-        },
-        "company": {
-          "name": "company",
-          "type": "varchar(200)",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "plan": {
-          "name": "plan",
-          "type": "enum('free','gold','diamond')",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "'free'"
         },
         "source": {
           "name": "source",
-          "type": "varchar(100)",
+          "type": "varchar(64)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false,
-          "default": "'hero_cta'"
+          "default": "'landing_page'"
         },
-        "status": {
-          "name": "status",
-          "type": "enum('pending','activated','synced')",
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'pending'"
-        },
-        "ctaVariant": {
-          "name": "ctaVariant",
-          "type": "varchar(50)",
+          "default": "(now())"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "email_subscribers_id": {
+          "name": "email_subscribers_id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
+      "uniqueConstraints": {
+        "email_subscribers_email_unique": {
+          "name": "email_subscribers_email_unique",
+          "columns": [
+            "email"
+          ]
+        }
+      },
+      "checkConstraint": {}
+    },
+    "subscriptions": {
+      "name": "subscriptions",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "int",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "userId": {
+          "name": "userId",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
           "autoincrement": false
         },
-        "affiliateCode": {
-          "name": "affiliateCode",
-          "type": "varchar(100)",
+        "planId": {
+          "name": "planId",
+          "type": "varchar(64)",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "stripeCustomerId": {
           "name": "stripeCustomerId",
-          "type": "varchar(255)",
+          "type": "varchar(128)",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "stripeSubscriptionId": {
           "name": "stripeSubscriptionId",
-          "type": "varchar(255)",
+          "type": "varchar(128)",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
-        "gdprConsent": {
-          "name": "gdprConsent",
-          "type": "int",
+        "status": {
+          "name": "status",
+          "type": "varchar(32)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": 0
+          "default": "'active'"
         },
         "createdAt": {
           "name": "createdAt",
@@ -550,8 +992,96 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {
-        "registrations_id": {
-          "name": "registrations_id",
+        "subscriptions_id": {
+          "name": "subscriptions_id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
+      "uniqueConstraints": {
+        "subscriptions_stripeSubscriptionId_unique": {
+          "name": "subscriptions_stripeSubscriptionId_unique",
+          "columns": [
+            "stripeSubscriptionId"
+          ]
+        }
+      },
+      "checkConstraint": {}
+    },
+    "user_feedback": {
+      "name": "user_feedback",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "sessionId": {
+          "name": "sessionId",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "botId": {
+          "name": "botId",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "userId": {
+          "name": "userId",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "visitorId": {
+          "name": "visitorId",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "rating": {
+          "name": "rating",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "comment": {
+          "name": "comment",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "wouldRecommend": {
+          "name": "wouldRecommend",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(now())"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "user_feedback_id": {
+          "name": "user_feedback_id",
           "columns": [
             "id"
           ]
@@ -641,6 +1171,77 @@
         }
       },
       "uniqueConstraints": {},
+      "checkConstraint": {}
+    },
+    "user_preferences": {
+      "name": "user_preferences",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "userId": {
+          "name": "userId",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "weeklyDigest": {
+          "name": "weeklyDigest",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 1
+        },
+        "marketingEmails": {
+          "name": "marketingEmails",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 1
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(now())"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "onUpdate": true,
+          "default": "(now())"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "user_preferences_id": {
+          "name": "user_preferences_id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
+      "uniqueConstraints": {
+        "user_preferences_userId_unique": {
+          "name": "user_preferences_userId_unique",
+          "columns": [
+            "userId"
+          ]
+        }
+      },
       "checkConstraint": {}
     },
     "user_wishlist": {
@@ -734,6 +1335,13 @@
           "notNull": true,
           "autoincrement": false,
           "default": "'user'"
+        },
+        "stripeCustomerId": {
+          "name": "stripeCustomerId",
+          "type": "varchar(128)",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
         },
         "createdAt": {
           "name": "createdAt",

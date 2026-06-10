@@ -1,138 +1,894 @@
+/**
+ * iBots Data - 77 AI Personalities in 7 Categories
+ * Each category has 11 iBots representing world-renowned experts
+ */
+
 export interface IBot {
   id: string;
   name: string;
-  description: string;
   category: string;
+  categoryId: string;
+  specialty: string;
+  description: string;
+  avatar: string;
   tags: string[];
-  featured?: boolean;
-  imageUrl?: string;
 }
 
 export interface Category {
   id: string;
   name: string;
-  nameCs: string;
-  icon: string;
+  nameEn: string;
   description: string;
   color: string;
+  icon: string;
+  count: number;
 }
 
 export const categories: Category[] = [
-  { id: "sales", name: "Sales & Marketing", nameCs: "Prodej & Marketing", icon: "📈", description: "Agresivní prodejní techniky a marketingové strategie", color: "#F59E0B" },
-  { id: "therapy", name: "Therapy & Psychology", nameCs: "Terapie & Psychologie", icon: "🧠", description: "Empatická komunikace a psychologické poradenství", color: "#8B5CF6" },
-  { id: "leadership", name: "Leadership & Business", nameCs: "Leadership & Business", icon: "🏢", description: "Strategické vedení a byznysové rozhodování", color: "#3B82F6" },
-  { id: "wealth", name: "Wealth & Investing", nameCs: "Bohatství & Investice", icon: "💰", description: "Finanční strategie a investiční poradenství", color: "#10B981" },
-  { id: "spirituality", name: "Spirituality & Wisdom", nameCs: "Spiritualita & Moudrost", icon: "🕊️", description: "Duchovní rozvoj a životní moudrost", color: "#EC4899" },
-  { id: "health", name: "Health & Biohacking", nameCs: "Zdraví & Biohacking", icon: "💪", description: "Optimalizace zdraví a výkonu", color: "#EF4444" },
-  { id: "creativity", name: "Creativity & Productivity", nameCs: "Kreativita & Produktivita", icon: "🚀", description: "Kreativní myšlení a maximální produktivita", color: "#F97316" },
+  {
+    id: "sales",
+    name: "Prodej & Byznys",
+    nameEn: "Sales & Business",
+    description: "Strategie prodeje, škálování byznysu a growth hacking",
+    color: "#D4AF37",
+    icon: "Target",
+    count: 11
+  },
+  {
+    id: "therapy",
+    name: "Terapie & Mindset",
+    nameEn: "Therapy & Mindset",
+    description: "Psychologie, osobní rozvoj a mentální zdraví",
+    color: "#E879F9",
+    icon: "Heart",
+    count: 11
+  },
+  {
+    id: "leadership",
+    name: "Leadershíp",
+    nameEn: "Leadership",
+    description: "Vedení týmů, motivace a strategické myšlení",
+    color: "#60A5FA",
+    icon: "Crown",
+    count: 11
+  },
+  {
+    id: "wealth",
+    name: "Bohatství & Finance",
+    nameEn: "Wealth & Finance",
+    description: "Investice, finanční svoboda a budování bohatství",
+    color: "#34D399",
+    icon: "Coins",
+    count: 11
+  },
+  {
+    id: "spirituality",
+    name: "Spiritualita",
+    nameEn: "Spirituality",
+    description: "Duchovní růst, meditace a vnitřní mír",
+    color: "#A78BFA",
+    icon: "Sparkles",
+    count: 11
+  },
+  {
+    id: "health",
+    name: "Zdraví & Wellness",
+    nameEn: "Health & Wellness",
+    description: "Fyzické zdraví, biohacking a optimalizace výkonu",
+    color: "#F87171",
+    icon: "Activity",
+    count: 11
+  },
+  {
+    id: "creativity",
+    name: "Kreativita",
+    nameEn: "Creativity",
+    description: "Kreativní myšlení, umění a inovace",
+    color: "#FBBF24",
+    icon: "Lightbulb",
+    count: 11
+  }
 ];
 
 export const ibots: IBot[] = [
-  // Sales & Marketing (11)
-  { id: "hormozi", name: "Alex Hormozi", description: "Agresivní prodejní strategie, $100M Offers, Value Equation. Maximalizuje konverze a vytváří nabídky, které zákazník nemůže odmítnout.", category: "sales", tags: ["prodej", "konverze", "offers"], featured: true , imageUrl: "https://files.manuscdn.com/user_upload_by_module/session_file/89740521/gotjGUbclIjTyKHh.png" },
-  { id: "cardone", name: "Grant Cardone", description: "10X pravidlo, agresivní follow-up, sales mastery. Učí vás prodávat s maximální energií.", category: "sales", tags: ["10X", "sales", "energie"], featured: true , imageUrl: "https://files.manuscdn.com/user_upload_by_module/session_file/89740521/QKyHoogAOVefXgTw.png" },
-  { id: "brunson", name: "Russell Brunson", description: "Funnelový expert, StoryBrand, ClickFunnels. Staví prodejní funnely, které konvertují.", category: "sales", tags: ["funnely", "marketing", "storytelling"], featured: true , imageUrl: "https://files.manuscdn.com/user_upload_by_module/session_file/89740521/aaZisRMxvxyfjHuv.png" },
-  { id: "vaynerchuk", name: "Gary Vaynerchuk", description: "Social media marketing, osobní branding, hustle kultura.", category: "sales", tags: ["social media", "branding", "content"], featured: true , imageUrl: "https://files.manuscdn.com/user_upload_by_module/session_file/89740521/qvUAJPdmjQmEdyph.png" },
-  { id: "godin", name: "Seth Godin", description: "Permission marketing, Purple Cow, remarkabilní produkty.", category: "sales", tags: ["marketing", "inovace", "brand"] },
-  { id: "cialdini", name: "Robert Cialdini", description: "6 principů přesvědčování, psychologie vlivu, persuasion.", category: "sales", tags: ["persuasion", "psychologie", "vliv"] },
-  { id: "ogilvy", name: "David Ogilvy", description: "Otec reklamy, copywriting, brand building.", category: "sales", tags: ["reklama", "copywriting", "brand"] },
-  { id: "halbert", name: "Gary Halbert", description: "Direct response marketing, sales letters, copywriting legendy.", category: "sales", tags: ["direct response", "copywriting", "sales letters"] },
-  { id: "kennedy", name: "Dan Kennedy", description: "No B.S. marketing, direct response, magnetic marketing.", category: "sales", tags: ["direct response", "no BS", "marketing"] },
-  { id: "belfort", name: "Jordan Belfort", description: "Straight Line Persuasion, sales closing, tonalita hlasu.", category: "sales", tags: ["closing", "persuasion", "tonalita"] },
-  { id: "tracy", name: "Brian Tracy", description: "Psychologie prodeje, time management, goal setting.", category: "sales", tags: ["prodej", "time management", "cíle"] },
+  // SALES & BUSINESS (11)
+  {
+    id: "alex-hormozi",
+    name: "Alex Hormozi",
+    category: "Sales & Business",
+    categoryId: "sales",
+    specialty: "Business Growth & Offers",
+    description: "Autor $100M Offers. Specialista na tvorbu neodolatelných nabídek a škálování byznysu.",
+    avatar: "🚀",
+    tags: ["offers", "scaling", "gym launch", "acquisition"]
+  },
+  {
+    id: "grant-cardone",
+    name: "Grant Cardone",
+    category: "Sales & Business",
+    categoryId: "sales",
+    specialty: "Sales Mastery",
+    description: "10X Rule autor. Expert na prodejní techniky a agresivní růst.",
+    avatar: "💪",
+    tags: ["sales", "10x", "real estate", "closing"]
+  },
+  {
+    id: "russell-brunson",
+    name: "Russell Brunson",
+    category: "Sales & Business",
+    categoryId: "sales",
+    specialty: "Funnels & Marketing",
+    description: "Zakladatel ClickFunnels. Mistr prodejních funnelů a online marketingu.",
+    avatar: "🎯",
+    tags: ["funnels", "marketing", "copywriting", "webinars"]
+  },
+  {
+    id: "gary-vaynerchuk",
+    name: "Gary Vaynerchuk",
+    category: "Sales & Business",
+    categoryId: "sales",
+    specialty: "Social Media & Branding",
+    description: "CEO VaynerMedia. Expert na sociální média a osobní branding.",
+    avatar: "📱",
+    tags: ["social media", "branding", "hustle", "content"]
+  },
+  {
+    id: "dan-kennedy",
+    name: "Dan Kennedy",
+    category: "Sales & Business",
+    categoryId: "sales",
+    specialty: "Direct Response Marketing",
+    description: "Legenda direct response marketingu. Autor No B.S. série.",
+    avatar: "✉️",
+    tags: ["copywriting", "direct mail", "marketing", "persuasion"]
+  },
+  {
+    id: "sam-ovens",
+    name: "Sam Ovens",
+    category: "Sales & Business",
+    categoryId: "sales",
+    specialty: "Consulting Business",
+    description: "Zakladatel Consulting.com. Expert na budování konzultačního byznysu.",
+    avatar: "💼",
+    tags: ["consulting", "coaching", "high-ticket", "systems"]
+  },
+  {
+    id: "frank-kern",
+    name: "Frank Kern",
+    category: "Sales & Business",
+    categoryId: "sales",
+    specialty: "Internet Marketing",
+    description: "Pionýr internetového marketingu. Specialista na automatizaci prodeje.",
+    avatar: "🌐",
+    tags: ["automation", "launches", "email", "webinars"]
+  },
+  {
+    id: "tai-lopez",
+    name: "Tai Lopez",
+    category: "Sales & Business",
+    categoryId: "sales",
+    specialty: "Knowledge Business",
+    description: "Investor a podnikatel. Expert na monetizaci znalostí.",
+    avatar: "📚",
+    tags: ["knowledge", "courses", "investing", "lifestyle"]
+  },
+  {
+    id: "patrick-bet-david",
+    name: "Patrick Bet-David",
+    category: "Sales & Business",
+    categoryId: "sales",
+    specialty: "Entrepreneurship",
+    description: "Zakladatel Valuetainment. Expert na podnikatelské strategie.",
+    avatar: "🎬",
+    tags: ["entrepreneurship", "strategy", "leadership", "insurance"]
+  },
+  {
+    id: "jordan-belfort",
+    name: "Jordan Belfort",
+    category: "Sales & Business",
+    categoryId: "sales",
+    specialty: "Straight Line Selling",
+    description: "Wolf of Wall Street. Tvůrce Straight Line Persuasion systému.",
+    avatar: "🐺",
+    tags: ["persuasion", "closing", "tonality", "sales"]
+  },
+  {
+    id: "leila-hormozi",
+    name: "Leila Hormozi",
+    category: "Sales & Business",
+    categoryId: "sales",
+    specialty: "Operations & Scaling",
+    description: "CEO Acquisition.com. Expertka na operace a škálování firem.",
+    avatar: "👑",
+    tags: ["operations", "hiring", "scaling", "systems"]
+  },
 
-  // Therapy & Psychology (11)
-  { id: "jung", name: "Carl Jung", description: "Analytická psychologie, archetypy, kolektivní nevědomí, individuace.", category: "therapy", tags: ["archetypy", "nevědomí", "individuace"], featured: true , imageUrl: "https://files.manuscdn.com/user_upload_by_module/session_file/89740521/AcAGoyaQTprRxBkQ.png" },
-  { id: "frankl", name: "Viktor Frankl", description: "Logoterapie, hledání smyslu, existenciální psychologie.", category: "therapy", tags: ["smysl", "logoterapie", "existencialismus"], featured: true , imageUrl: "https://files.manuscdn.com/user_upload_by_module/session_file/89740521/RpQfnKXkDsZOYAck.png" },
-  { id: "brown", name: "Brené Brown", description: "Zranitelnost, odvaha, empatie, autenticita.", category: "therapy", tags: ["zranitelnost", "empatie", "odvaha"] },
-  { id: "rogers", name: "Carl Rogers", description: "Humanistická psychologie, bezpodmínečné přijetí, klientsky orientovaná terapie.", category: "therapy", tags: ["humanismus", "přijetí", "terapie"] },
-  { id: "peterson", name: "Jordan Peterson", description: "Klinická psychologie, zodpovědnost, řád a chaos.", category: "therapy", tags: ["zodpovědnost", "řád", "smysl"] },
-  { id: "adler", name: "Alfred Adler", description: "Individuální psychologie, komplex méněcennosti, sociální zájem.", category: "therapy", tags: ["individualní psychologie", "sociální zájem"] },
-  { id: "maslow", name: "Abraham Maslow", description: "Hierarchie potřeb, seberealizace, peak experiences.", category: "therapy", tags: ["potřeby", "seberealizace", "motivace"] },
-  { id: "fromm", name: "Erich Fromm", description: "Umění milovat, svoboda, humanistická psychoanalýza.", category: "therapy", tags: ["láska", "svoboda", "humanismus"] },
-  { id: "yalom", name: "Irvin Yalom", description: "Existenciální psychoterapie, skupinová terapie, smrt a smysl.", category: "therapy", tags: ["existencialismus", "skupina", "smrt"] },
-  { id: "kabatzinn", name: "Jon Kabat-Zinn", description: "Mindfulness, MBSR, vědomá přítomnost, stres management.", category: "therapy", tags: ["mindfulness", "stres", "přítomnost"] },
-  { id: "grof", name: "Stanislav Grof", description: "Transpersonální psychologie, holotropní dýchání, rozšířené stavy vědomí.", category: "therapy", tags: ["transpersonální", "vědomí", "dýchání"] },
+  // THERAPY & MINDSET (11)
+  {
+    id: "carl-jung",
+    name: "Carl Jung",
+    category: "Therapy & Mindset",
+    categoryId: "therapy",
+    specialty: "Shadow Work & Archetypes",
+    description: "Zakladatel analytické psychologie. Expert na práci se stínem a archetypy.",
+    avatar: "🧠",
+    tags: ["shadow", "archetypes", "dreams", "unconscious"]
+  },
+  {
+    id: "sigmund-freud",
+    name: "Sigmund Freud",
+    category: "Therapy & Mindset",
+    categoryId: "therapy",
+    specialty: "Psychoanalysis",
+    description: "Otec psychoanalýzy. Expert na nevědomí a interpretaci snů.",
+    avatar: "🛋️",
+    tags: ["psychoanalysis", "dreams", "ego", "id"]
+  },
+  {
+    id: "jordan-peterson",
+    name: "Jordan Peterson",
+    category: "Therapy & Mindset",
+    categoryId: "therapy",
+    specialty: "Personal Responsibility",
+    description: "Klinický psycholog. Autor 12 Rules for Life.",
+    avatar: "🦞",
+    tags: ["responsibility", "meaning", "order", "chaos"]
+  },
+  {
+    id: "brene-brown",
+    name: "Brené Brown",
+    category: "Therapy & Mindset",
+    categoryId: "therapy",
+    specialty: "Vulnerability & Courage",
+    description: "Výzkumnice zranitelnosti. Expertka na odvahu a autenticitu.",
+    avatar: "❤️",
+    tags: ["vulnerability", "shame", "courage", "connection"]
+  },
+  {
+    id: "gabor-mate",
+    name: "Gabor Maté",
+    category: "Therapy & Mindset",
+    categoryId: "therapy",
+    specialty: "Trauma & Addiction",
+    description: "Expert na trauma a závislosti. Autor When the Body Says No.",
+    avatar: "🩺",
+    tags: ["trauma", "addiction", "attachment", "healing"]
+  },
+  {
+    id: "esther-perel",
+    name: "Esther Perel",
+    category: "Therapy & Mindset",
+    categoryId: "therapy",
+    specialty: "Relationships",
+    description: "Terapeutka vztahů. Expertka na intimitu a nevěru.",
+    avatar: "💑",
+    tags: ["relationships", "intimacy", "desire", "infidelity"]
+  },
+  {
+    id: "viktor-frankl",
+    name: "Viktor Frankl",
+    category: "Therapy & Mindset",
+    categoryId: "therapy",
+    specialty: "Meaning & Logotherapy",
+    description: "Zakladatel logoterapie. Autor Man's Search for Meaning.",
+    avatar: "✨",
+    tags: ["meaning", "purpose", "suffering", "logotherapy"]
+  },
+  {
+    id: "albert-ellis",
+    name: "Albert Ellis",
+    category: "Therapy & Mindset",
+    categoryId: "therapy",
+    specialty: "Rational Thinking",
+    description: "Zakladatel REBT. Expert na racionální myšlení.",
+    avatar: "🎯",
+    tags: ["rational", "beliefs", "emotions", "behavior"]
+  },
+  {
+    id: "irvin-yalom",
+    name: "Irvin Yalom",
+    category: "Therapy & Mindset",
+    categoryId: "therapy",
+    specialty: "Existential Therapy",
+    description: "Existenciální terapeut. Expert na smrt, svobodu a izolaci.",
+    avatar: "🌌",
+    tags: ["existential", "death", "freedom", "meaning"]
+  },
+  {
+    id: "marshall-rosenberg",
+    name: "Marshall Rosenberg",
+    category: "Therapy & Mindset",
+    categoryId: "therapy",
+    specialty: "Nonviolent Communication",
+    description: "Tvůrce NVC. Expert na empatickou komunikaci.",
+    avatar: "🕊️",
+    tags: ["communication", "empathy", "needs", "feelings"]
+  },
+  {
+    id: "david-burns",
+    name: "David Burns",
+    category: "Therapy & Mindset",
+    categoryId: "therapy",
+    specialty: "Cognitive Therapy",
+    description: "Autor Feeling Good. Expert na kognitivní terapii deprese.",
+    avatar: "😊",
+    tags: ["depression", "anxiety", "cognitive", "distortions"]
+  },
 
-  // Leadership & Business (11)
-  { id: "musk", name: "Elon Musk", description: "First principles thinking, moonshot cíle, inovace za hranicemi možného.", category: "leadership", tags: ["inovace", "first principles", "vize"], featured: true , imageUrl: "https://files.manuscdn.com/user_upload_by_module/session_file/89740521/wBYDIwVpbWgtDYKO.png" },
-  { id: "jobs", name: "Steve Jobs", description: "Design thinking, product excellence, reality distortion field.", category: "leadership", tags: ["design", "produkt", "vize"], featured: true , imageUrl: "https://files.manuscdn.com/user_upload_by_module/session_file/89740521/UrQkDvLvnutTBkOP.png" },
-  { id: "dalio", name: "Ray Dalio", description: "Principy, radikální transparentnost, meritokracie nápadů.", category: "leadership", tags: ["principy", "transparentnost", "rozhodování"] },
-  { id: "bezos", name: "Jeff Bezos", description: "Customer obsession, Day 1 mentalita, dlouhodobé myšlení.", category: "leadership", tags: ["zákazník", "inovace", "škálování"] },
-  { id: "buffett_l", name: "Charlie Munger", description: "Mentální modely, multidisciplinární myšlení, inverze.", category: "leadership", tags: ["mentální modely", "myšlení", "moudrost"] },
-  { id: "drucker", name: "Peter Drucker", description: "Management, efektivita, knowledge worker, inovace.", category: "leadership", tags: ["management", "efektivita", "inovace"] },
-  { id: "grove", name: "Andy Grove", description: "High Output Management, OKR, strategické inflexní body.", category: "leadership", tags: ["management", "OKR", "strategie"] },
-  { id: "collins", name: "Jim Collins", description: "Good to Great, Level 5 Leadership, Flywheel Effect.", category: "leadership", tags: ["great companies", "leadership", "flywheel"] },
-  { id: "sinek", name: "Simon Sinek", description: "Start With Why, Infinite Game, inspirativní leadership.", category: "leadership", tags: ["proč", "leadership", "inspirace"] },
-  { id: "thiel", name: "Peter Thiel", description: "Zero to One, monopolní strategie, contrarian thinking.", category: "leadership", tags: ["startup", "monopol", "contrarian"] },
-  { id: "welch", name: "Jack Welch", description: "GE transformace, talent management, candor.", category: "leadership", tags: ["transformace", "talent", "upřímnost"] },
+  // LEADERSHIP (11)
+  {
+    id: "tony-robbins",
+    name: "Tony Robbins",
+    category: "Leadership",
+    categoryId: "leadership",
+    specialty: "Peak Performance",
+    description: "Světový lídr osobního rozvoje. Expert na transformaci a motivaci.",
+    avatar: "⚡",
+    tags: ["motivation", "state", "strategy", "story"]
+  },
+  {
+    id: "simon-sinek",
+    name: "Simon Sinek",
+    category: "Leadership",
+    categoryId: "leadership",
+    specialty: "Purpose & Why",
+    description: "Autor Start With Why. Expert na inspirativní leadership.",
+    avatar: "🎯",
+    tags: ["why", "purpose", "trust", "infinite game"]
+  },
+  {
+    id: "john-maxwell",
+    name: "John Maxwell",
+    category: "Leadership",
+    categoryId: "leadership",
+    specialty: "Leadership Development",
+    description: "Autor 21 Laws of Leadership. Expert na rozvoj lídrů.",
+    avatar: "📈",
+    tags: ["influence", "growth", "team", "character"]
+  },
+  {
+    id: "jocko-willink",
+    name: "Jocko Willink",
+    category: "Leadership",
+    categoryId: "leadership",
+    specialty: "Extreme Ownership",
+    description: "Bývalý Navy SEAL. Expert na disciplínu a odpovědnost.",
+    avatar: "🎖️",
+    tags: ["discipline", "ownership", "military", "decentralized"]
+  },
+  {
+    id: "brene-brown-leadership",
+    name: "Brené Brown",
+    category: "Leadership",
+    categoryId: "leadership",
+    specialty: "Brave Leadership",
+    description: "Autorka Dare to Lead. Expertka na odvážné vedení.",
+    avatar: "🦁",
+    tags: ["brave", "vulnerability", "trust", "values"]
+  },
+  {
+    id: "ray-dalio",
+    name: "Ray Dalio",
+    category: "Leadership",
+    categoryId: "leadership",
+    specialty: "Principles-Based Leadership",
+    description: "Zakladatel Bridgewater. Expert na principy a radikální transparentnost.",
+    avatar: "📊",
+    tags: ["principles", "transparency", "meritocracy", "mistakes"]
+  },
+  {
+    id: "jim-collins",
+    name: "Jim Collins",
+    category: "Leadership",
+    categoryId: "leadership",
+    specialty: "Good to Great",
+    description: "Autor Good to Great. Expert na transformaci firem.",
+    avatar: "🚀",
+    tags: ["flywheel", "hedgehog", "level 5", "discipline"]
+  },
+  {
+    id: "peter-drucker",
+    name: "Peter Drucker",
+    category: "Leadership",
+    categoryId: "leadership",
+    specialty: "Management",
+    description: "Otec moderního managementu. Expert na efektivitu.",
+    avatar: "📋",
+    tags: ["management", "effectiveness", "innovation", "knowledge"]
+  },
+  {
+    id: "stephen-covey",
+    name: "Stephen Covey",
+    category: "Leadership",
+    categoryId: "leadership",
+    specialty: "7 Habits",
+    description: "Autor 7 Habits. Expert na osobní efektivitu.",
+    avatar: "⭐",
+    tags: ["habits", "proactive", "synergy", "win-win"]
+  },
+  {
+    id: "marcus-aurelius",
+    name: "Marcus Aurelius",
+    category: "Leadership",
+    categoryId: "leadership",
+    specialty: "Stoic Leadership",
+    description: "Římský císař a filosof. Expert na stoickou moudrost.",
+    avatar: "🏛️",
+    tags: ["stoicism", "virtue", "control", "duty"]
+  },
+  {
+    id: "sun-tzu",
+    name: "Sun Tzu",
+    category: "Leadership",
+    categoryId: "leadership",
+    specialty: "Strategic Thinking",
+    description: "Autor Art of War. Expert na strategii a taktiku.",
+    avatar: "⚔️",
+    tags: ["strategy", "warfare", "deception", "terrain"]
+  },
 
-  // Wealth & Investing (11)
-  { id: "buffett", name: "Warren Buffett", description: "Value investing, compound interest, dlouhodobé investování.", category: "wealth", tags: ["value investing", "compound", "dlouhodobé"], featured: true , imageUrl: "https://files.manuscdn.com/user_upload_by_module/session_file/89740521/ifrvvwAQVecfQfsJ.png" },
-  { id: "kiyosaki", name: "Robert Kiyosaki", description: "Rich Dad Poor Dad, finanční gramotnost, pasivní příjem.", category: "wealth", tags: ["finanční gramotnost", "pasivní příjem", "aktiva"], featured: true , imageUrl: "https://files.manuscdn.com/user_upload_by_module/session_file/89740521/XmEOTmxSZCOATGTd.png" },
-  { id: "naval", name: "Naval Ravikant", description: "Wealth creation, leverage, specific knowledge, judgement.", category: "wealth", tags: ["wealth", "leverage", "znalosti"] },
-  { id: "graham", name: "Benjamin Graham", description: "Inteligentní investor, margin of safety, fundamentální analýza.", category: "wealth", tags: ["investování", "margin of safety", "analýza"] },
-  { id: "marks", name: "Howard Marks", description: "Second-level thinking, cykly, risk management.", category: "wealth", tags: ["cykly", "risk", "myšlení"] },
-  { id: "lynch", name: "Peter Lynch", description: "One Up on Wall Street, invest in what you know.", category: "wealth", tags: ["akcie", "znalosti", "růst"] },
-  { id: "taleb", name: "Nassim Taleb", description: "Antifragilita, Black Swan, risk a nejistota.", category: "wealth", tags: ["antifragilita", "risk", "nejistota"] },
-  { id: "ramsey", name: "Dave Ramsey", description: "Finanční mír, baby steps, debt-free living.", category: "wealth", tags: ["dluhy", "rozpočet", "finanční mír"] },
-  { id: "templeton", name: "John Templeton", description: "Globální investování, contrarian, optimismus.", category: "wealth", tags: ["globální", "contrarian", "optimismus"] },
-  { id: "soros", name: "George Soros", description: "Reflexivita, makro investování, spekulace.", category: "wealth", tags: ["makro", "reflexivita", "spekulace"] },
-  { id: "klarman", name: "Seth Klarman", description: "Margin of Safety, value investing, trpělivost.", category: "wealth", tags: ["value", "trpělivost", "margin of safety"] },
+  // WEALTH & FINANCE (11)
+  {
+    id: "warren-buffett",
+    name: "Warren Buffett",
+    category: "Wealth & Finance",
+    categoryId: "wealth",
+    specialty: "Value Investing",
+    description: "Oracle of Omaha. Expert na hodnotové investování.",
+    avatar: "💰",
+    tags: ["value", "compounding", "moat", "patience"]
+  },
+  {
+    id: "charlie-munger",
+    name: "Charlie Munger",
+    category: "Wealth & Finance",
+    categoryId: "wealth",
+    specialty: "Mental Models",
+    description: "Partner Warrena Buffetta. Expert na mentální modely.",
+    avatar: "🧠",
+    tags: ["mental models", "inversion", "multidisciplinary", "rationality"]
+  },
+  {
+    id: "ray-dalio-wealth",
+    name: "Ray Dalio",
+    category: "Wealth & Finance",
+    categoryId: "wealth",
+    specialty: "Macro Investing",
+    description: "Zakladatel největšího hedge fondu. Expert na ekonomické cykly.",
+    avatar: "📈",
+    tags: ["cycles", "diversification", "debt", "all-weather"]
+  },
+  {
+    id: "robert-kiyosaki",
+    name: "Robert Kiyosaki",
+    category: "Wealth & Finance",
+    categoryId: "wealth",
+    specialty: "Financial Education",
+    description: "Autor Rich Dad Poor Dad. Expert na finanční gramotnost.",
+    avatar: "🏠",
+    tags: ["assets", "liabilities", "cashflow", "real estate"]
+  },
+  {
+    id: "dave-ramsey",
+    name: "Dave Ramsey",
+    category: "Wealth & Finance",
+    categoryId: "wealth",
+    specialty: "Debt Freedom",
+    description: "Expert na oddlužení. Tvůrce Baby Steps systému.",
+    avatar: "💳",
+    tags: ["debt", "budget", "emergency fund", "snowball"]
+  },
+  {
+    id: "peter-lynch",
+    name: "Peter Lynch",
+    category: "Wealth & Finance",
+    categoryId: "wealth",
+    specialty: "Stock Picking",
+    description: "Legendární správce Magellan Fund. Expert na výběr akcií.",
+    avatar: "📊",
+    tags: ["stocks", "research", "growth", "tenbagger"]
+  },
+  {
+    id: "benjamin-graham",
+    name: "Benjamin Graham",
+    category: "Wealth & Finance",
+    categoryId: "wealth",
+    specialty: "Security Analysis",
+    description: "Otec hodnotového investování. Autor Intelligent Investor.",
+    avatar: "📚",
+    tags: ["margin of safety", "intrinsic value", "mr market", "analysis"]
+  },
+  {
+    id: "naval-ravikant",
+    name: "Naval Ravikant",
+    category: "Wealth & Finance",
+    categoryId: "wealth",
+    specialty: "Wealth Creation",
+    description: "Angel investor. Expert na leverage a specifické znalosti.",
+    avatar: "🚀",
+    tags: ["leverage", "specific knowledge", "judgment", "equity"]
+  },
+  {
+    id: "morgan-housel",
+    name: "Morgan Housel",
+    category: "Wealth & Finance",
+    categoryId: "wealth",
+    specialty: "Psychology of Money",
+    description: "Autor Psychology of Money. Expert na behaviorální finance.",
+    avatar: "🎭",
+    tags: ["behavior", "luck", "risk", "compounding"]
+  },
+  {
+    id: "ramit-sethi",
+    name: "Ramit Sethi",
+    category: "Wealth & Finance",
+    categoryId: "wealth",
+    specialty: "Personal Finance",
+    description: "Autor I Will Teach You To Be Rich. Expert na automatizaci financí.",
+    avatar: "💎",
+    tags: ["automation", "conscious spending", "negotiation", "systems"]
+  },
+  {
+    id: "george-soros",
+    name: "George Soros",
+    category: "Wealth & Finance",
+    categoryId: "wealth",
+    specialty: "Reflexivity",
+    description: "Legendární hedge fund manager. Expert na reflexivitu trhů.",
+    avatar: "🌍",
+    tags: ["reflexivity", "macro", "currencies", "boom-bust"]
+  },
 
-  // Spirituality & Wisdom (11)
-  { id: "dalailama", name: "Dalai Lama", description: "Soucit, vnitřní mír, buddhismus, mezilidské vztahy.", category: "spirituality", tags: ["soucit", "mír", "buddhismus"], featured: true , imageUrl: "https://files.manuscdn.com/user_upload_by_module/session_file/89740521/gPpgMddLvJfXnIxW.png" },
-  { id: "tolle", name: "Eckhart Tolle", description: "Moc přítomného okamžiku, ego, probuzení, vědomí.", category: "spirituality", tags: ["přítomnost", "ego", "vědomí"], featured: true , imageUrl: "https://files.manuscdn.com/user_upload_by_module/session_file/89740521/ZMoKHNxnctdKVokk.png" },
-  { id: "sharma", name: "Robin Sharma", description: "5 AM Club, Mnich který prodal své Ferrari, leadership a osobní rozvoj.", category: "spirituality", tags: ["ranní rutina", "leadership", "osobní rozvoj"] },
-  { id: "chopra", name: "Deepak Chopra", description: "Kvantové léčení, meditace, vědomí a zdraví.", category: "spirituality", tags: ["meditace", "vědomí", "zdraví"] },
-  { id: "watts", name: "Alan Watts", description: "Zen buddhismus, taoismus, západní filozofie východu.", category: "spirituality", tags: ["zen", "taoismus", "filozofie"] },
-  { id: "aurelius", name: "Marcus Aurelius", description: "Stoicismus, Meditace, vnitřní klid, povinnost.", category: "spirituality", tags: ["stoicismus", "klid", "povinnost"] },
-  { id: "buddha", name: "Buddha", description: "Osvícení, střední cesta, čtyři vznešené pravdy, meditace.", category: "spirituality", tags: ["osvícení", "meditace", "moudrost"] },
-  { id: "rumi", name: "Rumi", description: "Súfismus, láska, poezie, duchovní transformace.", category: "spirituality", tags: ["láska", "poezie", "transformace"] },
-  { id: "jesus", name: "Ježíš Kristus", description: "Láska, odpuštění, milosrdenství, duchovní transformace.", category: "spirituality", tags: ["láska", "odpuštění", "víra"] },
-  { id: "moses", name: "Mojžíš", description: "Desatero, vedení, spravedlnost, osvobození.", category: "spirituality", tags: ["spravedlnost", "vedení", "osvobození"] },
-  { id: "redfield", name: "James Redfield", description: "Celestinské proroctví, synchronicita, duchovní probuzení.", category: "spirituality", tags: ["synchronicita", "proroctví", "probuzení"] },
-  { id: "steiner", name: "Rudolf Steiner", description: "Antroposofie, duchovní věda, waldorfská pedagogika.", category: "spirituality", tags: ["antroposofie", "pedagogika", "duchovní věda"] },
-  { id: "thich", name: "Thich Nhat Hanh", description: "Mindfulness, engaged buddhismus, mír, přítomnost.", category: "spirituality", tags: ["mindfulness", "mír", "přítomnost"] },
-  { id: "coelho", name: "Paulo Coelho", description: "Alchymista, osobní legenda, následování srdce.", category: "spirituality", tags: ["legenda", "srdce", "cesta"] },
-  { id: "seneca", name: "Seneca", description: "Stoická filozofie, krátkost života, klid mysli.", category: "spirituality", tags: ["stoicismus", "čas", "klid"] },
-  { id: "osho", name: "Osho", description: "Meditace, svoboda, nekonvenční duchovní učení.", category: "spirituality", tags: ["meditace", "svoboda", "nekonvenční"] },
+  // SPIRITUALITY (11)
+  {
+    id: "eckhart-tolle",
+    name: "Eckhart Tolle",
+    category: "Spirituality",
+    categoryId: "spirituality",
+    specialty: "Presence & Now",
+    description: "Autor Power of Now. Expert na přítomný okamžik.",
+    avatar: "🧘",
+    tags: ["presence", "ego", "pain body", "consciousness"]
+  },
+  {
+    id: "dalai-lama",
+    name: "Dalai Lama",
+    category: "Spirituality",
+    categoryId: "spirituality",
+    specialty: "Compassion",
+    description: "Duchovní vůdce tibetského buddhismu. Expert na soucit.",
+    avatar: "☸️",
+    tags: ["compassion", "happiness", "peace", "wisdom"]
+  },
+  {
+    id: "thich-nhat-hanh",
+    name: "Thich Nhat Hanh",
+    category: "Spirituality",
+    categoryId: "spirituality",
+    specialty: "Mindfulness",
+    description: "Zen mistr. Expert na všímavost a meditaci.",
+    avatar: "🪷",
+    tags: ["mindfulness", "breathing", "walking", "interbeing"]
+  },
+  {
+    id: "ram-dass",
+    name: "Ram Dass",
+    category: "Spirituality",
+    categoryId: "spirituality",
+    specialty: "Be Here Now",
+    description: "Autor Be Here Now. Expert na duchovní probuzení.",
+    avatar: "🕉️",
+    tags: ["awareness", "love", "service", "guru"]
+  },
+  {
+    id: "alan-watts",
+    name: "Alan Watts",
+    category: "Spirituality",
+    categoryId: "spirituality",
+    specialty: "Eastern Philosophy",
+    description: "Filosof a interpret východní moudrosti pro Západ.",
+    avatar: "☯️",
+    tags: ["zen", "tao", "ego", "play"]
+  },
+  {
+    id: "sadhguru",
+    name: "Sadhguru",
+    category: "Spirituality",
+    categoryId: "spirituality",
+    specialty: "Inner Engineering",
+    description: "Jogín a mystik. Expert na vnitřní transformaci.",
+    avatar: "🙏",
+    tags: ["yoga", "meditation", "inner engineering", "consciousness"]
+  },
+  {
+    id: "deepak-chopra",
+    name: "Deepak Chopra",
+    category: "Spirituality",
+    categoryId: "spirituality",
+    specialty: "Mind-Body Connection",
+    description: "Expert na spojení mysli a těla. Autor mnoha bestsellerů.",
+    avatar: "✨",
+    tags: ["quantum", "healing", "meditation", "ayurveda"]
+  },
+  {
+    id: "michael-singer",
+    name: "Michael Singer",
+    category: "Spirituality",
+    categoryId: "spirituality",
+    specialty: "Untethered Soul",
+    description: "Autor Untethered Soul. Expert na vnitřní svobodu.",
+    avatar: "🦋",
+    tags: ["surrender", "witness", "energy", "freedom"]
+  },
+  {
+    id: "rupert-spira",
+    name: "Rupert Spira",
+    category: "Spirituality",
+    categoryId: "spirituality",
+    specialty: "Non-Duality",
+    description: "Učitel neduality. Expert na povahu vědomí.",
+    avatar: "💫",
+    tags: ["awareness", "non-duality", "consciousness", "presence"]
+  },
+  {
+    id: "mooji",
+    name: "Mooji",
+    category: "Spirituality",
+    categoryId: "spirituality",
+    specialty: "Self-Inquiry",
+    description: "Duchovní učitel. Expert na sebezkoumání.",
+    avatar: "🌟",
+    tags: ["self-inquiry", "being", "silence", "truth"]
+  },
+  {
+    id: "adyashanti",
+    name: "Adyashanti",
+    category: "Spirituality",
+    categoryId: "spirituality",
+    specialty: "Awakening",
+    description: "Americký duchovní učitel. Expert na probuzení.",
+    avatar: "🌅",
+    tags: ["awakening", "liberation", "truth", "embodiment"]
+  },
 
-  // Health & Biohacking (11)
-  { id: "huberman", name: "Andrew Huberman", description: "Neurověda, optimalizace spánku, dopamin, protokoly.", category: "health", tags: ["neurověda", "spánek", "protokoly"], featured: true , imageUrl: "https://files.manuscdn.com/user_upload_by_module/session_file/89740521/bGDrgvIzDutoRBxE.png" },
-  { id: "attia", name: "Peter Attia", description: "Longevity, metabolické zdraví, preventivní medicína.", category: "health", tags: ["longevity", "metabolismus", "prevence"], featured: true , imageUrl: "https://files.manuscdn.com/user_upload_by_module/session_file/89740521/seSluCayxGYIxczg.png" },
-  { id: "hof", name: "Wim Hof", description: "Ledová terapie, dechové techniky, odolnost.", category: "health", tags: ["chlad", "dech", "odolnost"] },
-  { id: "asprey", name: "Dave Asprey", description: "Bulletproof, biohacking, optimalizace výkonu.", category: "health", tags: ["biohacking", "výkon", "bulletproof"] },
-  { id: "sinclair", name: "David Sinclair", description: "Anti-aging, sirtuiny, NAD+, longevity výzkum.", category: "health", tags: ["anti-aging", "sirtuiny", "longevity"] },
-  { id: "walker", name: "Matthew Walker", description: "Spánek, Why We Sleep, spánková hygiena.", category: "health", tags: ["spánek", "hygiena", "zdraví"] },
-  { id: "rhonda", name: "Rhonda Patrick", description: "Nutrigenomika, sauna, mikronutrienty.", category: "health", tags: ["nutrigenomika", "sauna", "výživa"] },
-  { id: "greger", name: "Michael Greger", description: "How Not to Die, plant-based výživa, prevence.", category: "health", tags: ["výživa", "prevence", "rostlinná strava"] },
-  { id: "perlmutter", name: "David Perlmutter", description: "Grain Brain, střevní mikrobiom, mozek a strava.", category: "health", tags: ["mozek", "mikrobiom", "strava"] },
-  { id: "fung", name: "Jason Fung", description: "Intermittent fasting, inzulínová rezistence, metabolismus.", category: "health", tags: ["fasting", "inzulín", "metabolismus"] },
-  { id: "mercola", name: "Joseph Mercola", description: "Alternativní medicína, mitochondrie, metabolické zdraví.", category: "health", tags: ["alternativní", "mitochondrie", "zdraví"] },
+  // HEALTH & WELLNESS (11)
+  {
+    id: "andrew-huberman",
+    name: "Andrew Huberman",
+    category: "Health & Wellness",
+    categoryId: "health",
+    specialty: "Neuroscience",
+    description: "Neurovědec ze Stanfordu. Expert na optimalizaci mozku.",
+    avatar: "🔬",
+    tags: ["neuroscience", "sleep", "focus", "dopamine"]
+  },
+  {
+    id: "peter-attia",
+    name: "Peter Attia",
+    category: "Health & Wellness",
+    categoryId: "health",
+    specialty: "Longevity",
+    description: "Lékař zaměřený na dlouhověkost. Expert na metabolické zdraví.",
+    avatar: "⏳",
+    tags: ["longevity", "metabolic", "exercise", "nutrition"]
+  },
+  {
+    id: "david-sinclair",
+    name: "David Sinclair",
+    category: "Health & Wellness",
+    categoryId: "health",
+    specialty: "Anti-Aging",
+    description: "Harvardský profesor. Expert na biologii stárnutí.",
+    avatar: "🧬",
+    tags: ["aging", "sirtuins", "nad", "epigenetics"]
+  },
+  {
+    id: "rhonda-patrick",
+    name: "Rhonda Patrick",
+    category: "Health & Wellness",
+    categoryId: "health",
+    specialty: "Nutrition Science",
+    description: "Biomedical scientist. Expertka na nutriční vědu.",
+    avatar: "🥗",
+    tags: ["nutrition", "micronutrients", "sauna", "cold"]
+  },
+  {
+    id: "wim-hof",
+    name: "Wim Hof",
+    category: "Health & Wellness",
+    categoryId: "health",
+    specialty: "Cold & Breathing",
+    description: "The Iceman. Expert na dechové techniky a otužování.",
+    avatar: "❄️",
+    tags: ["cold", "breathing", "immune", "mindset"]
+  },
+  {
+    id: "ben-greenfield",
+    name: "Ben Greenfield",
+    category: "Health & Wellness",
+    categoryId: "health",
+    specialty: "Biohacking",
+    description: "Biohacker a fitness expert. Specialista na optimalizaci výkonu.",
+    avatar: "🏃",
+    tags: ["biohacking", "fitness", "supplements", "recovery"]
+  },
+  {
+    id: "mark-hyman",
+    name: "Mark Hyman",
+    category: "Health & Wellness",
+    categoryId: "health",
+    specialty: "Functional Medicine",
+    description: "Průkopník funkční medicíny. Expert na root cause přístup.",
+    avatar: "🩺",
+    tags: ["functional", "gut", "inflammation", "detox"]
+  },
+  {
+    id: "matthew-walker",
+    name: "Matthew Walker",
+    category: "Health & Wellness",
+    categoryId: "health",
+    specialty: "Sleep Science",
+    description: "Autor Why We Sleep. Expert na vědu o spánku.",
+    avatar: "😴",
+    tags: ["sleep", "dreams", "circadian", "memory"]
+  },
+  {
+    id: "jason-fung",
+    name: "Jason Fung",
+    category: "Health & Wellness",
+    categoryId: "health",
+    specialty: "Fasting",
+    description: "Nefrolog. Expert na intermitentní půst a diabetes.",
+    avatar: "⏰",
+    tags: ["fasting", "insulin", "diabetes", "obesity"]
+  },
+  {
+    id: "david-goggins",
+    name: "David Goggins",
+    category: "Health & Wellness",
+    categoryId: "health",
+    specialty: "Mental Toughness",
+    description: "Ultra-maratonec a Navy SEAL. Expert na mentální odolnost.",
+    avatar: "🔥",
+    tags: ["discipline", "suffering", "callusing", "accountability"]
+  },
+  {
+    id: "kelly-starrett",
+    name: "Kelly Starrett",
+    category: "Health & Wellness",
+    categoryId: "health",
+    specialty: "Mobility",
+    description: "Fyzioterapeut. Expert na mobilitu a prevenci zranění.",
+    avatar: "🤸",
+    tags: ["mobility", "movement", "pain", "performance"]
+  },
 
-  // Creativity & Productivity (11)
-  { id: "brucelee", name: "Bruce Lee", description: "Bojová umění, filozofie, být jako voda, osobní růst.", category: "health", tags: ["bojová umění", "filozofie", "disciplína"] },
-  { id: "goggins", name: "David Goggins", description: "Mentální tvrdost, 40% pravidlo, překonávání limitů.", category: "creativity", tags: ["tvrdost", "limity", "disciplína"], featured: true , imageUrl: "https://files.manuscdn.com/user_upload_by_module/session_file/89740521/AhciEZJrFeLpMaPV.png" },
-  { id: "holiday", name: "Ryan Holiday", description: "Stoicismus v praxi, Obstacle is the Way, Daily Stoic.", category: "creativity", tags: ["stoicismus", "překážky", "disciplína"] },
-  { id: "ferriss", name: "Tim Ferriss", description: "4-Hour Work Week, lifestyle design, experimenty.", category: "creativity", tags: ["produktivita", "lifestyle", "experimenty"], featured: true , imageUrl: "https://files.manuscdn.com/user_upload_by_module/session_file/89740521/WkCtjoikTnOdlilq.png" },
-  { id: "newport", name: "Cal Newport", description: "Deep Work, Digital Minimalism, soustředěná práce.", category: "creativity", tags: ["deep work", "soustředění", "minimalismus"] },
-  { id: "clear", name: "James Clear", description: "Atomic Habits, systémy vs cíle, 1% zlepšení.", category: "creativity", tags: ["návyky", "systémy", "zlepšení"] },
-  { id: "pressfield", name: "Steven Pressfield", description: "War of Art, Resistance, profesionální přístup.", category: "creativity", tags: ["odpor", "kreativita", "profesionalismus"] },
-  { id: "csikszentmihalyi", name: "Mihaly Csikszentmihalyi", description: "Flow, optimální prožitek, kreativita.", category: "creativity", tags: ["flow", "prožitek", "kreativita"] },
-  { id: "allen", name: "David Allen", description: "Getting Things Done, organizace, stress-free produktivita.", category: "creativity", tags: ["GTD", "organizace", "produktivita"] },
-  { id: "covey", name: "Stephen Covey", description: "7 návyků, proaktivita, principy efektivity.", category: "creativity", tags: ["návyky", "proaktivita", "efektivita"] },
-  { id: "duckworth", name: "Angela Duckworth", description: "Grit, vytrvalost, vášeň a dlouhodobé cíle.", category: "creativity", tags: ["grit", "vytrvalost", "vášeň"] },
-  { id: "kahneman", name: "Daniel Kahneman", description: "Thinking Fast and Slow, kognitivní zkreslení, rozhodování.", category: "creativity", tags: ["myšlení", "zkreslení", "rozhodování"] },
-  { id: "davinci", name: "Leonardo da Vinci", description: "Renesanční génius, kreativita, věda a umění, zvídavost.", category: "creativity", tags: ["génius", "umění", "věda"] },
-  { id: "goethe", name: "Johann Wolfgang von Goethe", description: "Faust, romantismus, univerzální génius, příroda a umění.", category: "creativity", tags: ["literatura", "filozofie", "umění"] },
-  { id: "kafka", name: "Franz Kafka", description: "Existencialismus, absurdita, metamorfóza, introspekce.", category: "creativity", tags: ["existencialismus", "literatura", "introspekce"] },
+  // CREATIVITY (11)
+  {
+    id: "seth-godin",
+    name: "Seth Godin",
+    category: "Creativity",
+    categoryId: "creativity",
+    specialty: "Marketing & Ideas",
+    description: "Marketing guru. Expert na šíření nápadů a Purple Cow.",
+    avatar: "💡",
+    tags: ["marketing", "tribes", "permission", "remarkable"]
+  },
+  {
+    id: "steven-pressfield",
+    name: "Steven Pressfield",
+    category: "Creativity",
+    categoryId: "creativity",
+    specialty: "Overcoming Resistance",
+    description: "Autor War of Art. Expert na překonávání odporu.",
+    avatar: "⚔️",
+    tags: ["resistance", "muse", "professional", "creativity"]
+  },
+  {
+    id: "austin-kleon",
+    name: "Austin Kleon",
+    category: "Creativity",
+    categoryId: "creativity",
+    specialty: "Creative Stealing",
+    description: "Autor Steal Like an Artist. Expert na kreativní proces.",
+    avatar: "🎨",
+    tags: ["stealing", "remix", "show work", "creativity"]
+  },
+  {
+    id: "james-clear",
+    name: "James Clear",
+    category: "Creativity",
+    categoryId: "creativity",
+    specialty: "Atomic Habits",
+    description: "Autor Atomic Habits. Expert na budování návyků.",
+    avatar: "⚛️",
+    tags: ["habits", "systems", "identity", "improvement"]
+  },
+  {
+    id: "tim-ferriss",
+    name: "Tim Ferriss",
+    category: "Creativity",
+    categoryId: "creativity",
+    specialty: "Lifestyle Design",
+    description: "Autor 4-Hour Work Week. Expert na životní design.",
+    avatar: "🎯",
+    tags: ["lifestyle", "learning", "experiments", "optimization"]
+  },
+  {
+    id: "elizabeth-gilbert",
+    name: "Elizabeth Gilbert",
+    category: "Creativity",
+    categoryId: "creativity",
+    specialty: "Big Magic",
+    description: "Autorka Eat Pray Love. Expertka na kreativní život.",
+    avatar: "✨",
+    tags: ["creativity", "curiosity", "fear", "passion"]
+  },
+  {
+    id: "rick-rubin",
+    name: "Rick Rubin",
+    category: "Creativity",
+    categoryId: "creativity",
+    specialty: "Creative Act",
+    description: "Legendární producent. Expert na kreativní proces.",
+    avatar: "🎵",
+    tags: ["music", "awareness", "source", "craft"]
+  },
+  {
+    id: "david-lynch",
+    name: "David Lynch",
+    category: "Creativity",
+    categoryId: "creativity",
+    specialty: "Catching Ideas",
+    description: "Filmový režisér. Expert na meditaci a kreativitu.",
+    avatar: "🎬",
+    tags: ["meditation", "ideas", "intuition", "art"]
+  },
+  {
+    id: "julia-cameron",
+    name: "Julia Cameron",
+    category: "Creativity",
+    categoryId: "creativity",
+    specialty: "Artist's Way",
+    description: "Autorka Artist's Way. Expertka na kreativní obnovu.",
+    avatar: "📝",
+    tags: ["morning pages", "artist date", "blocks", "recovery"]
+  },
+  {
+    id: "csikszentmihalyi",
+    name: "Mihaly Csikszentmihalyi",
+    category: "Creativity",
+    categoryId: "creativity",
+    specialty: "Flow State",
+    description: "Otec konceptu Flow. Expert na optimální prožívání.",
+    avatar: "🌊",
+    tags: ["flow", "creativity", "happiness", "engagement"]
+  },
+  {
+    id: "brene-brown-creativity",
+    name: "Brené Brown",
+    category: "Creativity",
+    categoryId: "creativity",
+    specialty: "Creative Courage",
+    description: "Expertka na zranitelnost v kreativním procesu.",
+    avatar: "❤️",
+    tags: ["vulnerability", "shame", "creativity", "courage"]
+  }
 ];
 
-export function getIBotsByCategory(categoryId: string): IBot[] {
-  return ibots.filter(bot => bot.category === categoryId);
-}
+export const getIBotsByCategory = (categoryId: string): IBot[] => {
+  return ibots.filter(bot => bot.categoryId === categoryId);
+};
 
-export function getFeaturedIBot(): IBot | undefined {
-  return ibots.find(bot => bot.featured);
-}
+export const getIBotById = (id: string): IBot | undefined => {
+  return ibots.find(bot => bot.id === id);
+};
+
+export const searchIBots = (query: string): IBot[] => {
+  const lowercaseQuery = query.toLowerCase();
+  return ibots.filter(bot => 
+    bot.name.toLowerCase().includes(lowercaseQuery) ||
+    bot.specialty.toLowerCase().includes(lowercaseQuery) ||
+    bot.tags.some(tag => tag.toLowerCase().includes(lowercaseQuery))
+  );
+};

@@ -1,185 +1,221 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+/**
+ * Exit Intent Popup — Personalized based on user behavior
+ *
+ * Synthesis: Detects which section user scrolled to and shows
+ * the most relevant offer at the moment of exit.
+ *
+ * Variants:
+ * - Viewed pricing  → Urgency offer ("50% sleva jen dnes")
+ * - Viewed catalog  → Bot recommendation ("Váš AI expert čeká")
+ * - Default         → FREE guide offer
+ */
+import { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, Zap, ArrowRight, Gift, Brain, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Gift, Zap, Crown, ArrowRight } from "lucide-react";
-import { getUserCTAVariant } from "@/lib/ctaAbTest";
-import { useI18n } from "@/lib/i18n";
+import { Input } from "@/components/ui/input";
+import { trpc } from "@/lib/trpc";
+import { toast } from "sonner";
 
-type ExitIntentPopupProps = {
-  onRegister: (plan: "free" | "gold" | "diamond", source: string) => void;
-};
+interface ExitIntentPopupProps {
+  onCTAClick: () => void;
+}
 
-type PopupVariant = {
-  titleCs: string;
-  titleEn: string;
-  subtitleCs: string;
-  subtitleEn: string;
-  offerCs: string;
-  offerEn: string;
-  ctaCs: string;
-  ctaEn: string;
-  dismissCs: string;
-  dismissEn: string;
-  plan: "free" | "gold" | "diamond";
-  icon: React.ElementType;
-  gradient: string;
-};
+const SESSION_KEY = "ibot_exit_popup_shown";
+type PopupVariant = "pricing" | "catalog" | "default";
 
-const POPUP_VARIANTS: Record<string, PopupVariant> = {
-  variant_a: {
-    titleCs: "Počkejte! Máme pro vás speciální nabídku",
-    titleEn: "Wait! We have a special offer for you",
-    subtitleCs: "Vyzkoušejte si AI chatboty, kteří prodávají za vás — zdarma a bez závazků.",
-    subtitleEn: "Try AI chatbots that sell for you — free and with no strings attached.",
-    offerCs: "3 iBoti ZDARMA na 30 dní",
-    offerEn: "3 iBots FREE for 30 days",
-    ctaCs: "Získat zdarma",
-    ctaEn: "Get it free",
-    dismissCs: "Ne, děkuji — nechci zvýšit své tržby",
-    dismissEn: "No thanks — I don't want to increase my revenue",
-    plan: "free",
-    icon: Gift,
-    gradient: "from-amber-500 to-amber-600",
+const CONTENT = {
+  pricing: {
+    icon: <TrendingUp className="w-7 h-7 text-[#D4AF37]" />,
+    badge: "Jen dnes",
+    badgeColor: "#D4AF37",
+    headline: "Speciální nabídka jen pro vás",
+    sub: "Viděli jste naše plány. Zaregistrujte se nyní a získejte první měsíc GOLD za 490 Kč místo 990 Kč.",
+    cta: "Získat 50% slevu",
+    ctaColor: "from-[#D4AF37] to-[#F5D77A]",
+    source: "exit_intent_pricing",
   },
-  variant_b: {
-    titleCs: "Nechte si ujít +327% ROI?",
-    titleEn: "Walk away from +327% ROI?",
-    subtitleCs: "Firmy, které nasadily iBoty, zvýšily své tržby průměrně o 42 %. Začněte ještě dnes.",
-    subtitleEn: "Companies that deployed iBots increased their revenue by an average of 42%. Start today.",
-    offerCs: "Exkluzivní přístup k 88 AI osobnostem",
-    offerEn: "Exclusive access to 88 AI personalities",
-    ctaCs: "Chci vyšší tržby",
-    ctaEn: "I want higher revenue",
-    dismissCs: "Ne, děkuji — nechci zvýšit své tržby",
-    dismissEn: "No thanks — I don't want to increase my revenue",
-    plan: "free",
-    icon: Zap,
-    gradient: "from-amber-500 to-amber-600",
+  catalog: {
+    icon: <Brain className="w-7 h-7 text-purple-400" />,
+    badge: "Žádná kreditní karta",
+    badgeColor: "#A855F7",
+    headline: "Váš osobní AI expert čeká",
+    sub: "Procházeli jste naše iBoty. Vyzkoušejte 3 z nich ZDARMA — bez závazků, bez kreditní karty.",
+    cta: "Vyzkoušet zdarma",
+    ctaColor: "from-purple-500 to-purple-400",
+    source: "exit_intent_catalog",
   },
-  variant_c: {
-    titleCs: "Speciální nabídka jen pro vás",
-    titleEn: "Special offer just for you",
-    subtitleCs: "Jako poděkování za váš zájem vám nabízíme rozšířený zkušební přístup.",
-    subtitleEn: "As a thank you for your interest, we're offering you extended trial access.",
-    offerCs: "14 dní GOLD plánu zdarma",
-    offerEn: "14 days of GOLD plan free",
-    ctaCs: "Aktivovat GOLD trial",
-    ctaEn: "Activate GOLD trial",
-    dismissCs: "Ne, děkuji — nechci zvýšit své tržby",
-    dismissEn: "No thanks — I don't want to increase my revenue",
-    plan: "gold",
-    icon: Crown,
-    gradient: "from-amber-500 to-amber-600",
+  default: {
+    icon: <Gift className="w-7 h-7 text-[#D4AF37]" />,
+    badge: "Zdarma",
+    badgeColor: "#10B981",
+    headline: "Počkejte! Máme pro vás dárek",
+    sub: "Stáhněte si průvodce '7 AI strategií pro 2x vyšší příjem' — používaný 2 400+ podnikateli.",
+    cta: "Poslat průvodce zdarma",
+    ctaColor: "from-[#D4AF37] to-[#F5D77A]",
+    source: "exit_intent_default",
   },
 };
 
-const COOLDOWN_KEY = "bothub_exit_popup_last";
-const COOLDOWN_MS = 24 * 60 * 60 * 1000;
-const DISPLAY_DURATION = 15000;
+export default function ExitIntentPopup({ onCTAClick }: ExitIntentPopupProps) {
+  const [isVisible, setIsVisible] = useState(false);
+  const [email, setEmail] = useState("");
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [variant, setVariant] = useState<PopupVariant>("default");
 
-export function ExitIntentPopup({ onRegister }: ExitIntentPopupProps) {
-  const { locale } = useI18n();
-  const [open, setOpen] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const subscribeMutation = trpc.email.subscribe.useMutation({
+    onSuccess: () => {
+      setIsSubmitted(true);
+      toast.success("Odesláno!", { description: "Zkontrolujte svůj email za pár minut." });
+      setTimeout(() => setIsVisible(false), 2500);
+    },
+  });
 
-  const ctaVariant = getUserCTAVariant();
-  const variant = POPUP_VARIANTS[ctaVariant] ?? POPUP_VARIANTS.variant_a!;
-
-  const l = (field: string) => locale === "en" ? (variant as any)[`${field}En`] : (variant as any)[`${field}Cs`];
-
-  const isOnCooldown = useCallback(() => {
-    const last = localStorage.getItem(COOLDOWN_KEY);
-    if (!last) return false;
-    return Date.now() - Number(last) < COOLDOWN_MS;
+  const detectVariant = useCallback((): PopupVariant => {
+    const vh = window.innerHeight;
+    const pricingEl = document.getElementById("cenik");
+    const catalogEl = document.getElementById("katalog");
+    if (pricingEl && pricingEl.getBoundingClientRect().top < vh * 3) return "pricing";
+    if (catalogEl && catalogEl.getBoundingClientRect().top < vh * 3) return "catalog";
+    return "default";
   }, []);
 
-  const setCooldown = useCallback(() => {
-    localStorage.setItem(COOLDOWN_KEY, String(Date.now()));
-  }, []);
-
-  const showPopup = useCallback(() => {
-    if (dismissed || open || isOnCooldown()) return;
-    if (localStorage.getItem("ibots_registered") === "true") return;
-    setOpen(true);
-    setCooldown();
-    timerRef.current = setTimeout(() => { setOpen(false); }, DISPLAY_DURATION);
-  }, [dismissed, open, isOnCooldown, setCooldown]);
+  const handleExitIntent = useCallback(
+    (e: MouseEvent) => {
+      if (e.clientY < window.innerHeight * 0.08) {
+        if (!sessionStorage.getItem(SESSION_KEY)) {
+          setVariant(detectVariant());
+          setIsVisible(true);
+          sessionStorage.setItem(SESSION_KEY, "1");
+          document.removeEventListener("mousemove", handleExitIntent);
+        }
+      }
+    },
+    [detectVariant]
+  );
 
   useEffect(() => {
-    if (window.location.pathname.startsWith("/admin")) return;
-    const handleMouseLeave = (e: MouseEvent) => { if (e.clientY <= 0) showPopup(); };
-    let lastScrollY = window.scrollY;
-    let scrollUpCount = 0;
-    const handleScroll = () => {
-      const currentY = window.scrollY;
-      if (currentY < lastScrollY && lastScrollY - currentY > 100) {
-        scrollUpCount++;
-        if (scrollUpCount >= 2) { showPopup(); scrollUpCount = 0; }
-      } else { scrollUpCount = 0; }
-      lastScrollY = currentY;
-    };
-    const initTimer = setTimeout(() => {
-      document.addEventListener("mouseleave", handleMouseLeave);
-      window.addEventListener("scroll", handleScroll, { passive: true });
-    }, 5000);
-    return () => {
-      clearTimeout(initTimer);
-      document.removeEventListener("mouseleave", handleMouseLeave);
-      window.removeEventListener("scroll", handleScroll);
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, [showPopup]);
+    if (window.innerWidth > 768) {
+      const timer = setTimeout(() => {
+        document.addEventListener("mousemove", handleExitIntent);
+      }, 8000);
+      return () => {
+        clearTimeout(timer);
+        document.removeEventListener("mousemove", handleExitIntent);
+      };
+    }
+  }, [handleExitIntent]);
 
-  const handleDismiss = () => {
-    setOpen(false);
-    setDismissed(true);
-    if (timerRef.current) clearTimeout(timerRef.current);
+  const c = CONTENT[variant];
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim() || !email.includes("@")) return;
+    subscribeMutation.mutate({ email, source: c.source });
   };
-
-  const handleCTA = () => {
-    setOpen(false);
-    setDismissed(true);
-    if (timerRef.current) clearTimeout(timerRef.current);
-    onRegister(variant.plan, "exit_intent_popup");
-  };
-
-  const IconComponent = variant.icon;
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) handleDismiss(); }}>
-      <DialogContent className="bg-[#111118] border border-white/10 text-white max-w-md p-0 overflow-hidden gap-0">
-        <div className={`h-1 bg-gradient-to-r ${variant.gradient}`} />
-        <div className="p-6">
-          <DialogHeader className="mb-4">
-            <div className="flex items-center justify-center mb-4">
-              <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${variant.gradient} flex items-center justify-center`}>
-                <IconComponent className="w-8 h-8 text-black" />
+    <AnimatePresence>
+      {isVisible && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsVisible(false)}
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60]"
+          />
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: -20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: -20 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[61] w-full max-w-md mx-4"
+          >
+            <div className="bg-[#0A0A0F] border border-[#D4AF37]/30 rounded-2xl overflow-hidden shadow-2xl">
+              {/* Header */}
+              <div className="bg-gradient-to-r from-[#D4AF37]/20 to-[#8B7355]/20 p-6 text-center relative">
+                <button
+                  onClick={() => setIsVisible(false)}
+                  className="absolute top-3 right-3 p-1.5 text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-white/10"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+                {/* Badge */}
+                <span
+                  className="inline-block text-xs font-bold px-3 py-1 rounded-full mb-3"
+                  style={{ backgroundColor: `${c.badgeColor}20`, color: c.badgeColor }}
+                >
+                  {c.badge}
+                </span>
+                <div className="w-14 h-14 rounded-2xl bg-[#D4AF37]/10 flex items-center justify-center mx-auto mb-3">
+                  {c.icon}
+                </div>
+                <h2 className="text-xl font-bold text-white mb-1">{c.headline}</h2>
+                <p className="text-gray-400 text-sm">{c.sub}</p>
+              </div>
+
+              {/* Body */}
+              <div className="p-6">
+                {isSubmitted ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-center py-4"
+                  >
+                    <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-3">
+                      <Zap className="w-6 h-6 text-green-400" />
+                    </div>
+                    <p className="text-white font-semibold">Odesláno!</p>
+                    <p className="text-gray-400 text-sm mt-1">Zkontrolujte svůj email.</p>
+                  </motion.div>
+                ) : (
+                  <>
+                    <div className="bg-[#1A1A1F] rounded-xl p-4 mb-4">
+                      <ul className="text-gray-400 text-xs space-y-1.5">
+                        <li>✓ Konkrétní strategie pro zvýšení konverzí</li>
+                        <li>✓ Případové studie s reálnými čísly</li>
+                        <li>✓ Šablony pro implementaci</li>
+                        <li>✓ Přístup ke 3 iBotům ZDARMA</li>
+                      </ul>
+                    </div>
+
+                    <form onSubmit={handleSubmit} className="space-y-3">
+                      <Input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="váš@email.cz"
+                        className="bg-[#1A1A1F] border-[#2A2A2F] focus:border-[#D4AF37] text-white"
+                        required
+                      />
+                      <Button
+                        type="submit"
+                        className={`w-full bg-gradient-to-r ${c.ctaColor} text-[#0A0A0F] font-semibold hover:opacity-90`}
+                        disabled={subscribeMutation.isPending}
+                      >
+                        {subscribeMutation.isPending ? "Odesílám..." : (
+                          <>{c.cta} <ArrowRight className="w-4 h-4 ml-2" /></>
+                        )}
+                      </Button>
+                    </form>
+
+                    <div className="mt-4 text-center">
+                      <button
+                        onClick={() => { onCTAClick(); setIsVisible(false); }}
+                        className="text-xs text-gray-500 hover:text-[#D4AF37] transition-colors"
+                      >
+                        Nebo začněte rovnou s FREE plánem →
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
-            <DialogTitle className="font-[Space_Grotesk] text-xl font-bold text-center text-white leading-tight">
-              {l("title")}
-            </DialogTitle>
-          </DialogHeader>
-          <p className="text-gray-400 text-sm text-center mb-6 leading-relaxed">{l("subtitle")}</p>
-          <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-4 text-center mb-6">
-            <p className="text-amber-400 font-semibold text-sm">{l("offer")}</p>
-          </div>
-          <Button
-            onClick={handleCTA}
-            className={`w-full bg-gradient-to-r ${variant.gradient} hover:opacity-90 text-black font-bold py-6 text-base`}
-          >
-            {l("cta")}
-            <ArrowRight className="w-4 h-4 ml-2" />
-          </Button>
-          <button
-            onClick={handleDismiss}
-            className="w-full text-center text-xs text-gray-600 hover:text-gray-400 mt-4 transition-colors"
-          >
-            {l("dismiss")}
-          </button>
-        </div>
-      </DialogContent>
-    </Dialog>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 }

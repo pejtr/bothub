@@ -1,124 +1,74 @@
-import { Heart } from "lucide-react";
-import { Button } from "./ui/button";
+import { Heart, Loader2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
 import { toast } from "sonner";
-import { useI18n } from "@/lib/i18n";
 
-interface WishlistButtonProps {
+type Props = {
   ibotId: string;
-  ibotName: string;
-  variant?: "default" | "icon";
+  /** "icon" = bare heart overlay (catalog cards), "button" = labeled button (detail) */
+  variant?: "icon" | "button";
   className?: string;
-}
+};
 
-export function WishlistButton({ ibotId, ibotName, variant = "default", className }: WishlistButtonProps) {
-  const { user } = useAuth();
-  const { t } = useI18n();
+/**
+ * Heart toggle to add/remove an iBot from the user's wishlist.
+ * No-op (hidden) for unauthenticated visitors.
+ */
+export function WishlistButton({ ibotId, variant = "icon", className }: Props) {
+  const { isAuthenticated } = useAuth();
   const utils = trpc.useUtils();
 
-  // Check if in wishlist
-  const { data: isInWishlist } = trpc.wishlist.isInWishlist.useQuery(
+  const inWishlist = trpc.wishlist.isInWishlist.useQuery(
     { ibotId },
-    { enabled: !!user }
+    { enabled: isAuthenticated }
   );
-
-  // Add to wishlist mutation
-  const addMutation = trpc.wishlist.add.useMutation({
-    onMutate: async () => {
-      // Optimistic update
-      await utils.wishlist.isInWishlist.cancel({ ibotId });
-      const previous = utils.wishlist.isInWishlist.getData({ ibotId });
-      utils.wishlist.isInWishlist.setData({ ibotId }, true);
-      return { previous };
-    },
-    onError: (err, variables, context) => {
-      // Rollback on error
-      if (context?.previous !== undefined) {
-        utils.wishlist.isInWishlist.setData({ ibotId }, context.previous);
-      }
-      toast.error(t("wishlist.addError"));
-    },
-    onSuccess: () => {
-      utils.wishlist.count.invalidate();
-      utils.wishlist.list.invalidate();
-      toast.success(t("wishlist.added", { name: ibotName }));
-    },
+  const add = trpc.wishlist.add.useMutation({
+    onSuccess: () => { utils.wishlist.invalidate(); toast.success("Přidáno do oblíbených"); },
+  });
+  const remove = trpc.wishlist.remove.useMutation({
+    onSuccess: () => { utils.wishlist.invalidate(); },
   });
 
-  // Remove from wishlist mutation
-  const removeMutation = trpc.wishlist.remove.useMutation({
-    onMutate: async () => {
-      // Optimistic update
-      await utils.wishlist.isInWishlist.cancel({ ibotId });
-      const previous = utils.wishlist.isInWishlist.getData({ ibotId });
-      utils.wishlist.isInWishlist.setData({ ibotId }, false);
-      return { previous };
-    },
-    onError: (err, variables, context) => {
-      // Rollback on error
-      if (context?.previous !== undefined) {
-        utils.wishlist.isInWishlist.setData({ ibotId }, context.previous);
-      }
-      toast.error(t("wishlist.removeError"));
-    },
-    onSuccess: () => {
-      utils.wishlist.count.invalidate();
-      utils.wishlist.list.invalidate();
-      toast.success(t("wishlist.removed", { name: ibotName }));
-    },
-  });
+  if (!isAuthenticated) return null;
 
-  const handleClick = () => {
-    if (!user) {
-      window.location.href = getLoginUrl();
-      return;
-    }
+  const active = inWishlist.data === true;
+  const busy = add.isPending || remove.isPending || inWishlist.isLoading;
 
-    if (isInWishlist) {
-      removeMutation.mutate({ ibotId });
-    } else {
-      addMutation.mutate({ ibotId });
-    }
+  const toggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (busy) return;
+    if (active) remove.mutate({ ibotId });
+    else add.mutate({ ibotId });
   };
 
-  const isLoading = addMutation.isPending || removeMutation.isPending;
-
-  if (variant === "icon") {
+  if (variant === "button") {
     return (
       <button
-        onClick={handleClick}
-        disabled={isLoading}
-        className={`p-2 rounded-full transition-all hover:scale-110 ${
-          isInWishlist
-            ? "text-amber-500 hover:text-amber-600"
-            : "text-gray-400 hover:text-amber-500"
-        } ${isLoading ? "opacity-50 cursor-not-allowed" : ""} ${className || ""}`}
-        aria-label={isInWishlist ? t("wishlist.removeFromWishlist") : t("wishlist.addToWishlist")}
+        onClick={toggle}
+        disabled={busy}
+        className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl border transition-all ${
+          active
+            ? "bg-[#D4AF37]/15 border-[#D4AF37]/40 text-[#D4AF37]"
+            : "bg-white/5 border-white/10 text-gray-300 hover:border-[#D4AF37]/30"
+        } ${className ?? ""}`}
       >
-        <Heart
-          className="w-5 h-5"
-          fill={isInWishlist ? "currentColor" : "none"}
-          strokeWidth={2}
-        />
+        {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Heart className={`w-4 h-4 ${active ? "fill-current" : ""}`} />}
+        {active ? "V oblíbených" : "Přidat do oblíbených"}
       </button>
     );
   }
 
   return (
-    <Button
-      onClick={handleClick}
-      disabled={isLoading}
-      variant={isInWishlist ? "default" : "outline"}
-      className={`gap-2 ${className || ""}`}
+    <button
+      onClick={toggle}
+      disabled={busy}
+      aria-label={active ? "Odebrat z oblíbených" : "Přidat do oblíbených"}
+      className={`w-9 h-9 rounded-full flex items-center justify-center backdrop-blur transition-all ${
+        active ? "bg-[#D4AF37]/20 text-[#D4AF37]" : "bg-black/30 text-gray-300 hover:text-[#D4AF37]"
+      } ${className ?? ""}`}
     >
-      <Heart
-        className="w-4 h-4"
-        fill={isInWishlist ? "currentColor" : "none"}
-        strokeWidth={2}
-      />
-      {isInWishlist ? t("wishlist.inWishlist") : t("wishlist.addToWishlist")}
-    </Button>
+      {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Heart className={`w-4 h-4 ${active ? "fill-current" : ""}`} />}
+    </button>
   );
 }

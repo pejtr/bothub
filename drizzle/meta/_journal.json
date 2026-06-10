@@ -5,50 +5,43 @@
     {
       "idx": 0,
       "version": "5",
-      "when": 1770480497484,
-      "tag": "0000_cold_slapstick",
+      "when": 1770518110982,
+      "tag": "0000_crazy_swordsman",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "5",
-      "when": 1770480650029,
-      "tag": "0001_overjoyed_venom",
+      "when": 1770518852556,
+      "tag": "0001_solid_omega_flight",
       "breakpoints": true
     },
     {
       "idx": 2,
       "version": "5",
-      "when": 1770485195280,
-      "tag": "0002_solid_cobalt_man",
+      "when": 1770519352752,
+      "tag": "0002_sudden_cyclops",
       "breakpoints": true
     },
     {
       "idx": 3,
       "version": "5",
-      "when": 1770494015059,
-      "tag": "0003_heavy_blob",
+      "when": 1771318841466,
+      "tag": "0003_salty_captain_britain",
       "breakpoints": true
     },
     {
       "idx": 4,
       "version": "5",
-      "when": 1770519563560,
-      "tag": "0004_curly_sentinels",
+      "when": 1775969267733,
+      "tag": "0004_familiar_gamma_corps",
       "breakpoints": true
     },
     {
       "idx": 5,
       "version": "5",
-      "when": 1771319110987,
-      "tag": "0005_powerful_chat",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "5",
-      "when": 1771343645542,
-      "tag": "0006_cynical_mister_fear",
+      "when": 1781034007073,
+      "tag": "0005_kind_wong",
       "breakpoints": true
     }
   ]
